@@ -19,3 +19,4 @@ resources:
   - ./backube.yaml
   - ./rook-ceph.yaml
   - ./tailscale-charts.yaml
+  - ./crunchydata.yaml
