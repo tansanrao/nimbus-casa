@@ -18,3 +18,4 @@ resources:
   - ./piraeus.yaml
   - ./backube.yaml
   - ./rook-ceph.yaml
+  - ./tailscale-charts.yaml
