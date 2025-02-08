@@ -152,23 +152,3 @@ spec:
             memory: 64M
           limits:
             memory: 512M
-
-  proxy:
-    pgBouncer:
-      port: 5432
-      replicas: *replica
-      metadata:
-        labels:
-          app.kubernetes.io/name: crunchy-postgres-pgbouncer
-      config:
-        global:
-          pool_mode: "transaction" # pgBouncer is set to transaction for Authentik. Grafana requires session https://github.com/grafana/grafana/issues/74260#issuecomment-1702795311. Everything else is happy with transaction
-          client_tls_sslmode: prefer
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "kubernetes.io/hostname"
-          whenUnsatisfiable: "DoNotSchedule"
-          labelSelector:
-            matchLabels:
-              postgres-operator.crunchydata.com/cluster: *name
-              postgres-operator.crunchydata.com/role: "pgbouncer"
