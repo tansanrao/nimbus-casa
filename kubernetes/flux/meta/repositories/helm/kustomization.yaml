@@ -15,3 +15,5 @@ resources:
   - ./spegel.yaml
   - ./stakater.yaml
   - ./external-secrets.yaml
+  - ./piraeus.yaml
+  - ./backube.yaml
