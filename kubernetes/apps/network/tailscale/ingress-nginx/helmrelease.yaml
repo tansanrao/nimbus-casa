@@ -28,9 +28,8 @@ spec:
     fullnameOverride: tailscale-ingress-nginx
     controller:
       service:
-        annotations:
-          lbipam.cilium.io/ips: "192.168.106.112"
         externalTrafficPolicy: Cluster
+        loadBalancerClass: tailscale
       ingressClassResource:
         name: tailscale-nginx
         default: false
