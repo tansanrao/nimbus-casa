@@ -1,0 +1,2 @@
+ceph.conf
+ceph.client.admin.keyring
