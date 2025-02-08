@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
+---
+# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+talosVersion: v1.9.3
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.32.1
+
+clusterName: kubernetes
+endpoint: https://192.168.106.9:6443
+
+clusterPodNets:
+  - "10.69.0.0/16"
+clusterSvcNets:
+  - "10.96.0.0/16"
+
+additionalApiServerCertSans: &sans
+  - "192.168.106.9"
+  - "k8s.kbcb.tansanrao.net"
+  - "k8s-kbcb.tansanrao.local"
+  - "127.0.0.1"
+additionalMachineCertSans: *sans
+
+# Disable built-in Flannel to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "k8s0"
+    ipAddress: "192.168.106.20"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/96fa7f1f7b45c3234a4dbe767002b7dbac60458bc555398c13396ce3971a5072
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:4f:43:a2"
+        dhcp: false
+        addresses:
+          - "192.168.106.20/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.106.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.106.9"
+  - hostname: "k8s1"
+    ipAddress: "192.168.106.21"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/96fa7f1f7b45c3234a4dbe767002b7dbac60458bc555398c13396ce3971a5072
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:66:71:cd"
+        dhcp: false
+        addresses:
+          - "192.168.106.21/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.106.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.106.9"
+  - hostname: "k8s2"
+    ipAddress: "192.168.106.22"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/96fa7f1f7b45c3234a4dbe767002b7dbac60458bc555398c13396ce3971a5072
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "bc:24:11:2d:19:88"
+        dhcp: false
+        addresses:
+          - "192.168.106.22/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.106.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.106.9"
+
+# Global patches
+patches:
+  - "@./patches/global/machine-files.yaml"
+  - "@./patches/global/machine-kubelet.yaml"
+  - "@./patches/global/machine-network.yaml"
+  - "@./patches/global/machine-sysctls.yaml"
+  - "@./patches/global/machine-time.yaml"
+
+# Controller patches
+controlPlane:
+  patches:
+    - "@./patches/controller/admission-controller-patch.yaml"
+    - "@./patches/controller/cluster.yaml"
+
