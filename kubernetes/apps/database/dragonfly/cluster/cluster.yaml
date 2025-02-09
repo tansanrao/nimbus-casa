@@ -1,0 +1,40 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.zinn.ca/dragonflydb.io/dragonfly_v1alpha1.jsondd
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+spec:
+  labels:
+    dragonflydb.io/cluster: dragonfly
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.26.2@sha256:751e999697d63664ae2829e24d42473d4edfafd32ad5f34697e5e5f90c44a48b
+  replicas: 3
+  args:
+    - --maxmemory=$(MAX_MEMORY)Mi
+    - --proactor_threads=2
+    - --cluster_mode=emulated
+    - --lock_on_hashtags
+  env:
+    - name: MAX_MEMORY
+      valueFrom:
+        resourceFieldRef:
+          resource: limits.memory
+          divisor: 1Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  serviceSpec:
+    type: LoadBalancer
+    annotations:
+      lbipam.cilium.io/ips: 192.168.107.31
+      external-dns.alpha.kubernetes.io/hostname: redis.tansanrao.net
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "DoNotSchedule"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: dragonfly
