@@ -6,3 +6,4 @@ resources:
   - ./externalsecret.yaml
   - ./podmonitor.yaml
   - ./postgres16.yaml
+  - ./immich14.yaml

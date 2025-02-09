@@ -3,9 +3,10 @@
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: &name postgres16
+  name: &name immich14
 spec:
-  postgresVersion: 16
+  postgresVersion: 14
+  image: "ghcr.io/chkpwd/cdpgvecto.rs:14-v0.2.0"
 
   metadata:
     labels:
@@ -16,13 +17,15 @@ spec:
     type: LoadBalancer
     metadata:
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: postgres16.nimbus.casa
-        lbipam.cilium.io/ips: 192.168.107.30
+        external-dns.alpha.kubernetes.io/hostname: immich14.nimbus.casa
+        lbipam.cilium.io/ips: 192.168.107.31
 
   patroni: # turn on sync writes to at least 1 other replica
     dynamicConfiguration:
       synchronous_mode: true
       postgresql:
+        shared_preload_libraries: "vectors.so"
+        search_path: '"$user", public, vectors'
         max_wal_size: 2GB
         synchronous_commit: "on"
         pg_hba:
@@ -41,7 +44,7 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 50Gi
+            storage: 100Gi
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: "kubernetes.io/hostname"
@@ -60,29 +63,9 @@ spec:
       password:
         type: AlphaNumeric
     # Applications
-    - name: miniflux
+    - name: immich
       databases:
-        - miniflux
-      password:
-        type: AlphaNumeric
-    - name: authentik
-      databases:
-        - authentik
-      password:
-        type: AlphaNumeric
-    - name: radarr
-      databases:
-        - radarr_main
-      password:
-        type: AlphaNumeric
-    - name: sonarr
-      databases:
-        - sonarr_main
-      password:
-        type: AlphaNumeric
-    - name: sonarr-anime
-      databases:
-        - sonarr_anime_main
+        - immich
       password:
         type: AlphaNumeric
 
@@ -97,7 +80,7 @@ spec:
         # Minio S3
         repo1-bundle: "y"
         repo1-block: "y"
-        repo1-path: /postgres16
+        repo1-path: /immich14
         repo1-retention-full: "30" # days
         repo1-retention-full-type: "time"
         repo1-s3-uri-style: path
@@ -105,7 +88,7 @@ spec:
         # Cloudflare R2
         repo2-block: "y"
         repo2-bundle: "y"
-        repo2-path: /postgres16
+        repo2-path: /immich14
         repo2-retention-full: "7" # days
         repo2-retention-full-type: time
         repo2-s3-uri-style: path
