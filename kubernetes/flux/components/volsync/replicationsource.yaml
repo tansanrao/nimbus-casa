@@ -9,6 +9,9 @@ spec:
   trigger:
     schedule: "0 * * * *"
   restic:
+    customCA:
+      secretName: "volsync-custom-ca-secret"
+      key: ca.crt
     copyMethod: "${VOLSYNC_COPYMETHOD:=Snapshot}"
     pruneIntervalDays: 14
     repository: "${APP}-volsync-secret"
