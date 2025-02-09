@@ -10,9 +10,6 @@ spec:
   trigger:
     manual: restore-once
   restic:
-    customCA:
-      secretName: "volsync-custom-ca-secret"
-      key: ca.crt
     repository: "${APP}-volsync-secret"
     copyMethod: Snapshot
     volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:=csi-ceph-blockpool}"

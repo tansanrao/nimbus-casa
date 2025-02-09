@@ -7,7 +7,3 @@ resources:
   - ./cluster-secrets.sops.yaml
   - ./namespace.yaml
   - ./sops-age.sops.yaml
-secretGenerator:
-  - name: volsync-custom-ca-secret
-    files:
-      - ca.crt=./ca.crt
