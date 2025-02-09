@@ -144,4 +144,4 @@ spec:
         advancedMounts:
           machine-learning:
             app:
-              - path: /tmp
+              - path: /cache
