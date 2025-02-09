@@ -9,3 +9,4 @@ resources:
   - ./echo-server/ks.yaml
   - ./asif-blog/ks.yaml
   - ./authentik/ks.yaml
+  - ./smtp-relay/ks.yaml
