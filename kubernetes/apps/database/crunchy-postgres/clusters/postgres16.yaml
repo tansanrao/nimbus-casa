@@ -21,6 +21,8 @@ spec:
 
   patroni: # turn on sync writes to at least 1 other replica
     dynamicConfiguration:
+      shared_preload_libraries: pgvector
+      search_path: '"$$user", public, vectors'
       synchronous_mode: true
       postgresql:
         max_wal_size: 2GB
@@ -83,6 +85,11 @@ spec:
     - name: sonarr-anime
       databases:
         - sonarr_anime_main
+      password:
+        type: AlphaNumeric
+    - name: immich
+      databases:
+        - immich
       password:
         type: AlphaNumeric
 
