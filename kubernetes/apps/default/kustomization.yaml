@@ -10,3 +10,4 @@ resources:
   - ./asif-blog/ks.yaml
   - ./authentik/ks.yaml
   - ./smtp-relay/ks.yaml
+  - ./miniflux/ks.yaml
