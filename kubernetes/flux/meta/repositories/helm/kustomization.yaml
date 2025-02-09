@@ -20,3 +20,4 @@ resources:
   - ./rook-ceph.yaml
   - ./tailscale-charts.yaml
   - ./crunchydata.yaml
+  - ./authentik-charts.yaml
