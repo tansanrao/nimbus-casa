@@ -21,3 +21,4 @@ resources:
   - ./tailscale-charts.yaml
   - ./crunchydata.yaml
   - ./authentik-charts.yaml
+  - ./csi-driver-smb.yaml

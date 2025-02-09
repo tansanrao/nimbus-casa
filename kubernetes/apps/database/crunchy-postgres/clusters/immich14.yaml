@@ -25,7 +25,7 @@ spec:
       synchronous_mode: true
       postgresql:
         shared_preload_libraries: "vectors.so"
-        search_path: '"$user", public, vectors'
+        search_path: '"$$user", public, vectors'
         max_wal_size: 2GB
         synchronous_commit: "on"
         pg_hba:

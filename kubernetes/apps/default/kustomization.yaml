@@ -12,3 +12,4 @@ resources:
   - ./smtp-relay/ks.yaml
   - ./miniflux/ks.yaml
   - ./hoarder/ks.yaml
+  - ./immich/ks.yaml

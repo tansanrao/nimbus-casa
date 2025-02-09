@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io
+  name: immich-smb-pv
+spec:
+  capacity:
+    storage: 10000Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: "smb"
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino # required to prevent data corruption
+    - multichannel
+    - max_channels=4
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: nas.kbcb.tansanrao.net/nimbus/immich
+    volumeAttributes:
+      source: //nas.kbcb.tansanrao.net/nimbus/immich
+    nodeStageSecretRef:
+      name: csi-driver-smb
+      namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-smb-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+    volume.kubernetes.io/storage-provisioner: smb.csi.k8s.io
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10000Gi
+  volumeName: immich-smb-pv
+  storageClassName: "smb"
