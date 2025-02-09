@@ -29,7 +29,7 @@ spec:
   serviceSpec:
     type: LoadBalancer
     annotations:
-      lbipam.cilium.io/ips: 192.168.107.31
+      lbipam.cilium.io/ips: 192.168.106.131
       external-dns.alpha.kubernetes.io/hostname: redis.tansanrao.net
   topologySpreadConstraints:
     - maxSkew: 1
