@@ -22,3 +22,4 @@ resources:
   - ./crunchydata.yaml
   - ./authentik-charts.yaml
   - ./csi-driver-smb.yaml
+  - ./cloudnative-pg.yaml
