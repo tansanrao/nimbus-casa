@@ -56,7 +56,6 @@ spec:
       app:
         className: external
         annotations:
-          external-dns.alpha.kubernetes.io/target: "external.nimbus.casa"
         hosts:
           - host: "nimbus.casa"
             paths:
