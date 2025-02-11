@@ -43,7 +43,7 @@ data:
       - Linkwarden:
           icon: linkwarden.png
           href: 'https://linkwarden.nimbus.casa'
-    - Media
+    - Media:
       - Jellyfin:
           icon: jellyfin.png
           href: 'https://jellyfin.nimbus.casa'
