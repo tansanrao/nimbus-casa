@@ -16,6 +16,8 @@ spec:
       namespace: external-secrets
     - name: csi-driver-smb
       namespace: kube-system
+    - name: crunchy-pgo-clusters
+      namespace: database
   prune: true
   sourceRef:
     kind: GitRepository
