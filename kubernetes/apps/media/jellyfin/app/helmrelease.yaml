@@ -106,7 +106,7 @@ spec:
     ingress:
       app:
         annotations:
-          external-dns.alpha.kubernetes.io/target: internal.tansanrao.net
+          external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
           nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
           nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
         className: internal
