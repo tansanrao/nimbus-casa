@@ -6,7 +6,7 @@ talosVersion: v1.9.3
 kubernetesVersion: v1.32.1
 
 clusterName: kubernetes
-endpoint: https://192.168.106.9:6443
+endpoint: https://192.168.30.9:6443
 
 clusterPodNets:
   - "10.69.0.0/16"
@@ -14,9 +14,8 @@ clusterSvcNets:
   - "10.96.0.0/16"
 
 additionalApiServerCertSans: &sans
-  - "192.168.106.9"
+  - "192.168.30.9"
   - "k8s.kbcb.tansanrao.net"
-  - "k8s-kbcb.tansanrao.local"
   - "127.0.0.1"
 additionalMachineCertSans: *sans
 
@@ -26,7 +25,7 @@ cniConfig:
 
 nodes:
   - hostname: "k8s0"
-    ipAddress: "192.168.106.20"
+    ipAddress: "192.168.30.10"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -37,15 +36,15 @@ nodes:
           hardwareAddr: "bc:24:11:4f:43:a2"
         dhcp: false
         addresses:
-          - "192.168.106.20/24"
+          - "192.168.30.10/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "192.168.106.1"
+            gateway: "192.168.30.1"
         mtu: 1500
         vip:
-          ip: "192.168.106.9"
+          ip: "192.168.30.9"
   - hostname: "k8s1"
-    ipAddress: "192.168.106.21"
+    ipAddress: "192.168.30.11"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -56,15 +55,15 @@ nodes:
           hardwareAddr: "bc:24:11:66:71:cd"
         dhcp: false
         addresses:
-          - "192.168.106.21/24"
+          - "192.168.30.11/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "192.168.106.1"
+            gateway: "192.168.30.1"
         mtu: 1500
         vip:
-          ip: "192.168.106.9"
+          ip: "192.168.30.9"
   - hostname: "k8s2"
-    ipAddress: "192.168.106.22"
+    ipAddress: "192.168.30.12"
     installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
@@ -75,30 +74,30 @@ nodes:
           hardwareAddr: "bc:24:11:2d:19:88"
         dhcp: false
         addresses:
-          - "192.168.106.22/24"
+          - "192.168.30.12/24"
         routes:
           - network: "0.0.0.0/0"
-            gateway: "192.168.106.1"
+            gateway: "192.168.30.1"
         mtu: 1500
         vip:
-          ip: "192.168.106.9"
-  - hostname: "k8s3"
-    ipAddress: "192.168.106.23"
-    installDisk: "/dev/sdb"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/9ffda6da42b0e45bb9f486a3579c3c672c6971c1acaba0cc8ed8e9a0a5bb9e09
-    controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "00:4e:01:99:b9:2d"
-        dhcp: false
-        addresses:
-          - "192.168.106.23/24"
-        routes:
-          - network: "0.0.0.0/0"
-            gateway: "192.168.106.1"
-        mtu: 1500
+          ip: "192.168.30.9"
+  # - hostname: "k8s3"
+  #   ipAddress: "192.168.30.13"
+  #   installDisk: "/dev/sdb"
+  #   machineSpec:
+  #     secureboot: false
+  #   talosImageURL: factory.talos.dev/installer/9ffda6da42b0e45bb9f486a3579c3c672c6971c1acaba0cc8ed8e9a0a5bb9e09
+  #   controlPlane: false
+  #   networkInterfaces:
+  #     - deviceSelector:
+  #         hardwareAddr: "00:4e:01:99:b9:2d"
+  #       dhcp: false
+  #       addresses:
+  #         - "192.168.30.13/24"
+  #       routes:
+  #         - network: "0.0.0.0/0"
+  #           gateway: "192.168.30.1"
+  #       mtu: 1500
 
 # Global patches
 patches:

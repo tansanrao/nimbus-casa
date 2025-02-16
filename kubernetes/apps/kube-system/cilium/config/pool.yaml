@@ -7,4 +7,4 @@ metadata:
 spec:
   allowFirstLastIPs: "No"
   blocks:
-    - cidr: "192.168.106.0/24"
+    - cidr: "192.168.30.0/24"

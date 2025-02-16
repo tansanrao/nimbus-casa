@@ -17,7 +17,7 @@ spec:
     metadata:
       annotations:
         external-dns.alpha.kubernetes.io/hostname: postgres16.nimbus.casa
-        lbipam.cilium.io/ips: 192.168.106.130
+        lbipam.cilium.io/ips: 192.168.30.30
 
   patroni: # turn on sync writes to at least 1 other replica
     dynamicConfiguration:
@@ -125,9 +125,9 @@ spec:
           app.kubernetes.io/name: crunchy-postgres-backup
       repos:
         - name: repo1 # Minio S3
-          s3:
+          s3: &minio
             bucket: "crunchy-pgo"
-            endpoint: "192.168.101.10:9000"
+            endpoint: "192.168.1.5:9000"
             region: "us-east-1"
           schedules:
             full: "0 1 * * 0" # Sunday at 01:00
@@ -142,14 +142,14 @@ spec:
             full: "0 2 * * 0" # Sunday at 02:00
             incremental: "0 2 * * 1-6" # Mon-Sat at 02:00
 
-  # dataSource:
-  #   pgbackrest:
-  #     stanza: "db"
-  #     configuration: *backupConfig
-  #     global: *backupFlag
-  #     repo:
-  #       name: repo2
-  #       s3: *r2
+  dataSource:
+    pgbackrest:
+      stanza: "db"
+      configuration: *backupConfig
+      global: *backupFlag
+      repo:
+        name: repo1
+        s3: *minio
 
   monitoring:
     pgmonitor:

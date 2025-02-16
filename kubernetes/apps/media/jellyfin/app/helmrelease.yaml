@@ -99,7 +99,7 @@ spec:
         controller: jellyfin
         type: LoadBalancer
         annotations:
-          io.cilium/lb-ipam-ips: 192.168.106.122
+          io.cilium/lb-ipam-ips: 192.168.30.22
         ports:
           http:
             port: 8096
