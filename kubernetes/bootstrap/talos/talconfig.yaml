@@ -81,23 +81,23 @@ nodes:
         mtu: 1500
         vip:
           ip: "192.168.30.9"
-  # - hostname: "k8s3"
-  #   ipAddress: "192.168.30.13"
-  #   installDisk: "/dev/sdb"
-  #   machineSpec:
-  #     secureboot: false
-  #   talosImageURL: factory.talos.dev/installer/9ffda6da42b0e45bb9f486a3579c3c672c6971c1acaba0cc8ed8e9a0a5bb9e09
-  #   controlPlane: false
-  #   networkInterfaces:
-  #     - deviceSelector:
-  #         hardwareAddr: "00:4e:01:99:b9:2d"
-  #       dhcp: false
-  #       addresses:
-  #         - "192.168.30.13/24"
-  #       routes:
-  #         - network: "0.0.0.0/0"
-  #           gateway: "192.168.30.1"
-  #       mtu: 1500
+  - hostname: "k8s3"
+    ipAddress: "192.168.30.13"
+    installDisk: "/dev/sdb"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/9ffda6da42b0e45bb9f486a3579c3c672c6971c1acaba0cc8ed8e9a0a5bb9e09
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "00:4e:01:99:b9:2d"
+        dhcp: false
+        addresses:
+          - "192.168.30.13/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.30.1"
+        mtu: 1500
 
 # Global patches
 patches:
