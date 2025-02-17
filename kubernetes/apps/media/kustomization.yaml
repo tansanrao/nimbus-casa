@@ -14,5 +14,5 @@ resources:
   - ./sonarr-anime/ks.yaml
   - ./recyclarr/ks.yaml
   - ./jellyseerr/ks.yaml
-  # - ./sabnzbd/ks.yaml
+  - ./sabnzbd/ks.yaml
   - ./prowlarr/ks.yaml
