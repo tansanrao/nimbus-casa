@@ -23,6 +23,12 @@ data:
       - Echo Server:
           icon: babybuddy.png
           href: 'https://echo-server.nimbus.casa'
+      - Proxmox:
+          icon: proxmox.png
+          href: 'https://pve0.kbcb.tansanrao.net:8006'
+      - Nimbus SSO:
+          icon: authentik.png
+          href: 'https://auth.nimbus.casa'
     - Calendar:
       - Agenda:
           widget:
@@ -33,13 +39,16 @@ data:
               - type: sonarr # active widget type that is currently enabled on homepage - possible values: radarr, sonarr>
                 service_group: Media # group name where widget exists
                 service_name: Sonarr # service name for that widget
+              - type: sonarr # active widget type that is currently enabled on homepage - possible values: radarr, sonarr>
+                service_group: Media # group name where widget exists
+                service_name: Sonarr-Anime # service name for that widget
               - type: radarr # active widget type that is currently enabled on homepage - possible values: radarr, sonarr>
                 service_group: Media # group name where widget exists
                 service_name: Radarr # service name for that widget
     - Reading:
       - Miniflux:
           icon: miniflux.png
-          href: 'https://miniflux.nimbus.casa'
+          href: 'https://reader.nimbus.casa'
       - Linkwarden:
           icon: linkwarden.png
           href: 'https://linkwarden.nimbus.casa'
@@ -47,12 +56,51 @@ data:
       - Jellyfin:
           icon: jellyfin.png
           href: 'https://jellyfin.nimbus.casa'
+          description: 'Media Server'
+          widget:
+            type: jellyfin
+            url: 'https://jellyfin.nimbus.casa'
+            key: {{HOMEPAGE_VAR_JELLYFIN_TOKEN}}
       - Jellyseerr:
           icon: jellyseerr.png
           href: 'https://jellyseerr.nimbus.casa'
+          description: 'Media Requests'
+          widget:
+            type: jellyseerr
+            url: 'https://jellyseerr.nimbus.casa'
+            key: {{HOMEPAGE_VAR_JELLYSEERR_TOKEN}}
       - Sonarr:
           icon: sonarr.png
           href: 'https://sonarr.nimbus.casa'
+          description: 'TV Shows'
+          widget:
+            type: sonarr
+            url: 'https://sonarr.nimbus.casa'
+            key: {{HOMEPAGE_VAR_SONARR_TOKEN}}
+      - Sonarr-Anime:
+          icon: sonarr.png
+          href: 'https://sonarr-anime.nimbus.casa'
+          description: 'Anime'
+          widget:
+            type: sonarr
+            url: 'https://sonarr-anime.nimbus.casa'
+            key: {{HOMEPAGE_VAR_SONARR_TOKEN}}
+      - Radarr:
+          icon: radarr.png
+          href: 'https://radarr.nimbus.casa'
+          description: 'Movies'
+          widget:
+            type: radarr
+            url: 'https://radarr.nimbus.casa'
+            key: {{HOMEPAGE_VAR_RADARR_TOKEN}}
+      - Sabnzbd:
+          icon: sabnzbd.png
+          href: 'https://sab.nimbus.casa'
+          description: 'NZB Downloader'
+          widget:
+            type: sabnzbd
+            url: 'https://sab.nimbus.casa'
+            key: {{HOMEPAGE_VAR_SABNZBD_TOKEN}}
   settings.yaml: |
     title: Nimbus Dashboard
     background:
@@ -93,3 +141,14 @@ data:
         provider: [duckduckgo]
         focus: false
         target: _blank
+    - kubernetes:
+        cluster:
+          cpu: true
+          memory: true
+          show: true
+          showLabel: true
+        nodes:
+          cpu: true
+          memory: true
+          show: true
+          showLabel: true
