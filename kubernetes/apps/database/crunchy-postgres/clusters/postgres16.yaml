@@ -92,7 +92,11 @@ spec:
         - immich
       password:
         type: AlphaNumeric
-
+    - name: prowlarr
+      databases:
+        - prowlarr_main
+      password:
+        type: AlphaNumeric
   backups:
     pgbackrest:
       configuration: &backupConfig
