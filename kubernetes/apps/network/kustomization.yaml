@@ -9,3 +9,4 @@ resources:
   - ./external/ks.yaml
   - ./internal/ks.yaml
   - ./tailscale/ks.yaml
+  - ./vpn-gateway/ks.yaml
