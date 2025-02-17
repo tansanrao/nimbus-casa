@@ -83,7 +83,7 @@ nodes:
           ip: "192.168.30.9"
   - hostname: "k8s3"
     ipAddress: "192.168.30.13"
-    installDisk: "/dev/sdb"
+    installDisk: "/dev/sda"
     machineSpec:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/9ffda6da42b0e45bb9f486a3579c3c672c6971c1acaba0cc8ed8e9a0a5bb9e09
