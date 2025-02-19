@@ -97,6 +97,11 @@ spec:
         - prowlarr_main
       password:
         type: AlphaNumeric
+    - name: linkwarden
+      databases:
+        - linkwarden
+      password:
+        type: AlphaNumeric
   backups:
     pgbackrest:
       configuration: &backupConfig

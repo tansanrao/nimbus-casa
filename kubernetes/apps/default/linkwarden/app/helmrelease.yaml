@@ -1,0 +1,80 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app linkwarden
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: app-template
+      version: 3.7.1
+      sourceRef:
+        kind: HelmRepository
+        name: bjw-s
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    controllers:
+      linkwarden:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/linkwarden/linkwarden
+              tag: v2.9.3
+            envFrom:
+              - secretRef:
+                  name: linkwarden-secret
+              - secretRef:
+                  name: linkwarden-db-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+                memory: 200Mi
+              limits:
+                memory: 4096Mi
+    service:
+      app:
+        controller: linkwarden
+        ports:
+          http:
+            port: 3000
+    ingress:
+      app:
+        className: external
+        annotations:
+          external-dns.alpha.kubernetes.io/target: "external.nimbus.casa"
+        hosts:
+          - host: "links.nimbus.casa"
+            paths:
+              - path: /
+                service:
+                  identifier: app
+                  port: http
+    persistence:
+      config:
+        enabled: true
+        existingClaim: *app
+        globalMounts:
+          - path: /data/config
+      next-cache:
+        enabled: true
+        type: emptyDir
+        globalMounts:
+          - path: /data/.next/cache
+    serviceAccount:
+      create: true
+      name: *app
