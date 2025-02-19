@@ -48,10 +48,12 @@ data:
     - Reading:
       - Miniflux:
           icon: miniflux.png
+          description: 'RSS Reader'
           href: 'https://reader.nimbus.casa'
       - Linkwarden:
           icon: linkwarden.png
-          href: 'https://linkwarden.nimbus.casa'
+          description: 'Link Manager'
+          href: 'https://links.nimbus.casa'
     - Media:
       - Jellyfin:
           icon: jellyfin.png
