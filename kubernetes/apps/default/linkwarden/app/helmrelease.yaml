@@ -37,9 +37,6 @@ spec:
                   name: linkwarden-secret
               - secretRef:
                   name: linkwarden-db-secret
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
