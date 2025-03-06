@@ -25,8 +25,8 @@ spec:
       strategy: rollback
       retries: 3
   dependsOn:
-    # - name: intel-device-plugin-gpu
-    #   namespace: kube-system
+    - name: intel-device-plugin-gpu
+      namespace: kube-system
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync
@@ -71,19 +71,9 @@ spec:
             resources:
               requests:
                 cpu: 100m
-              # limits:
-              #   gpu.intel.com/i915: 1
-              # memory: 8Gi
+              limits:
+                gpu.intel.com/i915: 1
     defaultPodOptions:
-      # affinity:
-      #   nodeAffinity:
-      #     requiredDuringSchedulingIgnoredDuringExecution:
-      #       nodeSelectorTerms:
-      #       - matchExpressions:
-      #         - key: good-qsync
-      #           operator: In
-      #           values:
-      #           - yes
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
@@ -92,8 +82,8 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
         supplementalGroups: [44, 10000]
         seccompProfile: { type: RuntimeDefault }
-      # nodeSelector:
-      #   intel.feature.node.kubernetes.io/gpu: "true"
+      nodeSelector:
+        intel.feature.node.kubernetes.io/gpu: "true"
     service:
       app:
         controller: jellyfin
