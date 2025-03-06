@@ -13,3 +13,5 @@ resources:
   - ./spegel/ks.yaml
   - ./generic-device-plugin/ks.yaml
   - ./csi-driver-smb/ks.yaml
+  - ./intel-device-plugin/ks.yaml
+  - ./node-feature-discovery/ks.yaml

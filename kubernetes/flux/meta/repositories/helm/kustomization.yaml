@@ -24,3 +24,5 @@ resources:
   - ./csi-driver-smb.yaml
   - ./cloudnative-pg.yaml
   - ./angelnu-charts.yaml
+  - ./intel.yaml
+  - ./node-feature-discovery.yaml
