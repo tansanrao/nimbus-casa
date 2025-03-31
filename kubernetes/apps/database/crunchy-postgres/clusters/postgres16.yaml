@@ -102,6 +102,11 @@ spec:
         - linkwarden
       password:
         type: AlphaNumeric
+    - name: mealie
+      databases:
+        - mealie
+      password:
+        type: AlphaNumeric
   backups:
     pgbackrest:
       configuration: &backupConfig
