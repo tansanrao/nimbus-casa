@@ -38,16 +38,12 @@ spec:
         forceConflicts: true
     cleanPrometheusOperatorObjectNames: true
     alertmanager:
-      route:
-        main:
-          enabled: true
-          annotations:
-            external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
-          hostnames: ["alertmanager.nimbus.casa"]
-          parentRefs:
-            - name: internal
-              namespace: kube-system
-              sectionName: https
+      ingress:
+        enabled: true
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
+        ingressClassName: internal
+        hosts: ["alertmanager.nimbus.casa"]
       alertmanagerSpec:
         alertmanagerConfiguration:
           name: alertmanager
@@ -68,16 +64,12 @@ spec:
     kubeProxy:
       enabled: false
     prometheus:
-      route:
-        main:
-          annotations:
-            external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
-          enabled: true
-          hostnames: ["prometheus.nimbus.casa"]
-          parentRefs:
-            - name: internal
-              namespace: kube-system
-              sectionName: https
+      ingress:
+        enabled: true
+        annotations:
+          external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
+        ingressClassName: internal
+        hosts: ["prometheus.nimbus.casa"]
       prometheusSpec:
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
