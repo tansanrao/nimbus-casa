@@ -22,6 +22,12 @@ spec:
           - name: severity
             value: critical
             matchType: =
+      - receiver: "null"
+        group_interval: 5m
+        group_wait: 0s
+        matchers:
+          - alertname =~ "Watchdog"
+        repeat_interval: 5m
   inhibitRules:
     - equal: ["alertname", "namespace"]
       sourceMatch:
