@@ -23,11 +23,13 @@ spec:
             value: critical
             matchType: =
       - receiver: "null"
-        group_interval: 5m
-        group_wait: 0s
+        groupInterval: 5m
+        groupWait: 0s
+        repeatInterval: 5m
         matchers:
-          - alertname =~ "Watchdog"
-        repeat_interval: 5m
+          - name: alertname
+            value: Watchdog
+            matchType: =
   inhibitRules:
     - equal: ["alertname", "namespace"]
       sourceMatch:
