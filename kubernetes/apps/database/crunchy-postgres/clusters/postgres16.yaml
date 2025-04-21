@@ -7,10 +7,22 @@ metadata:
 spec:
   postgresVersion: 16
 
+  monitoring:
+    pgmonitor:
+      exporter:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64M
+          limits:
+            memory: 512M
+
   metadata:
     labels:
       crunchy-userinit.ramblurr.github.com/enabled: "true"
       crunchy-userinit.ramblurr.github.com/superuser: "postgres"
+      postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
+      postgres-operator.crunchydata.com/cluster: *name
 
   service:
     type: LoadBalancer
@@ -166,13 +178,3 @@ spec:
   #     repo:
   #       name: repo1
   #       s3: *minio
-
-  monitoring:
-    pgmonitor:
-      exporter:
-        resources:
-          requests:
-            cpu: 10m
-            memory: 64M
-          limits:
-            memory: 512M
