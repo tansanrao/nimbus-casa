@@ -40,10 +40,10 @@ spec:
           path: /
     toolbox:
       enabled: true
-      image: quay.io/ceph/ceph:v19.2.1
+      image: quay.io/ceph/ceph:v19.2.2
     cephClusterSpec:
       cephVersion:
-        image: quay.io/ceph/ceph:v19.2.1
+        image: quay.io/ceph/ceph:v19.2.2
       external:
         enable: true
       crashCollector:
