@@ -119,6 +119,11 @@ spec:
         - mealie
       password:
         type: AlphaNumeric
+    - name: jellystat
+      databases:
+        - jellystat
+      password:
+        type: AlphaNumeric
   backups:
     pgbackrest:
       configuration: &backupConfig

@@ -16,3 +16,4 @@ resources:
   - ./jellyseerr/ks.yaml
   - ./sabnzbd/ks.yaml
   - ./prowlarr/ks.yaml
+  - ./jellystat/ks.yaml
