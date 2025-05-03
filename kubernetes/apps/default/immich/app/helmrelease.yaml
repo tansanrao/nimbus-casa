@@ -46,6 +46,21 @@ spec:
                 cpu: 100m
               limits:
                 memory: 8192Mi
+        pod:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name      # Match pods from this Helm release
+                        operator: In
+                        values:
+                          - *app                      # Use the anchor for the name 'immich'
+                      - key: app.kubernetes.io/component # Match the specific component to avoid
+                        operator: In
+                        values:
+                          - machine-learning          # Server pod should avoid machine-learning pod
+                  topologyKey: "kubernetes.io/hostname" # Define the scope of anti-affinity (the node)
       machine-learning:
         strategy: RollingUpdate
         annotations:
@@ -54,7 +69,7 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v1.131.2@sha256:29836cf73146057ac388546021fff3e00c923e22a28587cceb5108a5e537987d
+              tag: v1.132.3@sha256:29836cf73146057ac388546021fff3e00c923e22a28587cceb5108a5e537987d
             envFrom: *env
             securityContext:
               allowPrivilegeEscalation: false
@@ -64,20 +79,21 @@ spec:
                 cpu: 100m
               limits:
                 memory: 8192Mi
-      redis:
-        containers:
-          app:
-            image:
-              repository: public.ecr.aws/docker/library/redis
-              tag: 7.4.3@sha256:7df1eeff67eb0ba84f6b9d2940765a6bb1158081426745c185a03b1507de6a09
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities: { drop: ["ALL"] }
-            resources:
-              requests:
-                cpu: 100m
-              limits:
-                memory: 512Mi
+        pod:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - *app
+                      - key: app.kubernetes.io/component
+                        operator: In
+                        values:
+                          - server
+                  topologyKey: "kubernetes.io/hostname"
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -97,11 +113,7 @@ spec:
         ports:
           http:
             port: 3003
-      redis:
-        controller: redis
-        ports:
-          redis:
-            port: 6379
+
     ingress:
       app:
         className: external

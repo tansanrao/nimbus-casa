@@ -3,9 +3,10 @@
 apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
-  name: &name postgres16
+  name: &name immich16
 spec:
   postgresVersion: 16
+  image: ghcr.io/budimanjojo/cdpgvecto.rs:16@sha256:2a54142d7a2becd027025e95ac3e4542f7688621f3a63fe131a8fec6a65ccc49
 
   monitoring:
     pgmonitor:
@@ -28,18 +29,24 @@ spec:
     type: LoadBalancer
     metadata:
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: postgres16.nimbus.casa
-        lbipam.cilium.io/ips: 192.168.30.30
+        external-dns.alpha.kubernetes.io/hostname: immich16.nimbus.casa
+        lbipam.cilium.io/ips: 192.168.30.32
 
-  patroni: # turn on sync writes to at least 1 other replica
+  patroni:
     dynamicConfiguration:
       synchronous_mode: true
       postgresql:
-        max_wal_size: 2GB
         synchronous_commit: "on"
+        parameters:
+          shared_preload_libraries: "vectors.so"
+          search_path: '"$user", public, vectors"'
         pg_hba:
           - hostnossl all all 10.69.0.0/16 md5
           - hostssl all all all md5
+
+  databaseInitSQL:
+    name: immich-database-init-sql
+    key: init.sql
 
   instances:
     - name: postgres
@@ -72,51 +79,12 @@ spec:
       password:
         type: AlphaNumeric
     # Applications
-    - name: miniflux
+    - name: immich
       databases:
-        - miniflux
+        - immich
       password:
         type: AlphaNumeric
-    - name: authentik
-      databases:
-        - authentik
-      password:
-        type: AlphaNumeric
-    - name: radarr
-      databases:
-        - radarr_main
-      password:
-        type: AlphaNumeric
-    - name: sonarr
-      databases:
-        - sonarr_main
-      password:
-        type: AlphaNumeric
-    - name: sonarr-anime
-      databases:
-        - sonarr_anime_main
-      password:
-        type: AlphaNumeric
-    - name: prowlarr
-      databases:
-        - prowlarr_main
-      password:
-        type: AlphaNumeric
-    - name: linkwarden
-      databases:
-        - linkwarden
-      password:
-        type: AlphaNumeric
-    - name: mealie
-      databases:
-        - mealie
-      password:
-        type: AlphaNumeric
-    - name: jellystat
-      databases:
-        - jellystat
-      password:
-        type: AlphaNumeric
+
   backups:
     pgbackrest:
       configuration: &backupConfig
@@ -128,7 +96,7 @@ spec:
         # Minio S3
         repo1-bundle: "y"
         repo1-block: "y"
-        repo1-path: /postgres16
+        repo1-path: /immich16
         repo1-retention-full: "30" # days
         repo1-retention-full-type: "time"
         repo1-s3-uri-style: path
@@ -136,7 +104,7 @@ spec:
         # Cloudflare R2
         repo2-block: "y"
         repo2-bundle: "y"
-        repo2-path: /postgres16
+        repo2-path: /immich16
         repo2-retention-full: "7" # days
         repo2-retention-full-type: time
         repo2-s3-uri-style: path
@@ -165,6 +133,7 @@ spec:
           schedules:
             full: "0 2 * * 0" # Sunday at 02:00
             incremental: "0 2 * * 1-6" # Mon-Sat at 02:00
+
 
   # dataSource:
   #   pgbackrest:
