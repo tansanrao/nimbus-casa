@@ -15,7 +15,7 @@ spec:
             cpu: 10m
             memory: 64M
           limits:
-            memory: 512M
+            memory: 4G
 
   metadata:
     labels:
