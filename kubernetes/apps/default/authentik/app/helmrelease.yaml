@@ -48,3 +48,15 @@ spec:
     prometheus:
       rules:
         enabled: true
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          preference:
+            matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - k8s0
+              - k8s1
+              - k8s2
