@@ -63,6 +63,7 @@ spec:
                   topologyKey: "kubernetes.io/hostname" # Define the scope of anti-affinity (the node)
       machine-learning:
         strategy: RollingUpdate
+        replicas: 2
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -93,6 +94,7 @@ spec:
                         operator: In
                         values:
                           - server
+                          - machine-learning
                   topologyKey: "kubernetes.io/hostname"
     defaultPodOptions:
       securityContext:
