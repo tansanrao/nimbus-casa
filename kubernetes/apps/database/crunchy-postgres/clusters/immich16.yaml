@@ -6,7 +6,7 @@ metadata:
   name: &name immich16
 spec:
   postgresVersion: 16
-  image: ghcr.io/budimanjojo/cdpgvecto.rs:16@sha256:2a54142d7a2becd027025e95ac3e4542f7688621f3a63fe131a8fec6a65ccc49
+  image: ghcr.io/tansanrao/cdpgvecto.rs:ubi9-16.8-2516
 
   monitoring:
     pgmonitor:
@@ -38,7 +38,7 @@ spec:
       postgresql:
         synchronous_commit: "on"
         parameters:
-          shared_preload_libraries: "vectors.so"
+          shared_preload_libraries: "vchord.so, vectors.so"
           search_path: '"$user", public, vectors"'
         pg_hba:
           - hostnossl all all 10.69.0.0/16 md5
