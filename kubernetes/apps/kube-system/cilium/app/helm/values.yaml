@@ -1,26 +1,39 @@
 ---
 autoDirectNodeRoutes: true
+bandwidthManager:
+  enabled: true
+  bbr: true
 bpf:
+  datapathMode: netkit
   masquerade: true
-  # Ref: https://github.com/siderolabs/talos/issues/10002
-  hostLegacyRouting: true
+  preallocateMaps: true
+  # tproxy: true
+bpfClockProbe: true
 bgpControlPlane:
   enabled: true
-cni:
-  # Required for pairing with Multus CNI
-  exclusive: false
 cgroup:
   automount:
     enabled: false
   hostRoot: /sys/fs/cgroup
+cni:
+  # Required for pairing with Multus CNI
+  exclusive: false
+dashboards:
+  enabled: true
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
 # devices: eno+ eth+
+enableIPv4BIGTCP: true
 endpointRoutes:
   enabled: true
 envoy:
-  enabled: false
-dashboards:
+  rollOutPods: true
+  prometheus:
+     serviceMonitor:
+       enabled: true
+gatewayAPI:
   enabled: true
+  enableAlpn: true
+  xffNumTrustedHops: 1
 hubble:
   enabled: false
 ipam:
@@ -34,17 +47,17 @@ l2announcements:
   enabled: true
 loadBalancer:
   algorithm: maglev
-  mode: "snat"
+  mode: dsr
 localRedirectPolicy: true
 operator:
-  replicas: 1
-  rollOutPods: true
+  dashboards:
+    enabled: true
   prometheus:
     enabled: true
     serviceMonitor:
       enabled: true
-  dashboards:
-    enabled: true
+  replicas: 2
+  rollOutPods: true
 prometheus:
   enabled: true
   serviceMonitor:
@@ -72,5 +85,3 @@ securityContext:
       - NET_ADMIN
       - SYS_ADMIN
       - SYS_RESOURCE
-socketLB:
-  hostNamespaceOnly: true
