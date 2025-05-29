@@ -21,7 +21,7 @@ cni:
 dashboards:
   enabled: true
 # NOTE: devices might need to be set if you have more than one active NIC on your hosts
-# devices: eno+ eth+
+devices: ens+ eno+
 enableIPv4BIGTCP: true
 endpointRoutes:
   enabled: true

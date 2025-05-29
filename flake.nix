@@ -35,6 +35,7 @@
         kubeconform
         k9s
         python313
+        cilium-cli
         talhelper.packages."${system}".default
       ];
     in
