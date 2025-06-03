@@ -33,13 +33,14 @@ ipam:
 ipv4NativeRoutingCIDR: "10.42.0.0/16"
 k8sServiceHost: 127.0.0.1
 k8sServicePort: 7445
-kubeProxyReplacement: true
+kubeProxyReplacement: strict
 kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
 l2announcements:
   enabled: true
 loadBalancer:
   algorithm: maglev
-  mode: "snat"
+  mode: "dsr"
+  dsrDispatch: "opt"
 localRedirectPolicy: true
 operator:
   dashboards:
