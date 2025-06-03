@@ -39,6 +39,7 @@
         cue
         makejinja
         bash
+        gnused
         talhelper.packages."${system}".default
       ];
     in
