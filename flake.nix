@@ -38,6 +38,7 @@
         cilium-cli
         cue
         makejinja
+        bash
         talhelper.packages."${system}".default
       ];
     in
