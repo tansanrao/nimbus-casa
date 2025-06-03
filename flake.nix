@@ -36,6 +36,8 @@
         k9s
         python313
         cilium-cli
+        cue
+        makejinja
         talhelper.packages."${system}".default
       ];
     in
