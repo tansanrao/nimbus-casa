@@ -50,7 +50,7 @@
           export KUBERNETES_DIR="$(pwd)/kubernetes"
           export KUBECONFIG="$(pwd)/kubeconfig"
           export SOPS_AGE_KEY_FILE="$(pwd)/age.key"
-          export TALOSCONFIG="$(pwd)/kubernetes/bootstrap/talos/clusterconfig/talosconfig"
+          export TALOSCONFIG="$(pwd)/talos/clusterconfig/talosconfig"
           # Tells pip to put packages into $PIP_PREFIX instead of the usual locations.
           # See https://pip.pypa.io/en/stable/user_guide/#environment-variables.
           export PIP_PREFIX=$(pwd)/_build/pip_packages
