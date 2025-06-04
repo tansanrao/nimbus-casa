@@ -147,13 +147,13 @@ spec:
             incremental: "0 2 * * 1-6" # Mon-Sat at 02:00
 
 
-  dataSource:
-    pgbackrest:
-      # options:
-      #   - --set="20250323-010003F_20250329-030003I"
-      stanza: "db"
-      configuration: *backupConfig
-      global: *backupFlag
-      repo:
-        name: repo1
-        s3: *minio
+  # dataSource:
+  #   pgbackrest:
+  #     # options:
+  #     #   - --set="20250323-010003F_20250329-030003I"
+  #     stanza: "db"
+  #     configuration: *backupConfig
+  #     global: *backupFlag
+  #     repo:
+  #       name: repo1
+  #       s3: *minio
