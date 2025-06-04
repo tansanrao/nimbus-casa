@@ -1,0 +1,190 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/postgres-operator.crunchydata.com/postgrescluster_v1beta1.json
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: &name postgres16
+spec:
+  postgresVersion: 16
+
+  monitoring:
+    pgmonitor:
+      exporter:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64M
+          limits:
+            memory: 2G
+
+  metadata:
+    labels:
+      crunchy-userinit.ramblurr.github.com/enabled: "true"
+      crunchy-userinit.ramblurr.github.com/superuser: "postgres"
+      postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
+      postgres-operator.crunchydata.com/cluster: *name
+
+  service:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: postgres16.nimbus.casa
+        lbipam.cilium.io/ips: 192.168.30.30
+
+  patroni: # turn on sync writes to at least 1 other replica
+    dynamicConfiguration:
+      synchronous_mode: true
+      postgresql:
+        max_wal_size: 2GB
+        synchronous_commit: "on"
+        pg_hba:
+          - hostnossl all all 10.69.0.0/16 md5
+          - hostssl all all all md5
+
+  instances:
+    - name: postgres
+      metadata:
+        labels:
+          app.kubernetes.io/name: crunchy-postgres
+      replicas: &replica 2
+      dataVolumeClaimSpec:
+        storageClassName: ceph-block
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: "kubernetes.io/hostname"
+          whenUnsatisfiable: "DoNotSchedule"
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
+              postgres-operator.crunchydata.com/data: postgres
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - k8s0
+                - k8s1
+                - k8s2
+
+  users:
+    # Superuser
+    - name: postgres
+      databases:
+        - postgres
+      options: "SUPERUSER"
+      password:
+        type: AlphaNumeric
+    # Applications
+    - name: miniflux
+      databases:
+        - miniflux
+      password:
+        type: AlphaNumeric
+    - name: authentik
+      databases:
+        - authentik
+      password:
+        type: AlphaNumeric
+    - name: radarr
+      databases:
+        - radarr_main
+      password:
+        type: AlphaNumeric
+    - name: sonarr
+      databases:
+        - sonarr_main
+      password:
+        type: AlphaNumeric
+    - name: sonarr-anime
+      databases:
+        - sonarr_anime_main
+      password:
+        type: AlphaNumeric
+    - name: prowlarr
+      databases:
+        - prowlarr_main
+      password:
+        type: AlphaNumeric
+    - name: linkwarden
+      databases:
+        - linkwarden
+      password:
+        type: AlphaNumeric
+    - name: mealie
+      databases:
+        - mealie
+      password:
+        type: AlphaNumeric
+    - name: jellystat
+      databases:
+        - jellystat
+      password:
+        type: AlphaNumeric
+  backups:
+    pgbackrest:
+      configuration: &backupConfig
+        - secret:
+            name: crunchy-postgres-secret
+      global: &backupFlag
+        compress-type: "bz2"
+        compress-level: "9"
+        # Minio S3
+        repo1-bundle: "y"
+        repo1-block: "y"
+        repo1-path: /postgres16
+        repo1-retention-full: "30" # days
+        repo1-retention-full-type: "time"
+        repo1-s3-uri-style: path
+        repo1-storage-verify-tls: "n"
+        # Cloudflare R2
+        repo2-block: "y"
+        repo2-bundle: "y"
+        repo2-path: /postgres16
+        repo2-retention-full: "7" # days
+        repo2-retention-full-type: time
+        repo2-s3-uri-style: path
+      manual:
+        repoName: repo1
+        options:
+          - --type=full
+      metadata:
+        labels:
+          app.kubernetes.io/name: crunchy-postgres-backup
+      repos:
+        - name: repo1 # Minio S3
+          s3: &minio
+            bucket: "crunchy-pgo"
+            endpoint: "192.168.1.5:9000"
+            region: "us-east-1"
+          schedules:
+            full: "0 1 * * 0" # Sunday at 01:00
+            differential: "0 1 * * 1-6" # Mon-Sat at 01:00
+            incremental: "0 2-23 * * *" # Every hour except 01:00
+        - name: repo2 # R2
+          s3: &r2
+            bucket: "crunchy-pgo"
+            endpoint: "c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com"
+            region: "us-east-1"
+          schedules:
+            full: "0 2 * * 0" # Sunday at 02:00
+            incremental: "0 2 * * 1-6" # Mon-Sat at 02:00
+
+  dataSource:
+    pgbackrest:
+      # options:
+      #   - --set="20250323-010003F_20250329-030003I"
+      stanza: "db"
+      configuration: *backupConfig
+      global: *backupFlag
+      repo:
+        name: repo1
+        s3: *minio
