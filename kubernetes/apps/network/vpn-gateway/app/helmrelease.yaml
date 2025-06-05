@@ -1,0 +1,127 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/common-4.0.1/charts/library/common/values.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: &app vpn-gateway
+  namespace: network
+spec:
+  interval: 15m
+  chartRef:
+    kind: OCIRepository
+    name: app-template
+  install:
+    createNamespace: true
+    remediation:
+      retries: 5
+  upgrade:
+    remediation:
+      retries: 5
+  values:
+    controllers:
+      vpn-gateway:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          routes:
+            image:
+              repository: ghcr.io/angelnu/pod-gateway
+              tag: v1.13.0@sha256:a5b032e15f7570493977b330a5a86dcffebb807d35685ad803e47afb62d105f2
+            command:
+              - /bin/gateway_init.sh
+            securityContext:
+              privileged: true
+        containers:
+          gateway:
+            image:
+              repository: ghcr.io/angelnu/pod-gateway
+              tag: v1.13.0@sha256:a5b032e15f7570493977b330a5a86dcffebb807d35685ad803e47afb62d105f2
+            command:
+              - /bin/gateway_sidecar.sh
+            securityContext:
+              capabilities:
+                add: ["NET_RAW", "NET_ADMIN"]
+          netshoot:
+            image:
+              repository: ghcr.io/nicolaka/netshoot
+              tag: v0.13
+            command:
+              - /bin/sh
+              - -c
+              - sleep infinity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 10M
+              limits:
+                memory: 50M
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+          gluetun:
+            image:
+              repository: docker.io/qmcgaw/gluetun
+              tag: v3.40.0
+            envFrom:
+              - secretRef:
+                  name: vpn-gateway-secret
+            resources:
+              requests:
+                cpu: 15m
+                memory: 64Mi
+              limits:
+                squat.ai/tun: 1
+                memory: 128Mi
+            securityContext:
+              capabilities:
+                add: ["NET_ADMIN"]
+
+    service:
+      app:
+        controller: *app
+        type: ClusterIP
+        clusterIP: None
+        ports:
+          vxlan:
+            protocol: UDP
+            port: 4789
+
+    configMaps:
+      config:
+        enabled: true
+        data:
+          settings.sh: |
+            #!/bin/sh
+            DNS="172.16.1.1"
+            DNS_LOCAL_CIDRS="local"
+            IPV4_ENABLED="true"
+            IPV6_ENABLED="false"
+            ROUTED_NAMESPACES="media"
+            VPN_INTERFACE="wg0"
+            VXLAN_ID="44"
+            VXLAN_IP_NETWORK="172.16.1"
+            VXLAN_GATEWAY_FIRST_DYNAMIC_IP="20"
+            VPN_BLOCK_OTHER_TRAFFIC="false"
+            VPN_TRAFFIC_PORT="51820"
+            VPN_LOCAL_CIDRS="10.0.0.0/8 192.168.0.0/16"
+            NOT_ROUTED_TO_GATEWAY_CIDRS="10.0.0.0/8 192.168.0.0/16"
+            VXLAN_PORT="4789"
+            WEBHOOK_ENABLED="false"
+
+          nat.conf: |
+            # Placeholder
+          nat6.conf: |
+            # Placeholder
+
+    persistence:
+      config:
+        type: configMap
+        name: vpn-gateway
+        advancedMounts:
+          vpn-gateway:
+            routes:
+              - path: /config
+                readOnly: true
+            gateway:
+              - path: /config
+                readOnly: true
