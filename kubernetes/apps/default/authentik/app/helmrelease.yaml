@@ -1,0 +1,36 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fluxcd-community/flux2-schemas/main/helmrelease-helm-v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+spec:
+  interval: 30m
+  chartRef:
+    kind: OCIRepository
+    name: authentik
+  values:
+    global:
+      podAnnotations:
+        reloader.stakater.com/auto: "true"
+      deploymentStrategy:
+        type: RollingUpdate
+      envFrom:
+        - secretRef:
+            name: authentik-secret
+        - secretRef:
+            name: authentik-db-secret
+    authentik:
+      redis:
+        host: dragonfly.database.svc.cluster.local
+        db: 1
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+    server:
+      ingress:
+        enabled: false
+    prometheus:
+      rules:
+        enabled: true
