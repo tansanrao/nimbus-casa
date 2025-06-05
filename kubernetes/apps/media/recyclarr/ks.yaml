@@ -3,14 +3,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app vpn-gateway
-  namespace: &namespace network
+  name: &app recyclarr
+  namespace: &namespace media
 spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: *app
   interval: 30m
-  path: ./kubernetes/apps/network/vpn-gateway/app
+  path: ./kubernetes/apps/media/recyclarr/app
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
   prune: true
   sourceRef:
     kind: GitRepository
@@ -18,4 +21,8 @@ spec:
     namespace: flux-system
   targetNamespace: *namespace
   timeout: 5m
-  wait: true
+  wait: false
+  postBuild:
+    substitute:
+      APP: *app
+      VOLSYNC_CAPACITY: 1Gi

@@ -1,0 +1,25 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-mediastore
+  labels:
+    app.kubernetes.io/name: nfs-mediastore
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: nas.kbcb.tansanrao.net
+  share: /mnt/tank/mediastore
+mountOptions:
+  - nfsvers=4.2
+  - nconnect=16
+  - hard
+  - noatime
+  - uid=1001
+  - gid=1001
+  - rsize=1048576
+  - wsize=1048576
+  - timeo=14
+  - intr
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
