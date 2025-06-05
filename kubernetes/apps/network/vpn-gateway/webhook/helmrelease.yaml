@@ -23,7 +23,7 @@ spec:
               - --webhook-listen-address=:443
               - --gateway=vpn-gateway.network.svc.cluster.local
               - --DNS=172.16.1.1
-              - --configmapName=vpn-gateway-config
+              - --configmapName=vpn-gateway
               - --setGatewayLabel=setGateway
               - --setGatewayAnnotation=setGateway
               # Static

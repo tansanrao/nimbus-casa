@@ -80,7 +80,6 @@ spec:
       app:
         controller: *app
         type: ClusterIP
-        clusterIP: None
         ports:
           vxlan:
             protocol: UDP
