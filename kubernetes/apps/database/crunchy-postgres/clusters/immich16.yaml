@@ -41,7 +41,7 @@ spec:
           shared_preload_libraries: "vchord.so, vectors.so"
           search_path: '"$user", public, vectors"'
         pg_hba:
-          - hostnossl all all 10.69.0.0/16 md5
+          - hostnossl all all 10.42.0.0/16 md5
           - hostssl all all all md5
 
   databaseInitSQL:
@@ -72,15 +72,15 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 1
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - k8s0
-                - k8s1
-                - k8s2
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - k8s0
+                      - k8s1
+                      - k8s2
 
   users:
     # Superuser

@@ -38,7 +38,7 @@ spec:
         max_wal_size: 2GB
         synchronous_commit: "on"
         pg_hba:
-          - hostnossl all all 10.69.0.0/16 md5
+          - hostnossl all all 10.42.0.0/16 md5
           - hostssl all all all md5
 
   instances:
@@ -65,15 +65,15 @@ spec:
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 1
-            preference:
-              matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - k8s0
-                - k8s1
-                - k8s2
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - k8s0
+                      - k8s1
+                      - k8s2
 
   users:
     # Superuser
@@ -177,6 +177,7 @@ spec:
           schedules:
             full: "0 2 * * 0" # Sunday at 02:00
             incremental: "0 2 * * 1-6" # Mon-Sat at 02:00
+
 
   # dataSource:
   #   pgbackrest:
