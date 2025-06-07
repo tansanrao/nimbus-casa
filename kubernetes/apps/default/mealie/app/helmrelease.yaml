@@ -20,7 +20,7 @@ spec:
           app:
             image:
               repository: ghcr.io/mealie-recipes/mealie
-              tag: v2.8.0
+              tag: nightly@sha256:6df9298b6d4c60d98fd7cd441949e7e894652889b9a2651611a72a4d573933cf
             envFrom:
               - secretRef:
                   name: mealie-secret
