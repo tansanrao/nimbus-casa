@@ -39,11 +39,7 @@ spec:
     cleanPrometheusOperatorObjectNames: true
     alertmanager:
       ingress:
-        enabled: true
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
-        ingressClassName: internal
-        hosts: ["alertmanager.nimbus.casa"]
+        enabled: false
       alertmanagerSpec:
         alertmanagerConfiguration:
           name: alertmanager
@@ -65,11 +61,7 @@ spec:
       enabled: false
     prometheus:
       ingress:
-        enabled: true
-        annotations:
-          external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
-        ingressClassName: internal
-        hosts: ["prometheus.nimbus.casa"]
+        enabled: false
       prometheusSpec:
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false

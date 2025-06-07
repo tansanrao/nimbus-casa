@@ -256,11 +256,7 @@ spec:
     serviceMonitor:
       enabled: true
     ingress:
-      enabled: true
-      annotations:
-        external-dns.alpha.kubernetes.io/target: internal.nimbus.casa
-      ingressClassName: internal
-      hosts: ["{{ .Release.Name }}.nimbus.casa"]
+      enabled: false
     persistence:
       enabled: false
     testFramework:
