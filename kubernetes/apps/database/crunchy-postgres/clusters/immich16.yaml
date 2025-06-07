@@ -30,7 +30,7 @@ spec:
     metadata:
       annotations:
         external-dns.alpha.kubernetes.io/hostname: immich16.nimbus.casa
-        lbipam.cilium.io/ips: 192.168.30.32
+        lbipam.cilium.io/ips: 192.168.20.34
 
   patroni:
     dynamicConfiguration:
