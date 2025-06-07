@@ -10,5 +10,6 @@ resources:
   - ./asif-blog/ks.yaml
   - ./echo/ks.yaml
   - ./immich/ks.yaml
+  - ./mealie/ks.yaml
   - ./miniflux/ks.yaml
   - ./smtp-relay/ks.yaml
