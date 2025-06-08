@@ -16,3 +16,4 @@ resources:
   - ./recyclarr/ks.yaml
   - ./jellyfin/ks.yaml
   - ./jellyseerr/ks.yaml
+  - ./qbittorrent/ks.yaml
