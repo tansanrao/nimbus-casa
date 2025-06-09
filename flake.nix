@@ -41,6 +41,8 @@
         bash
         gnused
         talhelper.packages."${system}".default
+        yq
+        nodejs_22
       ];
     in
     {
