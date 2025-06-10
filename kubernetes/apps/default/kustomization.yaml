@@ -13,3 +13,4 @@ resources:
   - ./mealie/ks.yaml
   - ./miniflux/ks.yaml
   - ./smtp-relay/ks.yaml
+  - ./actual/ks.yaml
