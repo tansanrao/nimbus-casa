@@ -14,3 +14,4 @@ resources:
   - ./miniflux/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./actual/ks.yaml
+  - ./karakeep/ks.yaml
