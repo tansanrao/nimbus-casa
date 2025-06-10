@@ -35,10 +35,6 @@ spec:
                 enabled: true
               readiness:
                 enabled: true
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
@@ -65,8 +61,6 @@ spec:
               - --remote-debugging-port=9222
               - --hide-scrollbars
             securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
               capabilities:
                 drop:
                   - ALL
@@ -108,10 +102,6 @@ spec:
                   name: karakeep-secret
             env:
               MEILI_NO_ANALYTICS: true
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities: { drop: ["ALL"] }
             resources:
               requests:
                 cpu: 10m
