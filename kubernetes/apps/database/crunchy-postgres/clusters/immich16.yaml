@@ -6,7 +6,7 @@ metadata:
   name: &name immich16
 spec:
   postgresVersion: 16
-  image: ghcr.io/tansanrao/cdpgvecto.rs:ubi9-16.8-2516
+  image: ghcr.io/budimanjojo/crunchy-postgres-vectorchord:ubi9-16.9-2520-0.4.3
 
   monitoring:
     pgmonitor:
