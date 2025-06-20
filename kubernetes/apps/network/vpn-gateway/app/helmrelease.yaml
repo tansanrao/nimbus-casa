@@ -33,9 +33,10 @@ spec:
       vpn:
         enabled: true
         type: gluetun
-        image:
-          repository: docker.io/qmcgaw/gluetun
-          tag: v3.40.0
+        gluetun:
+          image:
+            repository: ghcr.io/mort666/gluetun
+            tag: latest
         envFrom:
           - secretRef:
               name: vpn-gateway-secret
