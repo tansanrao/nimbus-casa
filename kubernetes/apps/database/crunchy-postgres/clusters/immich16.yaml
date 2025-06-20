@@ -38,7 +38,7 @@ spec:
       postgresql:
         synchronous_commit: "on"
         parameters:
-          shared_preload_libraries: "vchord.so, vectors.so"
+          shared_preload_libraries: "vchord.so"
           search_path: '"$user", public, vectors"'
         pg_hba:
           - hostnossl all all 10.42.0.0/16 md5
