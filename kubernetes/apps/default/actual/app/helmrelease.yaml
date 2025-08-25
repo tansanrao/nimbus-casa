@@ -71,7 +71,7 @@ spec:
       main:
         hostnames: ["actual.nimbus.casa"]
         parentRefs:
-          - name: internal
+          - name: external
             namespace: kube-system
             sectionName: https
         rules:
