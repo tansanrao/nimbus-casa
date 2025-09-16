@@ -82,7 +82,7 @@ spec:
       main:
         hostnames: ["prowlarr.nimbus.casa"]
         parentRefs:
-          - name: external
+          - name: internal
             namespace: kube-system
             sectionName: https
         rules:
