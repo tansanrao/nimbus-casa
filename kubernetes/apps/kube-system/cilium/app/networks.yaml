@@ -7,7 +7,7 @@ metadata:
 spec:
   allowFirstLastIPs: "No"
   blocks:
-    - cidr: "192.168.20.0/24"
+    - cidr: "10.10.40.0/24"
 ---
 # yaml-language-server: $schema=https://datreeio.github.io/CRDs-catalog/cilium.io/ciliuml2announcementpolicy_v2alpha1.json
 apiVersion: cilium.io/v2alpha1
@@ -18,7 +18,7 @@ spec:
   loadBalancerIPs: true
   # NOTE: interfaces might need to be set if you have more than one active NIC on your hosts
   interfaces:
-    - enp1s0f0np0
+    - ens18
   nodeSelector:
     matchLabels:
       kubernetes.io/os: linux
@@ -69,6 +69,6 @@ spec:
       peers:
         - name: peer-64512-v4
           peerASN: 64512
-          peerAddress: 192.168.20.1
+          peerAddress: 10.10.40.1
           peerConfigRef:
             name: bgp-peer-config-v4

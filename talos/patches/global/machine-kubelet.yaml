@@ -4,4 +4,5 @@ machine:
       serializeImagePulls: false
     nodeIP:
       validSubnets:
-        - 192.168.20.0/24
+        - 10.10.40.0/24
+        - 10.10.100.0/24

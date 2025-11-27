@@ -70,7 +70,7 @@ spec:
         type: LoadBalancer
         annotations:
           external-dns.alpha.kubernetes.io/hostname: smtp-relay.nimbus.casa
-          io.cilium/lb-ipam-ips: 192.168.20.35
+          io.cilium/lb-ipam-ips: 10.10.40.55
         ports:
           http:
             port: *metricsPort

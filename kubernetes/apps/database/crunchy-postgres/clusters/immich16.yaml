@@ -30,7 +30,7 @@ spec:
     metadata:
       annotations:
         external-dns.alpha.kubernetes.io/hostname: immich16.nimbus.casa
-        lbipam.cilium.io/ips: 192.168.20.34
+        lbipam.cilium.io/ips: 10.10.40.54
 
   patroni:
     dynamicConfiguration:
@@ -131,7 +131,7 @@ spec:
         - name: repo1 # Minio S3
           s3: &minio
             bucket: "crunchy-pgo"
-            endpoint: "192.168.1.5:9000"
+            endpoint: "nas.kbcb.tansanrao.net:9000"
             region: "us-east-1"
           schedules:
             full: "0 1 * * 0" # Sunday at 01:00

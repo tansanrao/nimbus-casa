@@ -30,7 +30,7 @@ spec:
   serviceSpec:
     type: LoadBalancer
     annotations:
-      lbipam.cilium.io/ips: 192.168.20.31
+      lbipam.cilium.io/ips: 10.10.40.51
       external-dns.alpha.kubernetes.io/hostname: redis.nimbus.casa
   topologySpreadConstraints:
     - maxSkew: 1
