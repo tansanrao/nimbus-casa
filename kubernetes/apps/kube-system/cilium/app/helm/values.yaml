@@ -84,5 +84,5 @@ securityContext:
       - SYS_ADMIN
       - SYS_RESOURCE
 socketLB:
-  enabled: true
+  enabled: false
   hostNamespaceOnly: false
