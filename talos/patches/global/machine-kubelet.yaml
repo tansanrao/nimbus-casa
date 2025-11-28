@@ -1,8 +1,11 @@
 machine:
   kubelet:
+    defaultRuntimeSeccompProfileEnabled: true
+    disableManifestsDirectory: true
     extraConfig:
+      featureGates:
+        ImageVolume: true
       serializeImagePulls: false
     nodeIP:
       validSubnets:
         - 10.10.40.0/24
-        - 10.10.100.0/24

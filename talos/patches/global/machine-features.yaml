@@ -1,6 +1,13 @@
 machine:
   features:
+    apidCheckExtKeyUsage: true
+    diskQuotaSupport: true
     hostDNS:
       enabled: true
+      forwardKubeDNSToHost: true # Requires Cilium socketLB features
       resolveMemberNames: true
-      forwardKubeDNSToHost: false
+    kubePrism:
+      enabled: true
+      port: 7445
+    rbac: true
+    stableHostname: true
