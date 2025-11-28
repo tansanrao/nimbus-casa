@@ -2,8 +2,7 @@
 instance:
   distribution:
     version: "2.x"
-    registry: "ghcr.io/fluxcd"
-    artifact: "oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests"
+    artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests:v0.35.0
   cluster:
     networkPolicy: false
   components:
