@@ -55,3 +55,7 @@ spec:
             - 10.10.100.0/24
           cluster:
             - 10.10.100.0/24
+
+    cephBlockPools: {}
+    cephFileSystems: {}
+    cephObjectStores: {}
