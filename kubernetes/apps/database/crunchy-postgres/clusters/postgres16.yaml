@@ -48,7 +48,7 @@ spec:
           app.kubernetes.io/name: crunchy-postgres
       replicas: &replica 2
       dataVolumeClaimSpec:
-        storageClassName: ceph-block
+        storageClassName: ceph-rbd
         accessModes:
           - ReadWriteOnce
         resources:
