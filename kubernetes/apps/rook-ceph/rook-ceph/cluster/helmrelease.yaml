@@ -43,7 +43,7 @@ spec:
     cephClusterSpec:
       dataDirHostPath: /var/lib/rook
       cephVersion:
-        image: quay.io/ceph/ceph:v19.2.3 # Update to match the Proxmox Ceph version
+        image: quay.io/ceph/ceph:v20.2.0 # Update to match the Proxmox Ceph version
       external:
         enable: true
       crashCollector:
