@@ -1,0 +1,16 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: gatus-rules
+spec:
+  groups:
+    - name: gatus.rules
+      rules:
+        - alert: GatusEndpointDown
+          expr: gatus_results_endpoint_success{group=~"internet|services"} == 0
+          for: 5m
+          annotations:
+            summary: The {{ $labels.name }} endpoint is down
+          labels:
+            severity: critical

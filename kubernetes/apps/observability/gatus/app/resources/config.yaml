@@ -1,0 +1,39 @@
+---
+connectivity:
+  checker:
+    target: 1.1.1.1:53
+    interval: 1m
+
+endpoints:
+  - name: Cloudflare DNS
+    group: internet
+    url: icmp://1.1.1.1
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+  - name: Google
+    group: internet
+    url: https://www.google.com
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+  - name: Grafana
+    group: services
+    url: https://grafana.${SECRET_DOMAIN}
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+
+metrics: true
+
+storage:
+  type: sqlite
+  caching: true
+  path: /data/gatus.db
+
+ui:
+  title: Status
+  header: Status
+
+web:
+  port: ${GATUS_WEB_PORT}

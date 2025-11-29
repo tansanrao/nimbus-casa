@@ -1,0 +1,69 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: kube-prometheus-stack
+  interval: 1h
+  values:
+    cleanPrometheusOperatorObjectNames: true
+
+    alertmanager:
+      alertmanagerSpec:
+        externalUrl: https://alertmanager.${SECRET_DOMAIN}
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: ceph-rbd
+              resources:
+                requests:
+                  storage: 2Gi
+
+    kubeEtcd:
+      service:
+        selector:
+          component: kube-apiserver
+
+    kubeProxy:
+      enabled: false
+
+    prometheus:
+      prometheusSpec:
+        externalUrl: https://prometheus.${SECRET_DOMAIN}
+        retention: 14d
+        retentionSize: 50GB
+        podMonitorSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          fsGroup: 65534
+        resources:
+          requests:
+            cpu: 100m
+          limits:
+            memory: 2000Mi
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: ceph-rbd
+              resources:
+                requests:
+                  storage: 50Gi
+
+    prometheus-node-exporter:
+      fullnameOverride: node-exporter
+
+    kube-state-metrics:
+      fullnameOverride: kube-state-metrics
+
+    grafana:
+      enabled: false
+      forceDeployDashboards: true
