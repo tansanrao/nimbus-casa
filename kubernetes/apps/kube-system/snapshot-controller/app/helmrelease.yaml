@@ -1,0 +1,34 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: snapshot-controller
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: snapshot-controller
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: -1
+  upgrade:
+    cleanupOnFail: true
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    controller:
+      replicaCount: 2
+      volumeSnapshotClasses:
+        - name: csi-ceph-blockpool
+          driver: rook-ceph.rbd.csi.ceph.com
+          annotations:
+            snapshot.storage.kubernetes.io/is-default-class: "true"
+          parameters:
+            clusterID: rook-ceph
+            csi.storage.k8s.io/snapshotter-secret-name: rook-csi-rbd-provisioner
+            csi.storage.k8s.io/snapshotter-secret-namespace: rook-ceph
+          deletionPolicy: Delete
+      serviceMonitor:
+        create: true
