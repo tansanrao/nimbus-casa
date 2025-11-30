@@ -11,11 +11,9 @@ spec:
   values:
     autoDirectNodeRoutes: true
     bpf:
-      datapathMode: netkit
       masquerade: true
-      preAllocateMaps: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
-      hostLegacyRouting: false
+      hostLegacyRouting: true
     bgpControlPlane:
       enabled: true
     cni:
@@ -57,7 +55,7 @@ spec:
         enabled: true
         serviceMonitor:
           enabled: true
-      replicas: 2
+      replicas: 1
       rollOutPods: true
     prometheus:
       enabled: true
@@ -88,3 +86,4 @@ spec:
           - SYS_RESOURCE
     socketLB:
       enabled: true
+      hostNamespaceOnly: true
