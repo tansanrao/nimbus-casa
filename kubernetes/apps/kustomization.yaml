@@ -8,6 +8,7 @@ resources:
   - ./flux-system
   - ./kube-system
   - ./network
+  - ./database
   - ./openebs-system
   - ./rook-ceph
   - ./volsync-system

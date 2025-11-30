@@ -1,0 +1,146 @@
+---
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: &name immich16
+spec:
+  postgresVersion: 16
+  image: ghcr.io/budimanjojo/crunchy-postgres-vectorchord:ubi9-16.9-2520-0.4.3
+
+  monitoring:
+    pgmonitor:
+      exporter:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64M
+          limits:
+            memory: 2G
+
+  metadata:
+    labels:
+      crunchy-userinit.ramblurr.github.com/enabled: "true"
+      crunchy-userinit.ramblurr.github.com/superuser: "postgres"
+      postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
+      postgres-operator.crunchydata.com/cluster: *name
+
+  service:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: immich16.${SECRET_DOMAIN}
+        lbipam.cilium.io/ips: 10.10.40.74
+
+  patroni:
+    dynamicConfiguration:
+      synchronous_mode: true
+      postgresql:
+        synchronous_commit: "on"
+        parameters:
+          shared_preload_libraries: "vchord.so"
+          search_path: '"$user", public, vectors"'
+        pg_hba:
+          - hostnossl all all 10.42.0.0/16 md5
+          - hostssl all all all md5
+
+  databaseInitSQL:
+    name: immich-database-init-sql
+    key: init.sql
+
+  instances:
+    - name: postgres
+      metadata:
+        labels:
+          app.kubernetes.io/name: crunchy-postgres
+      replicas: &replica 2
+      dataVolumeClaimSpec:
+        storageClassName: ceph-rbd
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              postgres-operator.crunchydata.com/cluster: *name
+              postgres-operator.crunchydata.com/data: postgres
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              preference:
+                matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [k8s0, k8s1, k8s2]
+
+  users:
+    - name: postgres
+      databases: [postgres]
+      options: SUPERUSER
+      password:
+        type: AlphaNumeric
+    - name: immich
+      databases: [immich]
+      password:
+        type: AlphaNumeric
+
+  backups:
+    pgbackrest:
+      configuration: &backupConfig
+        - secret:
+            name: crunchy-postgres-secret
+      global: &backupFlag
+        compress-type: bz2
+        compress-level: "9"
+        repo1-bundle: "y"
+        repo1-block: "y"
+        repo1-path: /immich16
+        repo1-retention-full: "30"
+        repo1-retention-full-type: time
+        repo1-s3-uri-style: path
+        repo1-storage-verify-tls: "n"
+        repo2-block: "y"
+        repo2-bundle: "y"
+        repo2-path: /immich16
+        repo2-retention-full: "7"
+        repo2-retention-full-type: time
+        repo2-s3-uri-style: path
+      manual:
+        repoName: repo1
+        options:
+          - --type=full
+      metadata:
+        labels:
+          app.kubernetes.io/name: crunchy-postgres-backup
+      repos:
+        - name: repo1
+          s3: &minio
+            bucket: crunchy-pgo
+            endpoint: nas.kbcb.tansanrao.net:9000
+            region: us-east-1
+          schedules:
+            full: 0 1 * * 0
+            differential: 0 1 * * 1-6
+            incremental: 0 2-23 * * *
+        - name: repo2
+          s3: &r2
+            bucket: crunchy-pgo
+            endpoint: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+            region: us-east-1
+          schedules:
+            full: 0 2 * * 0
+            incremental: 0 2 * * 1-6
+
+  dataSource:
+    pgbackrest:
+      stanza: db
+      configuration: *backupConfig
+      global: *backupFlag
+      repo:
+        name: repo1
+        s3: *minio

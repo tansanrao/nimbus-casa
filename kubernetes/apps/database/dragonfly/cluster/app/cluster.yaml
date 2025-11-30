@@ -1,0 +1,40 @@
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: dragonfly
+spec:
+  labels:
+    dragonflydb.io/cluster: dragonfly
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.35.0@sha256:298224bb39ac02c476696fe004d408deee8ad7b96b0cb9395abf1931c6ab0c34
+  replicas: 3
+  args:
+    - --maxmemory=$(MAX_MEMORY)Mi
+    - --proactor_threads=2
+    - --cluster_mode=emulated
+    - --lock_on_hashtags
+    - --default_lua_flags=allow-undeclared-keys
+  env:
+    - name: MAX_MEMORY
+      valueFrom:
+        resourceFieldRef:
+          resource: limits.memory
+          divisor: 1Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  serviceSpec:
+    type: LoadBalancer
+    annotations:
+      lbipam.cilium.io/ips: 10.10.40.71
+      external-dns.alpha.kubernetes.io/hostname: redis.${SECRET_DOMAIN}
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: dragonfly
