@@ -20,7 +20,6 @@ spec:
     useOperatorHostNetwork: true
     csi:
       cephFSKernelMountOptions: ms_mode=prefer-crc
-      enableCSIHostNetwork: true
       enableCephfsDriver: false
       enableCephfsSnapshotter: false
       enableLiveness: true
