@@ -1,0 +1,33 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: csi-driver-nfs
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: csi-driver-nfs
+  install:
+    remediation:
+      retries: -1
+  upgrade:
+    cleanupOnFail: true
+    remediation:
+      retries: 3
+  values:
+    controller:
+      replicas: 1
+    storageClass:
+      create: true
+      name: nfs-slow
+      parameters:
+        server: nas.kbcb.tansanrao.net
+        share: /mnt/tank/nimbus
+      mountOptions:
+        - nfsvers=4.2
+        - nconnect=16
+        - hard
+        - noatime
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
