@@ -8,4 +8,12 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./actual/ks.yaml
+  - ./asif-blog/ks.yaml
+  - ./authentik/ks.yaml
   - ./echo/ks.yaml
+  - ./immich/ks.yaml
+  - ./karakeep/ks.yaml
+  - ./mealie/ks.yaml
+  - ./miniflux/ks.yaml
+  - ./smtp-relay/ks.yaml

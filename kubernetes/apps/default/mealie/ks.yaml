@@ -1,0 +1,28 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mealie
+spec:
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
+    - name: crunchy-pgo-clusters
+      namespace: database
+  interval: 1h
+  path: ./kubernetes/apps/default/mealie/app
+  postBuild:
+    substitute:
+      APP: mealie
+      GATUS_PATH: /
+      VOLSYNC_CAPACITY: 20Gi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: default
+  wait: false
