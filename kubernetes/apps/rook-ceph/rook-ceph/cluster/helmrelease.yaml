@@ -25,7 +25,7 @@ spec:
     cephClusterSpec:
       dataDirHostPath: /var/lib/rook
       cephVersion:
-        image: quay.io/ceph/ceph:v19.2.3
+        image: quay.io/ceph/ceph:v20.2.0
       external:
         enable: true
       crashCollector:
