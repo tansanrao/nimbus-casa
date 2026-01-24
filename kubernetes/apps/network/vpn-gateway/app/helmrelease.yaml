@@ -73,6 +73,7 @@ spec:
     settings:
       VPN_INTERFACE: "wg0"
       VXLAN_ID: 44
+      VXLAN_PORT: "4789"
       VXLAN_IP_NETWORK: 172.16.1
       VXLAN_GATEWAY_FIRST_DYNAMIC_IP: 20
       VPN_BLOCK_OTHER_TRAFFIC: false
