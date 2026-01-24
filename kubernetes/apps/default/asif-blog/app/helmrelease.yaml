@@ -60,14 +60,14 @@ spec:
           http:
             primary: true
             port: 80
-    # route:
-    #   app:
-    #     hostnames: ["asifiqbal.xyz"]
-    #     parentRefs:
-    #       - name: envoy-external
-    #         namespace: network
-    #         sectionName: https
-    #     rules:
-    #       - backendRefs:
-    #           - identifier: app
-    #             port: http
+    route:
+      app:
+        hostnames: ["asifiqbal.xyz"]
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: http
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
