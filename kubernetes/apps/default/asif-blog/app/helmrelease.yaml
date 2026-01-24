@@ -56,13 +56,12 @@ spec:
     service:
       app:
         controller: asif-blog
-        type: LoadBalancer
-        annotations:
-          io.cilium/lb-ipam-ips: "10.10.40.70"
+        type: NodePort
         ports:
           http:
             primary: true
             port: 80
+            nodePort: 32641
     # route:
     #   app:
     #     hostnames: ["asifiqbal.xyz"]
