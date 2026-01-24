@@ -52,8 +52,6 @@ spec:
   dependsOn:
     - name: onepassword
       namespace: external-secrets
-    - name: rook-ceph-cluster
-      namespace: rook-ceph
     - name: crunchy-pgo
       namespace: database
   interval: 1h
