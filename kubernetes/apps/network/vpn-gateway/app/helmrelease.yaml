@@ -25,7 +25,7 @@ spec:
             enabled: true
             image:
               repository: docker.io/qmcgaw/gluetun
-              tag: v3.40.3
+              tag: v3.41.0
             envFrom:
               - secretRef:
                   name: vpn-gateway-secret
