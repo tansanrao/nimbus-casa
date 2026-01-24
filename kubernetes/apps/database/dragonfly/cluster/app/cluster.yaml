@@ -7,7 +7,7 @@ spec:
   labels:
     dragonflydb.io/cluster: dragonfly
   image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.36.0@sha256:af221b68138afb0b0238401c335493cfc2b060d577c5d6c018ddf6a29d3119f9
-  replicas: 3
+  replicas: 1
   args:
     - --maxmemory=$(MAX_MEMORY)Mi
     - --proactor_threads=2
@@ -31,10 +31,3 @@ spec:
     annotations:
       lbipam.cilium.io/ips: 10.10.40.71
       external-dns.alpha.kubernetes.io/hostname: redis.${SECRET_DOMAIN}
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/part-of: dragonfly

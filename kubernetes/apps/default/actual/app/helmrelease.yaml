@@ -53,13 +53,6 @@ spec:
             runAsNonRoot: true
             fsGroup: 1001
             fsGroupChangePolicy: OnRootMismatch
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: actual
     service:
       main:
         controller: main

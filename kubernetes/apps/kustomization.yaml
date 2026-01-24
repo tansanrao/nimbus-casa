@@ -10,6 +10,5 @@ resources:
   - ./network
   - ./database
   - ./openebs-system
-  - ./rook-ceph
   - ./volsync-system
   - ./observability

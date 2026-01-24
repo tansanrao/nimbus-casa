@@ -56,13 +56,6 @@ spec:
             runAsGroup: 65534
             runAsNonRoot: true
             seccompProfile: { type: RuntimeDefault }
-          topologySpreadConstraints:
-            - maxSkew: 1
-              topologyKey: kubernetes.io/hostname
-              whenUnsatisfiable: DoNotSchedule
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: smtp-relay
     service:
       main:
         controller: main

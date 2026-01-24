@@ -56,5 +56,5 @@ spec:
       resources:
         requests:
           storage: 10Gi
-      storageClassName: ceph-rbd
+      storageClassName: openebs-hostpath
   disableDefaultSecurityContext: All

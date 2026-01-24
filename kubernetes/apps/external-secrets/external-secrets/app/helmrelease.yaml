@@ -18,6 +18,6 @@ spec:
       serviceMonitor:
         enabled: true
     webhook:
-      replicaCount: 2
+      replicaCount: 1
       serviceMonitor:
         enabled: true

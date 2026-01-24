@@ -4,10 +4,10 @@ clusterName: kubernetes
 talosVersion: "${talosVersion}"
 kubernetesVersion: "${kubernetesVersion}"
 
-endpoint: https://10.10.40.39:6443
+endpoint: https://10.10.40.40:6443
 additionalApiServerCertSans: &sans
   - "127.0.0.1"
-  - "10.10.40.39"
+  - "10.10.40.40"
 additionalMachineCertSans: *sans
 
 clusterPodNets: ["10.42.0.0/16"]
@@ -23,7 +23,7 @@ nodes:
     installDisk: "/dev/vda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/bb0ba48a52352c699781aeeb4aa1983b80ccc778c2eac94590fe6b4ab3c0fd00
+    talosImageURL: factory.talos.dev/installer/6ab60e1e912cd3fdac42482dfe637fa2ed72d12072e1d38ad8f74012dac081b4
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -35,64 +35,8 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.10.40.1"
         mtu: 1500
-        vip:
-          ip: "10.10.40.39"
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:c9:e7:44"
-        dhcp: false
-        addresses:
-          - "10.10.100.40/24"
-        mtu: 9000
-  - hostname: "k8s1"
-    ipAddress: "10.10.40.41"
-    installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/bb0ba48a52352c699781aeeb4aa1983b80ccc778c2eac94590fe6b4ab3c0fd00
-    controlPlane: true
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:8c:04:d2"
-        dhcp: false
-        addresses:
-          - "10.10.40.41/24"
-        routes:
-          - network: "0.0.0.0/0"
-            gateway: "10.10.40.1"
-        mtu: 1500
-        vip:
-          ip: "10.10.40.39"
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:62:fa:89"
-        dhcp: false
-        addresses:
-          - "10.10.100.41/24"
-        mtu: 9000
-  - hostname: "k8s2"
-    ipAddress: "10.10.40.42"
-    installDisk: "/dev/vda"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/bb0ba48a52352c699781aeeb4aa1983b80ccc778c2eac94590fe6b4ab3c0fd00
-    controlPlane: true
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:71:16:14"
-        dhcp: false
-        addresses:
-          - "10.10.40.42/24"
-        routes:
-          - network: "0.0.0.0/0"
-            gateway: "10.10.40.1"
-        mtu: 1500
-        vip:
-          ip: "10.10.40.39"
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:68:0f:67"
-        dhcp: false
-        addresses:
-          - "10.10.100.42/24"
-        mtu: 9000
+
+
 # Global patches
 patches:
   - "@./patches/global/machine-files.yaml"
