@@ -24,8 +24,8 @@ spec:
           gluetun:
             enabled: true
             image:
-              repository: docker.io/qmcgaw/gluetun
-              tag: v3.40.3
+              repository: ghcr.io/qdm12/gluetun
+              tag: v3.41.0@sha256:6b54856716d0de56e5bb00a77029b0adea57284cf5a466f23aad5979257d3045
             envFrom:
               - secretRef:
                   name: vpn-gateway-secret
@@ -40,6 +40,12 @@ spec:
           annotations:
             configmap.reloader.stakater.com/reload: vpn-gateway-pod-gateway
             secret.reloader.stakater.com/reload: vpn-gateway-vpnconfig
+      webhook:
+        containers:
+          main:
+            image:
+              repository: ghcr.io/angelnu/gateway-admision-controller
+              tag: v3.12.0@sha256:6f6ab596afd5fef0ca4648eadfb21cd37ba86fa5afa8b85edcc072976a61fbed
 
     networkpolicies:
       main:
@@ -78,23 +84,18 @@ spec:
     settings:
       VPN_INTERFACE: "wg0"
       VXLAN_ID: 44
-      VXLAN_PORT: "4789"
       VXLAN_IP_NETWORK: 172.16.1
       VXLAN_GATEWAY_FIRST_DYNAMIC_IP: 20
       VPN_BLOCK_OTHER_TRAFFIC: false
       VPN_TRAFFIC_PORT: "51820"
-      VPN_LOCAL_CIDRS: 10.0.0.0/8 192.168.0.0/16
-      NOT_ROUTED_TO_GATEWAY_CIDRS: 10.0.0.0/8 192.168.0.0/16
+      VPN_LOCAL_CIDRS: 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+      NOT_ROUTED_TO_GATEWAY_CIDRS: 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
       DNS_LOCAL_CIDRS: "local"
 
     webhook:
-      containers:
-        main:
-          image:
-            repository: ghcr.io/angelnu/gateway-admision-controller
-            tag: v3.12.0@sha256:6f6ab596afd5fef0ca4648eadfb21cd37ba86fa5afa8b85edcc072976a61fbed
       gatewayDefault: false
       gatewayLabel: setGateway
       gatewayAnnotation: setGateway
       namespaceSelector:
+        type: label
         label: "vpn-routed-gateway"
