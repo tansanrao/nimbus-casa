@@ -56,6 +56,9 @@ spec:
     service:
       app:
         controller: asif-blog
+        type: LoadBalancer
+        annotations:
+          io.cilium/lb-ipam-ips: "10.10.40.70"
         ports:
           http:
             primary: true
