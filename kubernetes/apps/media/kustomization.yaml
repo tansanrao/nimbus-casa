@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: media
+
+components:
+  - ../../components/sops
+
+resources:
+  - ./namespace.yaml
+  - ./shared/ks.yaml
+  - ./jellyseerr/ks.yaml
+  - ./jellystat/ks.yaml
+  - ./prowlarr/ks.yaml
+  - ./qbittorrent/ks.yaml
+  - ./sabnzbd/ks.yaml
+  - ./radarr/ks.yaml
+  - ./sonarr/ks.yaml
+  - ./sonarr-anime/ks.yaml
+  - ./recyclarr/ks.yaml
