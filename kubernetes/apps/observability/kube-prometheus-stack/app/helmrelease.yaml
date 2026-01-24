@@ -15,6 +15,7 @@ spec:
       alertmanagerSpec:
         externalUrl: https://alertmanager.${SECRET_DOMAIN}
         storage:
+          disableSubPath: true
           volumeClaimTemplate:
             spec:
               storageClassName: openebs-hostpath
@@ -51,6 +52,7 @@ spec:
           limits:
             memory: 2000Mi
         storageSpec:
+          disableSubPath: true
           volumeClaimTemplate:
             spec:
               storageClassName: openebs-hostpath
