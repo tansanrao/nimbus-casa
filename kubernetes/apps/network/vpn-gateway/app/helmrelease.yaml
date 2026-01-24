@@ -85,6 +85,7 @@ spec:
       VPN_TRAFFIC_PORT: "51820"
       VPN_LOCAL_CIDRS: 10.0.0.0/8 192.168.0.0/16
       NOT_ROUTED_TO_GATEWAY_CIDRS: 10.0.0.0/8 192.168.0.0/16
+      DNS_LOCAL_CIDRS: "local"
 
     webhook:
       containers:
