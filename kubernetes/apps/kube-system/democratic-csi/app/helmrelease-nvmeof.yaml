@@ -43,3 +43,9 @@ spec:
         allowVolumeExpansion: true
         parameters:
           fsType: ext4
+    volumeSnapshotClasses:
+      - name: truenas-nvmeof-snap
+        driver: org.democratic-csi.truenas-nvmeof
+        deletionPolicy: Delete
+        parameters:
+          detachedSnapshots: "true"
