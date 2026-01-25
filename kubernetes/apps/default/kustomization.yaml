@@ -13,6 +13,7 @@ resources:
   - ./authentik/ks.yaml
   - ./echo/ks.yaml
   - ./immich/ks.yaml
+  - ./karakeep/ks.yaml
   - ./mealie/ks.yaml
   - ./miniflux/ks.yaml
   - ./smtp-relay/ks.yaml

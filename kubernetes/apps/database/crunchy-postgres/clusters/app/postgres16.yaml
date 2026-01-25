@@ -84,6 +84,10 @@ spec:
       databases: [prowlarr_main]
       password:
         type: AlphaNumeric
+    - name: karakeep
+      databases: [karakeep]
+      password:
+        type: AlphaNumeric
     - name: mealie
       databases: [mealie]
       password:
