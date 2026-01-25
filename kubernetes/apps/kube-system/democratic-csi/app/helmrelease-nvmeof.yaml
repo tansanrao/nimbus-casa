@@ -34,6 +34,7 @@ spec:
         image:
           tag: v1.9.5
         nvmeDirMountEnabled: true
+        nvmeDirHostPathType: DirectoryOrCreate
     storageClasses:
       - name: truenas-nvmeof
         defaultClass: false
