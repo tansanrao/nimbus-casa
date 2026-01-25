@@ -35,6 +35,12 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.10.40.1"
         mtu: 1500
+      - deviceSelector:
+          hardwareAddr: "00:a0:98:39:88:6d"
+        dhcp: false
+        addresses:
+          - "10.10.100.40/24"
+        mtu: 9000
 
 
 # Global patches
@@ -49,4 +55,3 @@ patches:
 controlPlane:
   patches:
     - "@./patches/controller/cluster.yaml"
-
