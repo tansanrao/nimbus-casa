@@ -19,7 +19,7 @@ spec:
           app:
             image:
               repository: docker.io/cyfershepard/jellystat
-              tag: 1.1.6
+              tag: 1.1.7
             env:
               TZ: America/New_York
             envFrom:
