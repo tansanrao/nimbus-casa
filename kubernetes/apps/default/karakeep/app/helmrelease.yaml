@@ -125,18 +125,20 @@ spec:
             port: 7700
 
     persistence:
-      data:
+      karakeep-data:
         enabled: true
         existingClaim: karakeep
         advancedMounts:
           karakeep:
             app:
               - path: /data
-                subPath: karakeep
+      meilisearch-data:
+        enabled: true
+        existingClaim: karakeep-meilisearch
+        advancedMounts:
           meilisearch:
             app:
               - path: /meili_data
-                subPath: meilisearch
 
     route:
       main:
