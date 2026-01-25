@@ -43,7 +43,7 @@ spec:
         parameters:
           fsType: nfs
         mountOptions:
-          - nfsvers=4.2
-          - nconnect=16
+          - nfsvers=3
+          - nolock
           - hard
           - noatime
