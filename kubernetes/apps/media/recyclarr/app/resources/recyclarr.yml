@@ -5,14 +5,15 @@ sonarr:
     base_url: http://sonarr.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      # Comment out any of the following includes to disable them
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-1080p
-      - template: sonarr-v4-custom-formats-web-1080p
-      - template: sonarr-v4-quality-profile-web-2160p
-      - template: sonarr-v4-custom-formats-web-2160p
+    quality_definition:
+      type: series
+    quality_profiles:
+      - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
+        reset_unmatched_scores:
+          enabled: true
 
     # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
@@ -24,8 +25,8 @@ sonarr:
           - 06d66ab109d4d2eddb2794d21526d140 # Retags
           - 1b3994c551cbb92a2c781af061f4ab44 # Scene
         assign_scores_to:
-          - name: WEB-1080p
-          - name: WEB-2160p
+          - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
+          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
       - trash_ids:
           # Comment out the next line if you and all of your users' setups are fully DV compatible
           - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
@@ -34,7 +35,7 @@ sonarr:
           # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10+ Boost
           # - 385e9e8581d33133c3961bdcdeffb7b4 # DV HDR10+ Boost
         assign_scores_to:
-          - name: WEB-2160p
+          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
       # Optional SDR
       # Only ever use ONE of the following custom formats:
       # SDR - block ALL SDR releases
@@ -43,37 +44,37 @@ sonarr:
           # - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
           # - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)
         assign_scores_to:
-          - name: WEB-2160p
+          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
 
   sonarr-anime:
     base_url: http://sonarr-anime.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      # Comment out any of the following includes to disable them
-      - template: sonarr-quality-definition-anime
-      - template: sonarr-v4-quality-profile-anime
-      - template: sonarr-v4-custom-formats-anime
+    quality_definition:
+      type: anime
+    quality_profiles:
+      - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
+        reset_unmatched_scores:
+          enabled: true
 
     # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
       - trash_ids:
           - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
         assign_scores_to:
-          - name: Remux-1080p - Anime
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: 0 # Adjust scoring as desired
 
       - trash_ids:
           - b2550eb333d27b75833e25b8c2557b38 # 10bit
         assign_scores_to:
-          - name: Remux-1080p - Anime
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: 0 # Adjust scoring as desired
 
       - trash_ids:
           - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio
         assign_scores_to:
-          - name: Remux-1080p - Anime
+          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
             score: 0 # Adjust scoring as desired
 
 radarr:
@@ -81,22 +82,23 @@ radarr:
     base_url: http://radarr.media.svc.cluster.local
     api_key: !env_var RADARR_API_KEY
     delete_old_custom_formats: true
-    replace_existing_custom_formats: true
-    include:
-      # Comment out any of the following includes to disable them
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-hd-bluray-web
-      - template: radarr-custom-formats-hd-bluray-web
-      - template: radarr-quality-profile-uhd-bluray-web
-      - template: radarr-custom-formats-uhd-bluray-web
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
+        reset_unmatched_scores:
+          enabled: true
 
     custom_formats:
       # Movie Versions
       - trash_ids:
           - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
         assign_scores_to:
-          - name: HD Bluray + WEB
-          - name: UHD Bluray + WEB
+          - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
             # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
       # Audio
       - trash_ids:
@@ -116,7 +118,7 @@ radarr:
           - 240770601cc226190c367ef59aba7463 # AAC
           - c2998bd0d90ed5621d8df281e839436e # DD
         assign_scores_to:
-          - name: UHD Bluray + WEB
+          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
       # Optional
       - trash_ids:
           - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
@@ -126,8 +128,8 @@ radarr:
           - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
           - f537cf427b64c38c8e36298f657e4828 # Scene
         assign_scores_to:
-          - name: HD Bluray + WEB
-          - name: UHD Bluray + WEB
+          - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
       - trash_ids:
           # Comment out the next line if you and all of your users' setups are fully DV compatible
           - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
@@ -136,9 +138,9 @@ radarr:
           # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
           # - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+ Boost
         assign_scores_to:
-          - name: UHD Bluray + WEB
+          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
       - trash_ids:
           # - 9c38ebb7384dada637be8899efa68e6f # SDR
           # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
         assign_scores_to:
-          - name: UHD Bluray + WEB
+          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
