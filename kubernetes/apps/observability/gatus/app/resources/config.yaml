@@ -17,12 +17,131 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-  - name: Grafana
-    group: services
-    url: https://grafana.${SECRET_DOMAIN}
+  - name: default/actual
+    group: public-services
+    url: https://actual.${SECRET_DOMAIN}
     interval: 1m
-    conditions:
-      - "[STATUS] == 200"
+    conditions: &app_http_conditions
+      - "[STATUS] >= 200"
+      - "[STATUS] < 400"
+  - name: default/authentik
+    group: public-services
+    url: https://auth.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/authentik-outpost
+    group: public-services
+    url: https://${SECRET_DOMAIN}/outpost.goauthentik.io/ping
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/echo
+    group: public-services
+    url: https://echo.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/immich
+    group: public-services
+    url: https://photos.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/karakeep
+    group: public-services
+    url: https://karakeep.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/mealie
+    group: public-services
+    url: https://mealie.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: default/miniflux
+    group: public-services
+    url: https://reader.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/jellyseerr
+    group: public-services
+    url: https://jellyseerr.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/jellystat
+    group: public-services
+    url: https://jellystat.${SECRET_DOMAIN}
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/prowlarr
+    group: private-services
+    url: &internal_gateway_url https://envoy-internal.network.svc.cluster.local/
+    headers:
+      Host: prowlarr.${SECRET_DOMAIN}
+    client: &private_client
+      insecure: true
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/qbittorrent
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: qb.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/radarr
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: radarr.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/sabnzbd
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: sab.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/sonarr
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: sonarr.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: media/sonarr-anime
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: sonarr-anime.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: observability/alertmanager
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: alertmanager.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: observability/grafana
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: grafana.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: observability/prometheus
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: prometheus.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
 
 metrics: true
 
