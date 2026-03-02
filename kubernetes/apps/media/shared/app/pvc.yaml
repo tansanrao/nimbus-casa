@@ -19,10 +19,10 @@ spec:
     - noatime
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: nas.kbcb.tansanrao.net/mnt/tank/mediastore
+    volumeHandle: sandcrawler.kbcb.tansanrao.net/tank/mediastore
     volumeAttributes:
-      server: nas.kbcb.tansanrao.net
-      share: /mnt/tank/mediastore
+      server: sandcrawler.kbcb.tansanrao.net
+      share: /tank/mediastore
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

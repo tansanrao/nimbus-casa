@@ -19,10 +19,10 @@ spec:
     - noatime
   csi:
     driver: nfs.csi.k8s.io
-    volumeHandle: nas.kbcb.tansanrao.net/mnt/tank/nimbus/immich
+    volumeHandle: sandcrawler.kbcb.tansanrao.net/tank/nimbus/immich
     volumeAttributes:
-      server: nas.kbcb.tansanrao.net
-      share: /mnt/tank/nimbus/immich
+      server: sandcrawler.kbcb.tansanrao.net
+      share: /tank/nimbus/immich
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

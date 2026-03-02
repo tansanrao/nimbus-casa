@@ -7,8 +7,8 @@ metadata:
     app.kubernetes.io/name: nfs-mediastore
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: nas.kbcb.tansanrao.net
-  share: /mnt/tank/mediastore
+  server: sandcrawler.kbcb.tansanrao.net
+  share: /tank/mediastore
 mountOptions:
   - nfsvers=4.2
   - nconnect=16

@@ -15,13 +15,13 @@ spec:
       interval: 1h
   values:
     csiDriver:
-      name: org.democratic-csi.truenas-nfs
+      name: org.democratic-csi.rocky-nfs
       fsGroupPolicy: File
       attachRequired: false
     driver:
       existingConfigSecret: democratic-csi-nfs-config
       config:
-        driver: freenas-api-nfs
+        driver: zfs-generic-nfs
     controller:
       podAnnotations:
         reloader.stakater.com/auto: "true"
@@ -35,7 +35,7 @@ spec:
         image:
           tag: v1.9.5
     storageClasses:
-      - name: truenas-nfs
+      - name: rocky-nfs
         defaultClass: false
         reclaimPolicy: Delete
         volumeBindingMode: Immediate
@@ -43,7 +43,6 @@ spec:
         parameters:
           fsType: nfs
         mountOptions:
-          - nfsvers=3
-          - nolock
+          - nfsvers=4.1
           - hard
           - noatime

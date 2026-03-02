@@ -22,8 +22,8 @@ spec:
       create: true
       name: nfs-slow
       parameters:
-        server: nas.kbcb.tansanrao.net
-        share: /mnt/tank/nimbus
+        server: sandcrawler.kbcb.tansanrao.net
+        share: /tank/nimbus
       mountOptions:
         - nfsvers=4.2
         - nconnect=16

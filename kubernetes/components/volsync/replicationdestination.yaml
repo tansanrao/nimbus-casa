@@ -14,10 +14,10 @@ spec:
     cacheStorageClassName: "${VOLSYNC_CACHE_SNAPSHOTCLASS:=openebs-hostpath}"
     cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:=ReadWriteOnce}"]
     cacheCapacity: "${VOLSYNC_CACHE_CAPACITY:=5Gi}"
-    storageClassName: "${VOLSYNC_STORAGECLASS:=truenas-nvmeof}"
+    storageClassName: "${VOLSYNC_STORAGECLASS:=rocky-nvmeof}"
     accessModes: ["${VOLSYNC_ACCESSMODES:=ReadWriteOnce}"]
     capacity: "${VOLSYNC_CAPACITY:=5Gi}"
-    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:=truenas-nvmeof-snap}"
+    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:=rocky-nvmeof-snap}"
     moverSecurityContext:
       runAsUser: ${VOLSYNC_PUID:=1001}
       runAsGroup: ${VOLSYNC_PGID:=1001}

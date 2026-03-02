@@ -15,12 +15,12 @@ spec:
       interval: 1h
   values:
     csiDriver:
-      name: org.democratic-csi.truenas-nvmeof
+      name: org.democratic-csi.rocky-nvmeof
       fsGroupPolicy: ReadWriteOnceWithFSType
     driver:
       existingConfigSecret: democratic-csi-nvmeof-config
       config:
-        driver: freenas-api-nvmeof
+        driver: zfs-generic-nvmeof
     controller:
       podAnnotations:
         reloader.stakater.com/auto: "true"
@@ -36,7 +36,7 @@ spec:
         nvmeDirMountEnabled: true
         nvmeDirHostPathType: DirectoryOrCreate
     storageClasses:
-      - name: truenas-nvmeof
+      - name: rocky-nvmeof
         defaultClass: false
         reclaimPolicy: Delete
         volumeBindingMode: Immediate
@@ -44,8 +44,8 @@ spec:
         parameters:
           fsType: ext4
     volumeSnapshotClasses:
-      - name: truenas-nvmeof-snap
-        driver: org.democratic-csi.truenas-nvmeof
+      - name: rocky-nvmeof-snap
+        driver: org.democratic-csi.rocky-nvmeof
         deletionPolicy: Delete
         parameters:
           detachedSnapshots: "true"

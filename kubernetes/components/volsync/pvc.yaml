@@ -8,4 +8,4 @@ spec:
   resources:
     requests:
       storage: "${VOLSYNC_CAPACITY:=5Gi}"
-  storageClassName: "${VOLSYNC_STORAGECLASS:=truenas-nvmeof}"
+  storageClassName: "${VOLSYNC_STORAGECLASS:=rocky-nvmeof}"

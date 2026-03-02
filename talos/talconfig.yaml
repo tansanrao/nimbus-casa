@@ -23,11 +23,11 @@ nodes:
     installDisk: "/dev/vda"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/6ab60e1e912cd3fdac42482dfe637fa2ed72d12072e1d38ad8f74012dac081b4
+    talosImageURL: factory.talos.dev/installer/3418cd3b0f0419e1900a43a60cdbc9749e1ed30f5795635b707067568c9c9b0b
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "bc:24:11:87:9c:80"
+          hardwareAddr: "52:54:00:7f:f1:78"
         dhcp: false
         addresses:
           - "10.10.40.40/24"
@@ -35,12 +35,6 @@ nodes:
           - network: "0.0.0.0/0"
             gateway: "10.10.40.1"
         mtu: 1500
-      - deviceSelector:
-          hardwareAddr: "00:a0:98:39:88:6d"
-        dhcp: false
-        addresses:
-          - "10.10.100.40/24"
-        mtu: 9000
 
 
 # Global patches

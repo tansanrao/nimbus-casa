@@ -104,7 +104,7 @@ spec:
         - name: repo1
           s3: &minio
             bucket: crunchy-pgo
-            endpoint: nas.kbcb.tansanrao.net:9000
+            endpoint: s3.kbcb.tansanrao.net:9000
             region: us-east-1
           schedules:
             full: 0 1 * * 0
@@ -119,11 +119,11 @@ spec:
             full: 0 2 * * 0
             incremental: 0 2 * * 1-6
 
-  # dataSource:
-  #   pgbackrest:
-  #     stanza: db
-  #     configuration: *backupConfig
-  #     global: *backupFlag
-  #     repo:
-  #       name: repo1
-  #       s3: *minio
+  dataSource:
+    pgbackrest:
+      stanza: db
+      configuration: *backupConfig
+      global: *backupFlag
+      repo:
+        name: repo2
+        s3: *r2
