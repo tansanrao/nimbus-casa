@@ -104,8 +104,8 @@ spec:
         - name: repo1
           s3: &minio
             bucket: crunchy-pgo
-            endpoint: s3.kbcb.tansanrao.net:9000
-            region: us-east-1
+            endpoint: s3.kbcb.tansanrao.net
+            region: garage
           schedules:
             full: 0 1 * * 0
             differential: 0 1 * * 1-6
