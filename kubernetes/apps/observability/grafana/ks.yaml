@@ -4,6 +4,9 @@ kind: Kustomization
 metadata:
   name: grafana
 spec:
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
   interval: 1h
   path: ./kubernetes/apps/observability/grafana/app
   postBuild:
@@ -11,6 +14,7 @@ spec:
       - name: cluster-secrets
         kind: Secret
   prune: true
+  retryInterval: 2m
   sourceRef:
     kind: GitRepository
     name: flux-system
