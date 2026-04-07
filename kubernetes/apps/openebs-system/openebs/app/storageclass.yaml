@@ -12,6 +12,7 @@ parameters:
   storage: lvm
   volgroup: openebs-vg
   fsType: ext4
+  thinProvision: "yes"
 allowedTopologies:
   - matchLabelExpressions:
       - key: kubernetes.io/hostname

@@ -167,11 +167,19 @@ There are **5 stages** outlined below for completing this project, make sure you
     kubernetes/apps/openebs-system/openebs/README.md
     ```
 
+   The Talos kernel config in this repo must load both `dm_snapshot` and `dm_thin_pool` if you want VolSync snapshot backup and restore to work on OpenEBS LVM.
+
 5. Watch the rollout of your cluster happen:
 
     ```sh
     kubectl get pods --all-namespaces --watch
     ```
+
+### OpenEBS LVM and VolSync
+
+This repo uses a single OpenEBS LVM storage class, `openebs-lvm`, for all LVM-backed workloads.
+
+That storage class is thin-provisioned for snapshot-based backup and restore. VolSync defaults to `copyMethod: Snapshot` and targets `openebs-lvm` for the PVCs it provisions and restores. Thin-pool space must be monitored because OpenEBS still has known thin-pool accounting limitations.
 
 ## 📣 Post installation
 

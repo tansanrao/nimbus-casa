@@ -2,3 +2,4 @@ machine:
   kernel:
     modules:
       - name: dm_snapshot
+      - name: dm_thin_pool
