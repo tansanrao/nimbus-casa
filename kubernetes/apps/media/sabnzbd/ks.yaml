@@ -8,6 +8,12 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/media/sabnzbd/app
   dependsOn:
+    - name: openebs
+      namespace: openebs-system
+    - name: snapshot-controller
+      namespace: kube-system
+    - name: volsync
+      namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
     - name: vpn-gateway

@@ -161,7 +161,13 @@ There are **5 stages** outlined below for completing this project, make sure you
     task bootstrap:apps
     ```
 
-4. Watch the rollout of your cluster happen:
+4. If you use the OpenEBS LVM Talos raw volume path in this repo, complete the one-time volume group bootstrap before waiting on stateful workloads:
+
+    ```text
+    kubernetes/apps/openebs-system/openebs/README.md
+    ```
+
+5. Watch the rollout of your cluster happen:
 
     ```sh
     kubectl get pods --all-namespaces --watch
@@ -417,7 +423,6 @@ If your workloads require persistent storage with features like replication or c
 - [rook-ceph](https://github.com/rook/rook)
 - [longhorn](https://github.com/longhorn/longhorn)
 - [openebs](https://github.com/openebs/openebs)
-- [democratic-csi](https://github.com/democratic-csi/democratic-csi)
 - [csi-driver-nfs](https://github.com/kubernetes-csi/csi-driver-nfs)
 - [csi-driver-smb](https://github.com/kubernetes-csi/csi-driver-smb)
 - [synology-csi](https://github.com/SynologyOpenSource/synology-csi)

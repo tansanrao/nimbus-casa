@@ -18,7 +18,7 @@ spec:
           disableMountSubPath: true
           volumeClaimTemplate:
             spec:
-              storageClassName: openebs-hostpath
+              storageClassName: openebs-lvm
               resources:
                 requests:
                   storage: 2Gi
@@ -55,7 +55,7 @@ spec:
           disableMountSubPath: true
           volumeClaimTemplate:
             spec:
-              storageClassName: openebs-hostpath
+              storageClassName: openebs-lvm
               resources:
                 requests:
                   storage: 50Gi

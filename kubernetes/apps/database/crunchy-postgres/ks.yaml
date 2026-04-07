@@ -50,6 +50,8 @@ spec:
     labels:
       app.kubernetes.io/name: *clusters
   dependsOn:
+    - name: openebs
+      namespace: openebs-system
     - name: onepassword
       namespace: external-secrets
     - name: crunchy-pgo

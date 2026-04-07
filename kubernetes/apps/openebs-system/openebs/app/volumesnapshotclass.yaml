@@ -1,0 +1,8 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: openebs-lvm-snap
+  labels:
+    app.kubernetes.io/name: openebs-lvm-snap
+driver: local.csi.openebs.io
+deletionPolicy: Delete

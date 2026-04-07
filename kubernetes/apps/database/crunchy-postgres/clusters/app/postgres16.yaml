@@ -47,7 +47,7 @@ spec:
           app.kubernetes.io/name: crunchy-postgres
       replicas: &replica 1
       dataVolumeClaimSpec:
-        storageClassName: openebs-hostpath
+        storageClassName: openebs-lvm
         accessModes:
           - ReadWriteOnce
         resources:
@@ -144,11 +144,11 @@ spec:
             full: 0 2 * * 0
             incremental: 0 2 * * 1-6
 
-  # dataSource:
-  #   pgbackrest:
-  #     stanza: db
-  #     configuration: *backupConfig
-  #     global: *backupFlag
-  #     repo:
-  #       name: repo2
-  #       s3: *r2
+  dataSource:
+    pgbackrest:
+      stanza: db
+      configuration: *backupConfig
+      global: *backupFlag
+      repo:
+        name: repo1
+        s3: *minio
