@@ -89,31 +89,38 @@ function apply_crds() {
     log debug "Applying CRDs"
 
     local -r helmfile_file="${ROOT_DIR}/bootstrap/helmfile.d/00-crds.yaml"
+    local rendered_file crd_file
+
+    rendered_file="$(mktemp)"
+    crd_file="$(mktemp)"
 
     if [[ ! -f "${helmfile_file}" ]]; then
         log fatal "File does not exist" "file" "${helmfile_file}"
     fi
 
-    if ! crds=$(
-        helmfile --file "${helmfile_file}" template --quiet \
-            | yq eval-all --exit-status 'select(.kind == "CustomResourceDefinition")' -
-    ); then
+    if ! helmfile --file "${helmfile_file}" template --quiet >"${rendered_file}"; then
         log fatal "Failed to render CRDs from Helmfile" "file" "${helmfile_file}"
     fi
 
-    if [[ -z "${crds//[$'\t\r\n ']/}" ]]; then
+    if ! yq eval-all --exit-status 'select(.kind == "CustomResourceDefinition")' "${rendered_file}" >"${crd_file}"; then
         log fatal "Failed to render CRDs from Helmfile" "file" "${helmfile_file}"
     fi
 
-    if echo "${crds}" | kubectl diff --filename - &>/dev/null; then
+    if ! grep -q '[^[:space:]]' "${crd_file}"; then
+        log fatal "Failed to render CRDs from Helmfile" "file" "${helmfile_file}"
+    fi
+
+    if kubectl diff --filename "${crd_file}" &>/dev/null; then
         log info "CRDs are up-to-date"
+        rm -f "${rendered_file}" "${crd_file}"
         return
     fi
 
-    if ! echo "${crds}" | kubectl apply --server-side --filename - &>/dev/null; then
+    if ! kubectl apply --server-side --filename "${crd_file}" &>/dev/null; then
         log fatal "Failed to apply crds from Helmfile" "file" "${helmfile_file}"
     fi
 
+    rm -f "${rendered_file}" "${crd_file}"
     log info "CRDs applied successfully"
 }
 
