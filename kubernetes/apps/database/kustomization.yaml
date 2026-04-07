@@ -10,3 +10,4 @@ resources:
   - ./namespace.yaml
   - ./crunchy-postgres/ks.yaml
   - ./dragonfly/ks.yaml
+  - ./meilisearch-karakeep/ks.yaml

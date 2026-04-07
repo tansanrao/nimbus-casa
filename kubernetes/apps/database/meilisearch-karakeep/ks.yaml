@@ -2,8 +2,12 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: karakeep
+  name: &app meilisearch-karakeep
+  namespace: &namespace database
 spec:
+  commonMetadata:
+    labels:
+      app.kubernetes.io/name: *app
   dependsOn:
     - name: openebs
       namespace: openebs-system
@@ -13,21 +17,19 @@ spec:
       namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
-    - name: meilisearch-karakeep
-      namespace: database
   interval: 1h
-  path: ./kubernetes/apps/default/karakeep/app
+  path: ./kubernetes/apps/database/meilisearch-karakeep/app
   postBuild:
     substitute:
-      APP: karakeep
-      VOLSYNC_CAPACITY: 15Gi
+      APP: meilisearch-karakeep
+      VOLSYNC_CAPACITY: 10Gi
     substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+      - kind: Secret
+        name: cluster-secrets
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: *namespace
   wait: false
