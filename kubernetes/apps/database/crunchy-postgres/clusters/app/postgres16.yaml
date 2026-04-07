@@ -129,7 +129,7 @@ spec:
         - name: repo1
           s3: &minio
             bucket: crunchy-pgo
-            endpoint: s3.kbcb.tansanrao.net
+            endpoint: s3.kbcb.tansanrao.net:30188
             region: garage
           schedules:
             full: 0 1 * * 0
