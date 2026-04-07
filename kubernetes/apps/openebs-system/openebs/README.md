@@ -82,6 +82,110 @@ Keep the VolSync cache PVCs on `openebs-hostpath`; they do not need LVM snapshot
 
 Because restores are now in-place, they overwrite newer filesystem contents on the target PVC. Do not restore while the application is still writing to the volume.
 
+## Backup coverage
+
+This repo has three backup classes for persistent data:
+
+- `VolSync + OpenEBS LVM`: application PVCs that live on `openebs-lvm` and are backed up with restic via VolSync.
+- `NFS-backed storage`: workloads like Immich uploads and the media shared store that are backed up at the NAS/storage layer, not through VolSync.
+- `Database-native backups`: PostgreSQL clusters that are backed up with `pgBackRest` and WAL archiving to S3.
+
+### VolSync-protected PVCs
+
+The shared VolSync component is intended for application PVCs on `openebs-lvm`, including:
+
+- `default/actual`
+- `default/karakeep`
+- `default/mealie`
+- `database/meilisearch-karakeep`
+- `media/jellyseerr`
+- `media/qbittorrent`
+- `media/radarr`
+- `media/recyclarr`
+- `media/sabnzbd`
+- `media/sonarr`
+- `media/sonarr-anime`
+
+### Intentionally excluded from VolSync
+
+These PVCs are not gaps in the VolSync/OpenEBS design:
+
+- `default/immich-nfs-pvc`: backed up through the Immich NFS storage path.
+- `media/mediastore-nfs-pvc`: backed up through the media NFS storage path.
+- `database/immich16-postgres-*-pgdata`: protected by `pgBackRest` and WAL-to-S3.
+- `database/postgres16-postgres-*-pgdata`: protected by `pgBackRest` and WAL-to-S3.
+- `media/jellystat`: the deployed chart is currently stateless and only uses `emptyDir`, so it should not carry the shared VolSync component.
+
+## Restore runbook
+
+Use this flow for any app PVC that is protected by VolSync on `openebs-lvm`:
+
+1. Confirm the latest backup completed successfully:
+
+   ```sh
+   kubectl get replicationsources.volsync.backube -A
+   kubectl get replicationdestinations.volsync.backube -A
+   ```
+
+2. Stop all writers to the target PVC. Scale the workload down or suspend its Flux `HelmRelease` before restoring.
+
+3. Pick a new manual trigger token and patch the `ReplicationDestination`:
+
+   ```sh
+   kubectl -n <namespace> patch replicationdestination <app>-dst \
+     --type merge \
+     -p '{"spec":{"trigger":{"manual":"restore-YYYYMMDDHHMMSS"}}}'
+   ```
+
+   Always use a new token. VolSync only starts a new restore when `spec.trigger.manual` changes.
+
+4. Watch the restore until it finishes:
+
+   ```sh
+   kubectl -n <namespace> get replicationdestination <app>-dst -w
+   kubectl -n <namespace> describe replicationdestination <app>-dst
+   ```
+
+5. Validate the restored data before bringing the workload back:
+
+   ```sh
+   kubectl -n <namespace> get pvc <app>
+   kubectl -n <namespace> get pods
+   ```
+
+6. Start the workload again and verify application health.
+
+7. After the restore, inspect for lingering artifacts:
+
+   ```sh
+   kubectl get pv | grep Released
+   kubectl get volumesnapshots.snapshot.storage.k8s.io -A
+   kubectl get lvmsnapshots.local.openebs.io -A
+   ```
+
+## Audit and monitoring
+
+Use the repo audit helper to review OpenEBS/VolSync coverage and current cluster health:
+
+```sh
+./scripts/audit-volsync-openebs.sh
+```
+
+The audit is expected to verify:
+
+- every `openebs-lvm` application PVC is VolSync-protected, intentionally excluded, or a true gap
+- every VolSync-protected workload has completed at least one successful sync
+- thin-pool free space remains healthy on `openebs-vg`
+- stale `Released` PVs and stuck snapshots/syncs are visible for cleanup
+
+Prometheus should alert on:
+
+- the VolSync metrics endpoint disappearing
+- any VolSync volume reporting out-of-sync
+- any VolSync source that has never completed a backup
+
+Thin-pool monitoring is still partly operational rather than fully automated here. Review `LVMNode` capacity regularly and extend the thin pool before it fills.
+
 ## Cutover note
 
 This repo now assumes a fresh thin-only bootstrap. The single `openebs-lvm` StorageClass is thin-provisioned, and the old thick-provisioned class definition has been removed from the repo.

@@ -8,12 +8,6 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/media/jellystat/app
   dependsOn:
-    - name: openebs
-      namespace: openebs-system
-    - name: snapshot-controller
-      namespace: kube-system
-    - name: volsync
-      namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
     - name: crunchy-pgo-clusters
@@ -31,7 +25,6 @@ spec:
   postBuild:
     substitute:
       APP: jellystat
-      VOLSYNC_CAPACITY: 1Gi
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

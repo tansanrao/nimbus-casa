@@ -26,3 +26,13 @@ spec:
           for: 5m
           labels:
             severity: critical
+
+        - alert: VolSyncSourceNeverSynced
+          expr: |
+            volsync_sync_duration_seconds_count{role="source"} == 0
+          annotations:
+            summary: >
+              {{ $labels.obj_namespace }}/{{ $labels.obj_name }} has never completed a VolSync backup
+          for: 30m
+          labels:
+            severity: critical

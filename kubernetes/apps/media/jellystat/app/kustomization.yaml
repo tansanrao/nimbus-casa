@@ -5,7 +5,6 @@ resources:
   - ./ocirepository.yaml
   - ./externalsecret.yaml
   - ./helmrelease.yaml
-  - ../../../../components/volsync
 labels:
   - pairs:
       app.kubernetes.io/name: jellystat
