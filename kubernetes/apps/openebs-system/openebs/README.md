@@ -69,14 +69,18 @@ Once `openebs-vg` exists, the durable workloads in this repo can bind their PVCs
 
 ## VolSync backup and restore flow
 
-VolSync in this repo defaults to `copyMethod: Snapshot` and uses `openebs-lvm` for the source PVC, destination PVC, and restore PVC it manages. The expected flow is:
+VolSync in this repo defaults to `copyMethod: Snapshot` for backups. Restores target the live app PVC directly with VolSync's existing-claim restore path. The expected flow is:
 
 1. The app PVC is provisioned on `openebs-lvm`.
 2. `ReplicationSource` creates a CSI snapshot using `openebs-lvm-snap`.
 3. VolSync mounts the snapshot-backed temporary PVC and pushes data to restic.
-4. `ReplicationDestination` restores the latest data to a PVC on `openebs-lvm`.
+4. To restore, scale the consuming app down or suspend its Helm release.
+5. `ReplicationDestination` restores the latest data into the existing live PVC on `openebs-lvm`.
+6. Wait for the restore to complete, then scale the app back up.
 
 Keep the VolSync cache PVCs on `openebs-hostpath`; they do not need LVM snapshots.
+
+Because restores are now in-place, they overwrite newer filesystem contents on the target PVC. Do not restore while the application is still writing to the volume.
 
 ## Cutover note
 

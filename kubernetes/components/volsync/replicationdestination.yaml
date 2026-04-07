@@ -10,14 +10,11 @@ spec:
     manual: restore-once
   restic:
     repository: "${APP}-volsync-secret"
-    copyMethod: "${VOLSYNC_COPYMETHOD:=Snapshot}"
+    copyMethod: "${VOLSYNC_RESTORE_COPYMETHOD:=Direct}"
+    destinationPVC: "${APP}"
     cacheStorageClassName: "${VOLSYNC_CACHE_SNAPSHOTCLASS:=openebs-hostpath}"
     cacheAccessModes: ["${VOLSYNC_CACHE_ACCESSMODES:=ReadWriteOnce}"]
     cacheCapacity: "${VOLSYNC_CACHE_CAPACITY:=5Gi}"
-    storageClassName: "${VOLSYNC_STORAGECLASS:=openebs-lvm}"
-    accessModes: ["${VOLSYNC_ACCESSMODES:=ReadWriteOnce}"]
-    capacity: "${VOLSYNC_CAPACITY:=5Gi}"
-    volumeSnapshotClassName: "${VOLSYNC_SNAPSHOTCLASS:=openebs-lvm-snap}"
     moverSecurityContext:
       runAsUser: ${VOLSYNC_PUID:=1001}
       runAsGroup: ${VOLSYNC_PGID:=1001}

@@ -179,7 +179,7 @@ There are **5 stages** outlined below for completing this project, make sure you
 
 This repo uses a single OpenEBS LVM storage class, `openebs-lvm`, for all LVM-backed workloads.
 
-That storage class is thin-provisioned for snapshot-based backup and restore. VolSync defaults to `copyMethod: Snapshot` and targets `openebs-lvm` for the PVCs it provisions and restores. Thin-pool space must be monitored because OpenEBS still has known thin-pool accounting limitations.
+That storage class is thin-provisioned for snapshot-based backup and restore. VolSync uses snapshot-based backups and restores into the existing live PVC for each app. Before triggering a restore, scale the consuming workload down or suspend its Helm release, wait for the restore to finish, and then scale the workload back up. Thin-pool space must be monitored because OpenEBS still has known thin-pool accounting limitations.
 
 ## 📣 Post installation
 
