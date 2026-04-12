@@ -9,6 +9,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./shared/ks.yaml
+  - ./jellyfin/ks.yaml
   - ./jellyseerr/ks.yaml
   - ./jellystat/ks.yaml
   - ./prowlarr/ks.yaml

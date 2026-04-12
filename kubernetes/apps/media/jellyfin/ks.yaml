@@ -1,0 +1,37 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: jellyfin
+  namespace: media
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/media/jellyfin/app
+  dependsOn:
+    - name: openebs
+      namespace: openebs-system
+    - name: snapshot-controller
+      namespace: kube-system
+    - name: volsync
+      namespace: volsync-system
+    - name: onepassword
+      namespace: external-secrets
+    - name: intel-gpu-plugin
+      namespace: kube-system
+    - name: media-shared
+      namespace: media
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: media
+  timeout: 5m
+  wait: false
+  postBuild:
+    substitute:
+      APP: jellyfin
+      VOLSYNC_CAPACITY: 15Gi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
