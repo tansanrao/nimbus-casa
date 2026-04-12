@@ -4,7 +4,7 @@ This cluster exposes the passed-through Intel Arc A380 to Kubernetes through:
 
 - Talos system extensions: `i915` and `mei`
 - Node Feature Discovery
-- Intel GPU device plugin
+- Intel GPU device plugin DaemonSet
 
 ## Expected Node State
 
@@ -35,6 +35,8 @@ kubectl -n kube-system get pods | grep -E 'node-feature-discovery|intel-gpu-plug
 kubectl get node --show-labels | grep 'intel.feature.node.kubernetes.io/gpu=true'
 ```
 
+The Intel GPU plugin is deployed directly as a `DaemonSet`. It does not use the Intel device plugin operator or the `GpuDevicePlugin` custom resource.
+
 ## Workload Contract
 
 GPU-enabled apps should request:
@@ -47,8 +49,9 @@ resources:
 
 For Immich:
 
-- `immich-server` uses Intel QSV or VA-API once hardware transcoding is enabled in Immich settings.
+- `immich-machine-learning` requests `gpu.intel.com/i915: 1`.
 - `immich-machine-learning` must use the `-openvino` image variant.
+- `immich-server` does not need a GPU for OpenVINO machine learning.
 
 For future Jellyfin:
 
