@@ -11,6 +11,8 @@ spec:
       namespace: database
     - name: crunchy-pgo-clusters
       namespace: database
+    - name: intel-gpu-plugin
+      namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/default/immich/app
   postBuild:
