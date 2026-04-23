@@ -1,0 +1,27 @@
+---
+- name: Configure VPS edge hosts
+  hosts: vps
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Load SOPS-encrypted VPS variables
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/group_vars/vps.sops.yml"
+        name: vps_sops_secrets
+      no_log: true
+      tags: always
+
+    - name: Promote SOPS variables for roles
+      ansible.builtin.set_fact:
+        wireguard_vps_private_key: "{{ ansible_facts.vps_sops_secrets.wireguard_vps_private_key }}"
+        wireguard_connector_public_key: "{{ ansible_facts.vps_sops_secrets.wireguard_connector_public_key }}"
+      no_log: true
+      tags: always
+
+  roles:
+    - role: common
+    - role: firewall
+    - role: wireguard
+    - role: haproxy
+    - role: gatus

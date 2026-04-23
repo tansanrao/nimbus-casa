@@ -1,0 +1,9 @@
+---
+- name: Validate nftables configuration
+  ansible.builtin.command: "nft -c -f {{ nftables_config_path }}"
+  changed_when: false
+
+- name: Reload nftables
+  ansible.builtin.service:
+    name: nftables
+    state: reloaded

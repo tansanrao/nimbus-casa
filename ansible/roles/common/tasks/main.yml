@@ -1,0 +1,62 @@
+---
+- name: Assert UTC infrastructure baseline
+  ansible.builtin.assert:
+    that:
+      - system_timezone == "UTC"
+    fail_msg: "All Ansible-managed infrastructure hosts must run UTC."
+
+- name: Set system hostname
+  ansible.builtin.hostname:
+    name: "{{ system_hostname }}"
+    use: systemd
+
+- name: Keep FQDN in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s+'
+    line: "127.0.1.1 {{ system_fqdn }} {{ system_hostname }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Read current timezone
+  ansible.builtin.command: timedatectl show -p Timezone --value
+  changed_when: false
+  register: current_timezone
+
+- name: Set system timezone
+  ansible.builtin.command: "timedatectl set-timezone {{ system_timezone }}"
+  changed_when: true
+  when: current_timezone.stdout != system_timezone
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_apt_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Enable chrony
+  ansible.builtin.service:
+    name: chrony
+    enabled: true
+    state: started
+
+- name: Configure unattended upgrades schedule
+  ansible.builtin.template:
+    src: 20auto-upgrades.j2
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure SSH hardening drop-in
+  ansible.builtin.template:
+    src: sshd-hardening.conf.j2
+    dest: "{{ ssh_hardening_drop_in }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Validate sshd configuration
+    - Reload sshd

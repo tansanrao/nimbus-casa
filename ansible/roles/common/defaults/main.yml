@@ -1,0 +1,14 @@
+---
+common_apt_packages:
+  - apt-listchanges
+  - ca-certificates
+  - chrony
+  - curl
+  - gnupg
+  - jq
+  - lsb-release
+  - openssh-server
+  - rsyslog
+  - unattended-upgrades
+
+ssh_hardening_drop_in: /etc/ssh/sshd_config.d/90-ansible-hardening.conf

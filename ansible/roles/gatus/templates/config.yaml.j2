@@ -1,0 +1,46 @@
+---
+metrics: true
+
+storage:
+  type: sqlite
+  caching: true
+  path: /data/gatus.db
+
+ui:
+  title: Nimbus Casa Edge
+  header: Nimbus Casa Edge
+
+web:
+  address: {{ gatus_web_address }}
+  port: {{ gatus_web_port }}
+
+endpoints:
+  - name: HAProxy local health
+    group: edge
+    url: http://{{ haproxy_health_bind }}/
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+{% if gatus_enable_connector_checks %}
+  - name: WireGuard connector peer
+    group: edge
+    url: icmp://{{ wireguard_connector_address | regex_replace('/.*$', '') }}
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+  - name: Connector HAProxy
+    group: edge
+    url: tcp://{{ connector_haproxy_backend }}
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+{% endif %}
+{% for endpoint in gatus_public_endpoints %}
+  - name: {{ endpoint.name }}
+    group: public
+    url: {{ endpoint.url }}
+    interval: {{ endpoint.interval | default('1m') }}
+    conditions:
+      - "[STATUS] >= 200"
+      - "[STATUS] < 400"
+{% endfor %}

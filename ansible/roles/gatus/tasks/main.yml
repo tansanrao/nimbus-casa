@@ -1,0 +1,48 @@
+---
+- name: Install Podman for Gatus
+  ansible.builtin.apt:
+    name: podman
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create Gatus config directory
+  ansible.builtin.file:
+    path: "{{ gatus_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create Gatus data directory
+  ansible.builtin.file:
+    path: "{{ gatus_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure Gatus
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ gatus_config_dir }}/config.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Gatus
+
+- name: Configure Gatus systemd service
+  ansible.builtin.template:
+    src: gatus.service.j2
+    dest: /etc/systemd/system/{{ gatus_service_name }}.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Gatus
+
+- name: Enable Gatus
+  ansible.builtin.systemd:
+    name: "{{ gatus_service_name }}"
+    daemon_reload: true
+    enabled: true
+    state: started

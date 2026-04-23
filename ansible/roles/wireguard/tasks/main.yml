@@ -1,0 +1,47 @@
+---
+- name: Assert WireGuard does not route home networks
+  ansible.builtin.assert:
+    that:
+      - wireguard_connector_address == "10.200.0.2/32"
+      - "'10.10.' not in wireguard_connector_address"
+      - wireguard_vps_address == "10.200.0.1/32"
+    fail_msg: "The VPS WireGuard peer must only allow the connector /32, never HOMELAB or wider home routes."
+
+- name: Assert WireGuard keys are populated
+  ansible.builtin.assert:
+    that:
+      - wireguard_vps_private_key is defined
+      - wireguard_connector_public_key is defined
+      - not wireguard_vps_private_key.startswith('CHANGE_ME')
+      - not wireguard_connector_public_key.startswith('CHANGE_ME')
+    fail_msg: "Replace the encrypted WireGuard placeholders in ansible/group_vars/vps.sops.yml before applying."
+
+- name: Install WireGuard
+  ansible.builtin.apt:
+    name: wireguard
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create WireGuard config directory
+  ansible.builtin.file:
+    path: "{{ wireguard_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Configure WireGuard interface
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: "{{ wireguard_config_dir }}/{{ wireguard_interface }}.conf"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart WireGuard
+
+- name: Enable WireGuard interface
+  ansible.builtin.service:
+    name: "wg-quick@{{ wireguard_interface }}"
+    enabled: true
+    state: started

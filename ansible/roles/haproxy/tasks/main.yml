@@ -1,0 +1,41 @@
+---
+- name: Install HAProxy
+  ansible.builtin.apt:
+    name: haproxy
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create HAProxy map directory
+  ansible.builtin.file:
+    path: "{{ haproxy_maps_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write future VM service map placeholder
+  ansible.builtin.template:
+    src: vm-services.map.j2
+    dest: "{{ haproxy_maps_dir }}/vm-services.map"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure HAProxy
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: "{{ haproxy_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: haproxy -c -f %s
+  notify:
+    - Validate HAProxy configuration
+    - Reload HAProxy
+
+- name: Enable HAProxy
+  ansible.builtin.service:
+    name: haproxy
+    enabled: true
+    state: started

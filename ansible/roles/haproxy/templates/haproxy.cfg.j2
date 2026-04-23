@@ -1,0 +1,51 @@
+global
+  log /dev/log local0
+  log /dev/log local1 notice
+  chroot /var/lib/haproxy
+  stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+  stats timeout 30s
+  user haproxy
+  group haproxy
+  daemon
+
+defaults
+  log global
+  option dontlognull
+  timeout connect {{ haproxy_connect_timeout }}
+  timeout client {{ haproxy_client_timeout }}
+  timeout server {{ haproxy_server_timeout }}
+
+frontend fe_http
+  bind :::80 v4v6
+  mode http
+  option httplog
+  http-request redirect scheme https code 301
+
+frontend fe_https
+  bind :::443 v4v6
+  mode tcp
+  option tcplog
+  tcp-request inspect-delay 5s
+  tcp-request content accept if { req_ssl_hello_type 1 }
+{% set kubernetes_acl_names = [] %}
+{% for domain in haproxy_kubernetes_domains %}
+{% set acl_name = 'sni_kubernetes_' ~ loop.index %}
+{% set _ = kubernetes_acl_names.append(acl_name) %}
+{% if domain.startswith('.') %}
+  acl {{ acl_name }} req.ssl_sni -m end {{ domain }}
+{% else %}
+  acl {{ acl_name }} req.ssl_sni -i {{ domain }}
+{% endif %}
+{% endfor %}
+  use_backend be_kubernetes_tls if {{ kubernetes_acl_names | join(' || ') }}
+  default_backend be_kubernetes_tls
+
+backend be_kubernetes_tls
+  mode tcp
+  option tcp-check
+  server connector {{ connector_haproxy_backend }} check
+
+listen local_health
+  bind {{ haproxy_health_bind }}
+  mode http
+  http-request return status 200 content-type text/plain string "ok\n"

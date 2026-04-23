@@ -1,0 +1,19 @@
+[Unit]
+Description=Gatus status monitor
+Documentation=https://github.com/TwiN/gatus
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Restart=always
+RestartSec=10
+ExecStartPre=-/usr/bin/podman rm -f {{ gatus_service_name }}
+ExecStart=/usr/bin/podman run --rm --name {{ gatus_service_name }} --network host \
+  --volume {{ gatus_config_dir }}/config.yaml:/config/config.yaml:ro \
+  --volume {{ gatus_data_dir }}:/data \
+  {{ gatus_image }}
+ExecStop=/usr/bin/podman stop -t 10 {{ gatus_service_name }}
+
+[Install]
+WantedBy=multi-user.target

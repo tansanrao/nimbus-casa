@@ -1,0 +1,24 @@
+---
+- name: Install nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Configure nftables
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: "{{ nftables_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Validate nftables configuration
+    - Reload nftables
+
+- name: Enable nftables
+  ansible.builtin.service:
+    name: nftables
+    enabled: true
+    state: started

@@ -5,6 +5,7 @@ set: [pipefail]
 shopt: [globstar]
 
 vars:
+  ANSIBLE_DIR: '{{.ROOT_DIR}}/ansible'
   BOOTSTRAP_DIR: '{{.ROOT_DIR}}/bootstrap'
   KUBERNETES_DIR: '{{.ROOT_DIR}}/kubernetes'
   SCRIPTS_DIR: '{{.ROOT_DIR}}/scripts'
@@ -24,6 +25,48 @@ includes:
 tasks:
 
   default: task --list
+
+  ansible:deps:
+    desc: Install Ansible Galaxy dependencies
+    cmd: cd {{.ANSIBLE_DIR}} && ansible-galaxy collection install -r requirements.yml -p .collections
+    preconditions:
+      - test -f {{.ANSIBLE_DIR}}/requirements.yml
+      - which ansible-galaxy
+
+  ansible:inventory:
+    desc: Show Ansible inventory graph
+    cmd: cd {{.ANSIBLE_DIR}} && ansible-inventory --graph
+    deps: [ansible:deps]
+    preconditions:
+      - test -f {{.ANSIBLE_DIR}}/inventory.yml
+      - which ansible-inventory
+
+  ansible:syntax:
+    desc: Run Ansible playbook syntax check
+    cmd: cd {{.ANSIBLE_DIR}} && ansible-playbook --syntax-check site.yml
+    deps: [ansible:deps]
+    preconditions:
+      - test -f {{.ANSIBLE_DIR}}/inventory.yml
+      - test -f {{.ANSIBLE_DIR}}/site.yml
+      - which ansible-playbook
+
+  ansible:check:
+    desc: Run Ansible check mode against VPS hosts
+    cmd: cd {{.ANSIBLE_DIR}} && ansible-playbook --check --diff site.yml
+    deps: [ansible:deps]
+    preconditions:
+      - test -f {{.ANSIBLE_DIR}}/inventory.yml
+      - test -f {{.ANSIBLE_DIR}}/site.yml
+      - which ansible-playbook
+
+  ansible:apply:
+    desc: Apply Ansible configuration to VPS hosts
+    cmd: cd {{.ANSIBLE_DIR}} && ansible-playbook --diff site.yml
+    deps: [ansible:deps]
+    preconditions:
+      - test -f {{.ANSIBLE_DIR}}/inventory.yml
+      - test -f {{.ANSIBLE_DIR}}/site.yml
+      - which ansible-playbook
 
   reconcile:
     desc: Force Flux to pull in changes from your Git repository

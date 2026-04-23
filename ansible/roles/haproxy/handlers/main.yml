@@ -1,0 +1,9 @@
+---
+- name: Validate HAProxy configuration
+  ansible.builtin.command: "haproxy -c -f {{ haproxy_config_path }}"
+  changed_when: false
+
+- name: Reload HAProxy
+  ansible.builtin.service:
+    name: haproxy
+    state: reloaded

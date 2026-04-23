@@ -1,0 +1,37 @@
+---
+system_hostname: gw0
+system_fqdn: gw0.kiad.tansanrao.net
+system_timezone: UTC
+
+edge_domain: nimbus.casa
+vps_public_ipv4: "5.161.216.148"
+vps_public_ipv6: "2a01:4ff:f0:e61::/64"
+
+wireguard_interface: wg0
+wireguard_listen_port: 51820
+wireguard_vps_address: 10.200.0.1/32
+wireguard_connector_address: 10.200.0.2/32
+connector_haproxy_backend: 10.200.0.2:443
+
+ssh_listen_port: 22
+firewall_tcp_allow_ports:
+  - "{{ ssh_listen_port }}"
+  - 80
+  - 443
+firewall_udp_allow_ports:
+  - "{{ wireguard_listen_port }}"
+
+haproxy_kubernetes_domains:
+  - "{{ edge_domain }}"
+  - ".{{ edge_domain }}"
+haproxy_health_bind: 127.0.0.1:8404
+haproxy_connect_timeout: 5s
+haproxy_client_timeout: 60s
+haproxy_server_timeout: 60s
+
+gatus_version: v5.35.0
+gatus_image: "ghcr.io/twin/gatus:{{ gatus_version }}"
+gatus_web_address: 127.0.0.1
+gatus_web_port: 8080
+gatus_enable_connector_checks: false
+gatus_public_endpoints: []

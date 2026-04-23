@@ -1,0 +1,10 @@
+[Interface]
+Address = {{ wireguard_vps_address }}
+ListenPort = {{ wireguard_listen_port }}
+PrivateKey = {{ wireguard_vps_private_key }}
+SaveConfig = false
+
+[Peer]
+PublicKey = {{ wireguard_connector_public_key }}
+AllowedIPs = {{ wireguard_connector_address }}
+PersistentKeepalive = 25

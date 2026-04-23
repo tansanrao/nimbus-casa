@@ -1,0 +1,6 @@
+---
+- name: Restart Gatus
+  ansible.builtin.systemd:
+    name: "{{ gatus_service_name }}"
+    daemon_reload: true
+    state: restarted
