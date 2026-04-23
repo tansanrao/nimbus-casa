@@ -1,12 +1,47 @@
-# Secrets
-*.pub
+# Plaintext secrets and credentials
+*.decrypted.*
+*.decrypted~*
 *.key
-*.decrypted~*.yaml
+*.pem
+*.p12
+*.pfx
+*.token
+*.kubeconfig
+*.env
+*.env.*
+!.env.example
+!.env.sample
+*.secret.yaml
+*.secret.yml
+*.secrets.yaml
+*.secrets.yml
+*.vars.yaml
+*.vars.yml
+*.vault.yaml
+*.vault.yml
+*credentials*.json
+*credentials*.yaml
+*credentials*.yml
+*password*.txt
+*token*.txt
+
+# Encrypted secrets are expected to be committed.
+!*.sops.yaml
+!*.sops.yml
+
+# Local operator secrets
 /age.key
 /cloudflare-tunnel.json
 /github-deploy.key
 /github-deploy.key.pub
 /github-push-token.txt
+/temp-secret.yaml
+/onepassword-secret.yaml
+/ansible/group_vars/*.yaml
+/ansible/group_vars/*.yml
+!/ansible/group_vars/*.sops.yaml
+!/ansible/group_vars/*.sops.yml
+!/ansible/group_vars/vps.yml
 # Template config files
 /cluster.yaml
 /nodes.yaml
@@ -17,6 +52,7 @@ talosconfig
 .private/
 .task/
 .venv/
+ansible/.collections/
 .DS_Store
 Thumbs.db
 
