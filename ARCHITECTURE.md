@@ -125,7 +125,8 @@ The key security boundary is that the VPS does not get a route to the whole home
 DNS:
 
 - `service.example.com CNAME external.example.com`
-- `external.example.com A/AAAA Hetzner_VPS_IP`
+- Cloudflare: `external.example.com CNAME gw0.kiad.tansanrao.net`
+- UniFi: `external.example.com A Envoy_external_LB_IP`
 
 Traffic:
 
@@ -227,17 +228,18 @@ Responsibilities:
 
 ## DNS Plan
 
-Keep external-dns managing Cloudflare DNS. Replace the Cloudflare Tunnel DNSEndpoint with:
+Keep external-dns managing public and local DNS with `external.${SECRET_DOMAIN}` as the split-horizon pivot:
 
-- `external.${SECRET_DOMAIN}` as `A` and optionally `AAAA` to the Hetzner VPS.
+- Cloudflare publishes `external.${SECRET_DOMAIN}` as a `CNAME` to `gw0.kiad.tansanrao.net`.
+- UniFi publishes `external.${SECRET_DOMAIN}` directly to the Envoy external LB IP, currently `10.10.40.62`.
 - Service HTTPRoutes continue to produce `CNAME service.${SECRET_DOMAIN} -> external.${SECRET_DOMAIN}` via the existing `external-dns.alpha.kubernetes.io/target` annotation.
 - `*.nimbus.casa` should ultimately route through the VPS to Envoy external with TLS passthrough, while internal-only hostnames should resolve locally through UniFi to Envoy internal.
 
 Important change needed in the repo:
 
 - Remove `--cloudflare-proxied` from the Cloudflare external-dns HelmRelease, or otherwise ensure records are DNS-only.
-- Replace the current Cloudflare Tunnel DNSEndpoint target with the Hetzner VPS address/hostname.
-- Keep UniFi local DNS for internal-only names pointing at `envoy-internal`.
+- Keep the Cloudflare DNSEndpoint for `external.${SECRET_DOMAIN}` pointed at the VPS hostname.
+- Keep UniFi local DNS for external hostnames pointed at `envoy-external` through `external.${SECRET_DOMAIN}`, and internal-only names pointed at `envoy-internal`.
 
 Policy:
 
