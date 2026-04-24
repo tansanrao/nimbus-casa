@@ -19,6 +19,12 @@ table inet filter {
 {% for port in firewall_udp_allow_ports %}
     udp dport {{ port }} accept
 {% endfor %}
+{% for rule in firewall_tcp_allow_rules %}
+    {% if rule.iifname is defined %}iifname "{{ rule.iifname }}" {% endif %}{% if rule.source is defined %}ip saddr {{ rule.source }} {% endif %}tcp dport {{ rule.port }} accept
+{% endfor %}
+{% for rule in firewall_udp_allow_rules %}
+    {% if rule.iifname is defined %}iifname "{{ rule.iifname }}" {% endif %}{% if rule.source is defined %}ip saddr {{ rule.source }} {% endif %}udp dport {{ rule.port }} accept
+{% endfor %}
   }
 
   chain forward {

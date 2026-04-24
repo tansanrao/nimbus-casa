@@ -11,16 +11,20 @@ wireguard_interface: wg0
 wireguard_listen_port: 51820
 wireguard_vps_address: 10.200.0.1/32
 wireguard_connector_address: 10.200.0.2/32
+wireguard_role: vps
+wireguard_local_address: "{{ wireguard_vps_address }}"
+wireguard_peer_allowed_ips: "{{ wireguard_connector_address }}"
 connector_haproxy_backend: 10.200.0.2:443
 
 ssh_listen_port: 22
-firewall_tcp_allow_ports:
-  - "{{ ssh_listen_port }}"
-  - 80
-  - 443
-firewall_udp_allow_ports:
-  - "{{ wireguard_listen_port }}"
+firewall_tcp_allow_rules:
+  - port: "{{ ssh_listen_port }}"
+  - port: 80
+  - port: 443
+firewall_udp_allow_rules:
+  - port: "{{ wireguard_listen_port }}"
 
+haproxy_role: edge
 haproxy_kubernetes_domains:
   - "{{ edge_domain }}"
   - ".{{ edge_domain }}"

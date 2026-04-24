@@ -7,6 +7,7 @@ shopt: [globstar]
 vars:
   ANSIBLE_DIR: '{{.ROOT_DIR}}/ansible'
   BOOTSTRAP_DIR: '{{.ROOT_DIR}}/bootstrap'
+  OPENTOFU_PROXMOX_DIR: '{{.ROOT_DIR}}/opentofu/proxmox'
   KUBERNETES_DIR: '{{.ROOT_DIR}}/kubernetes'
   SCRIPTS_DIR: '{{.ROOT_DIR}}/scripts'
   TALOS_DIR: '{{.ROOT_DIR}}/talos'
@@ -51,7 +52,7 @@ tasks:
       - which ansible-playbook
 
   ansible:check:
-    desc: Run Ansible check mode against VPS hosts
+    desc: Run Ansible check mode against infrastructure hosts
     cmd: cd {{.ANSIBLE_DIR}} && ansible-playbook --check --diff site.yml
     deps: [ansible:deps]
     preconditions:
@@ -60,13 +61,58 @@ tasks:
       - which ansible-playbook
 
   ansible:apply:
-    desc: Apply Ansible configuration to VPS hosts
+    desc: Apply Ansible configuration to infrastructure hosts
     cmd: cd {{.ANSIBLE_DIR}} && ansible-playbook --diff site.yml
     deps: [ansible:deps]
     preconditions:
       - test -f {{.ANSIBLE_DIR}}/inventory.yml
       - test -f {{.ANSIBLE_DIR}}/site.yml
       - which ansible-playbook
+
+  opentofu:fmt:
+    desc: Format OpenTofu configuration
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} fmt -recursive
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
+
+  opentofu:fmt-check:
+    desc: Check OpenTofu formatting
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} fmt -check -recursive
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
+
+  opentofu:init:
+    desc: Initialize OpenTofu Proxmox configuration
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} init
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
+
+  opentofu:validate:
+    desc: Validate OpenTofu Proxmox configuration
+    deps: [opentofu:init]
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} validate
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
+
+  opentofu:plan:
+    desc: Plan OpenTofu Proxmox changes
+    deps: [opentofu:init]
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} plan
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
+
+  opentofu:apply:
+    desc: Apply OpenTofu Proxmox changes
+    deps: [opentofu:init]
+    cmd: tofu -chdir={{.OPENTOFU_PROXMOX_DIR}} apply
+    preconditions:
+      - test -d {{.OPENTOFU_PROXMOX_DIR}}
+      - which tofu
 
   reconcile:
     desc: Force Flux to pull in changes from your Git repository

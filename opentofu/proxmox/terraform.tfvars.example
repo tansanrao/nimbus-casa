@@ -1,0 +1,20 @@
+proxmox_node_name = "pve"
+
+# Use null when vmbr0 is already the HOMELAB network.
+connector_vlan_id = null
+
+# Set this if you want a fixed Proxmox VM ID.
+connector_vm_id = null
+
+# Stable locally-administered MAC address used by cloud-init network-config.
+connector_mac_address = "02:CA:5A:40:00:21"
+
+network_bridge         = "vmbr0"
+image_datastore_id     = "local"
+snippets_datastore_id  = "local"
+vm_datastore_id        = "local-lvm"
+cloudinit_datastore_id = "local-lvm"
+
+ssh_authorized_keys = [
+  "ssh-ed25519 REPLACE_ME operator@nimbus-casa",
+]

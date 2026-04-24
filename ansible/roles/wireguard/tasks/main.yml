@@ -1,20 +1,39 @@
 ---
-- name: Assert WireGuard does not route home networks
+- name: Assert WireGuard role is valid
   ansible.builtin.assert:
     that:
-      - wireguard_connector_address == "10.200.0.2/32"
-      - "'10.10.' not in wireguard_connector_address"
-      - wireguard_vps_address == "10.200.0.1/32"
+      - wireguard_role in ['vps', 'connector']
+      - wireguard_local_address is defined
+      - wireguard_peer_allowed_ips is defined
+      - "'10.10.' not in wireguard_peer_allowed_ips"
+      - "'10.10.' not in wireguard_local_address"
+    fail_msg: "WireGuard must use only point-to-point 10.200.0.0/24 addresses, never HOMELAB or wider home routes."
+
+- name: Assert VPS WireGuard does not route home networks
+  ansible.builtin.assert:
+    that:
+      - wireguard_local_address == "10.200.0.1/32"
+      - wireguard_peer_allowed_ips == "10.200.0.2/32"
     fail_msg: "The VPS WireGuard peer must only allow the connector /32, never HOMELAB or wider home routes."
+  when: wireguard_role == "vps"
+
+- name: Assert connector WireGuard does not route home networks
+  ansible.builtin.assert:
+    that:
+      - wireguard_local_address == "10.200.0.2/32"
+      - wireguard_peer_allowed_ips == "10.200.0.1/32"
+      - wireguard_peer_endpoint is defined
+    fail_msg: "The connector WireGuard peer must only allow the VPS /32, never HOMELAB or wider home routes."
+  when: wireguard_role == "connector"
 
 - name: Assert WireGuard keys are populated
   ansible.builtin.assert:
     that:
-      - wireguard_vps_private_key is defined
-      - wireguard_connector_public_key is defined
-      - not wireguard_vps_private_key.startswith('CHANGE_ME')
-      - not wireguard_connector_public_key.startswith('CHANGE_ME')
-    fail_msg: "Replace the encrypted WireGuard placeholders in ansible/group_vars/vps.sops.yml before applying."
+      - wireguard_private_key is defined
+      - wireguard_peer_public_key is defined
+      - not wireguard_private_key.startswith('CHANGE_ME')
+      - not wireguard_peer_public_key.startswith('CHANGE_ME')
+    fail_msg: "Replace the encrypted WireGuard placeholders in ansible/group_vars/*.sops.yml before applying."
 
 - name: Install WireGuard
   ansible.builtin.apt:

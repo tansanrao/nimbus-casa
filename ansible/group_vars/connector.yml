@@ -1,0 +1,30 @@
+---
+system_hostname: connector0
+system_fqdn: connector0.kbcb.tansanrao.net
+system_timezone: UTC
+
+ssh_listen_port: 22
+
+wireguard_role: connector
+wireguard_interface: wg0
+wireguard_vps_address: 10.200.0.1/32
+wireguard_connector_address: 10.200.0.2/32
+wireguard_local_address: "{{ wireguard_connector_address }}"
+wireguard_peer_allowed_ips: "{{ wireguard_vps_address }}"
+wireguard_peer_endpoint: "5.161.216.148:51820"
+wireguard_persistent_keepalive: 25
+
+firewall_tcp_allow_rules:
+  - port: "{{ ssh_listen_port }}"
+  - port: 443
+    source: 10.200.0.1
+    iifname: "{{ wireguard_interface }}"
+firewall_udp_allow_rules: []
+
+haproxy_role: connector
+haproxy_health_bind: 127.0.0.1:8404
+haproxy_connector_bind: "10.200.0.2:443"
+haproxy_envoy_external_backend: "10.10.40.62:443"
+haproxy_connect_timeout: 5s
+haproxy_client_timeout: 60s
+haproxy_server_timeout: 60s

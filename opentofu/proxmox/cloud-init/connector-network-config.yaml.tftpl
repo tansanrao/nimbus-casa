@@ -1,0 +1,15 @@
+version: 2
+ethernets:
+  connector0:
+    match:
+      macaddress: "${mac_address}"
+    dhcp4: false
+    dhcp6: false
+    addresses:
+      - "${ipv4_cidr}"
+    routes:
+      - to: default
+        via: "${ipv4_gateway}"
+    nameservers:
+      search: ${dns_search_domains}
+      addresses: ${dns_servers}

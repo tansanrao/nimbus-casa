@@ -1,10 +1,17 @@
 [Interface]
-Address = {{ wireguard_vps_address }}
+Address = {{ wireguard_local_address }}
+{% if wireguard_listen_port is defined %}
 ListenPort = {{ wireguard_listen_port }}
-PrivateKey = {{ wireguard_vps_private_key }}
+{% endif %}
+PrivateKey = {{ wireguard_private_key }}
 SaveConfig = false
 
 [Peer]
-PublicKey = {{ wireguard_connector_public_key }}
-AllowedIPs = {{ wireguard_connector_address }}
-PersistentKeepalive = 25
+PublicKey = {{ wireguard_peer_public_key }}
+AllowedIPs = {{ wireguard_peer_allowed_ips }}
+{% if wireguard_peer_endpoint is defined %}
+Endpoint = {{ wireguard_peer_endpoint }}
+{% endif %}
+{% if wireguard_persistent_keepalive is defined %}
+PersistentKeepalive = {{ wireguard_persistent_keepalive }}
+{% endif %}

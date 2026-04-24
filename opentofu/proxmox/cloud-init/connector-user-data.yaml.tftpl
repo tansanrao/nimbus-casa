@@ -1,0 +1,29 @@
+#cloud-config
+hostname: ${hostname}
+fqdn: ${fqdn}
+timezone: UTC
+manage_etc_hosts: true
+package_update: true
+package_upgrade: false
+packages:
+  - qemu-guest-agent
+  - openssh-server
+  - ca-certificates
+  - curl
+  - gnupg
+  - chrony
+users:
+  - default
+  - name: ${ssh_username}
+    groups:
+      - sudo
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+%{ for key in ssh_authorized_keys ~}
+      - ${key}
+%{ endfor ~}
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+  - systemctl enable --now chrony
+  - touch /var/lib/cloud/instance/connector-cloud-init.done

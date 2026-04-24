@@ -42,6 +42,7 @@
 !/ansible/group_vars/*.sops.yaml
 !/ansible/group_vars/*.sops.yml
 !/ansible/group_vars/vps.yml
+!/ansible/group_vars/connector.yml
 # Template config files
 /cluster.yaml
 /nodes.yaml
@@ -59,3 +60,17 @@ Thumbs.db
 temp-secret.yaml
 onepassword-secret.yaml
 /reference/
+
+# OpenTofu / Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+!*.tfvars.example

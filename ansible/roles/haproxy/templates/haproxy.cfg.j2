@@ -15,6 +15,7 @@ defaults
   timeout client {{ haproxy_client_timeout }}
   timeout server {{ haproxy_server_timeout }}
 
+{% if haproxy_role == 'edge' %}
 frontend fe_http
   bind :::80 v4v6
   mode http
@@ -44,6 +45,20 @@ backend be_kubernetes_tls
   mode tcp
   option tcp-check
   server connector {{ connector_haproxy_backend }} check
+
+{% elif haproxy_role == 'connector' %}
+frontend fe_connector_tls
+  bind {{ haproxy_connector_bind }}
+  mode tcp
+  option tcplog
+  default_backend be_envoy_external_tls
+
+backend be_envoy_external_tls
+  mode tcp
+  option tcp-check
+  server envoy_external {{ haproxy_envoy_external_backend }} check
+
+{% endif %}
 
 listen local_health
   bind {{ haproxy_health_bind }}

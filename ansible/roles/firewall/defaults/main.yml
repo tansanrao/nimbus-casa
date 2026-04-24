@@ -1,2 +1,6 @@
 ---
 nftables_config_path: /etc/nftables.conf
+firewall_tcp_allow_ports: []
+firewall_udp_allow_ports: []
+firewall_tcp_allow_rules: []
+firewall_udp_allow_rules: []

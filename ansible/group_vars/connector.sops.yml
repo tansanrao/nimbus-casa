@@ -1,0 +1,18 @@
+wireguard_connector_private_key: ENC[AES256_GCM,data:AwR8ZEEwvyeJc4+VGkElNc8ySTY5bWyI2ywB4V/5L0f8oWSh9/y4KsL0V9o=,iv:tJOJ5qI2p+pCcE+7QNdnevoJYZoHrFs73SdFXF0Yprs=,tag:Ivz9t3MTgNAI3VXO29x7SA==,type:str]
+wireguard_vps_public_key: ENC[AES256_GCM,data:NypToBmePnoMWZMFlzTCOvZcUxJRDSxIxkGps4dRAbU54w9iwPHxqCgjuqg=,iv:6sk2Wora+EMpXl54fCxvMCsO/USUjCYfTc/TcHfhnss=,tag:j83sG9YNXmFeleq6pubDSw==,type:str]
+sops:
+  age:
+    - recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhNWI4SFFZaFU3SWV6MzFB
+        L0ltejNFZ2pJcUZqcDJQdExlQTBPYTFvS0JnClE4MkRqTWpyN3hFUVF1VFF6b3lK
+        SXBNdkFUL1dUQWY3NVRzNEdQakxRdzQKLS0tIE9kcGo2NmJQdGF4YXdqbVA2SGZ5
+        aHd6K1R2c0dqZVFxWUd4VkFTTVh0VDAKNCb9G0X6lExmP51CMPGtLJDHkek2vgGC
+        eGSo1PrckAD1fFgFYZcz6Nm8acXYsVdalcj/5xmyCrRRcTs7c91G1g==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-04-24T12:51:34Z"
+  mac: ENC[AES256_GCM,data:gYql6jY2ZCuHCibZZszwmU9KLF3jGJRZtU9dppViE6SOa7Zdvl0rXZwdct84YABDNOMYim5yX8QkgOIElCe2GDaH5dgjpxSxC2MqCQz7XInP1w3QiF28dhJQ4Rxv73JQSf+jZn8Q2FoWDoZS0vo5fPGy15VnEVVyxxJy8xybpGg=,iv:+ihmEPaf6h5jcVm2OBg88ToeALsdfDhNO7X6PwBNSUM=,tag:mHpGbz5I6qmZomfQCxKdAw==,type:str]
+  unencrypted_suffix: _unencrypted
+  mac_only_encrypted: true
+  version: 3.12.2

@@ -31,7 +31,7 @@
 
 - name: Install common packages
   ansible.builtin.apt:
-    name: "{{ common_apt_packages }}"
+    name: "{{ common_apt_packages + common_extra_apt_packages }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
@@ -41,6 +41,13 @@
     name: chrony
     enabled: true
     state: started
+
+- name: Enable extra common services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: "{{ common_extra_services }}"
 
 - name: Configure unattended upgrades schedule
   ansible.builtin.template:

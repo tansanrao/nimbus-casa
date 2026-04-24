@@ -6,3 +6,8 @@ all:
         gw0.kiad.tansanrao.net:
           ansible_host: gw0.kiad.tansanrao.net
           ansible_user: root
+    connector:
+      hosts:
+        connector0:
+          ansible_host: 10.10.40.21
+          ansible_user: ubuntu
