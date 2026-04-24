@@ -44,11 +44,11 @@ frontend fe_https
 backend be_kubernetes_tls
   mode tcp
   option tcp-check
-  server connector {{ connector_haproxy_backend }} check
+  server connector {{ connector_haproxy_backend }} check send-proxy-v2 check-send-proxy
 
 {% elif haproxy_role == 'connector' %}
 frontend fe_connector_tls
-  bind {{ haproxy_connector_bind }}
+  bind {{ haproxy_connector_bind }} accept-proxy
   mode tcp
   option tcplog
   default_backend be_envoy_external_tls
@@ -56,7 +56,7 @@ frontend fe_connector_tls
 backend be_envoy_external_tls
   mode tcp
   option tcp-check
-  server envoy_external {{ haproxy_envoy_external_backend }} check
+  server envoy_external {{ haproxy_envoy_external_backend }} check send-proxy-v2 check-send-proxy
 
 {% endif %}
 
