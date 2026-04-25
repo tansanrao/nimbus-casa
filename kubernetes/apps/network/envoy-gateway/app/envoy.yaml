@@ -136,7 +136,7 @@ spec:
     onInvalidMessage: TerminateStream
   http3: {}
   proxyProtocol:
-    optional: false
+    optional: true
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

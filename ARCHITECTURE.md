@@ -175,7 +175,8 @@ Likely routing model:
 Client IP policy:
 
 - For L7 terminated services: set `X-Forwarded-For`, `X-Real-IP`, `Forwarded`, and `X-Forwarded-Proto`.
-- For Kubernetes TLS passthrough: evaluate HAProxy PROXY protocol v2 from VPS to connector to Envoy. This requires Envoy Gateway support/configuration for accepting PROXY protocol on the listener path. If that is not clean, accept that Kubernetes app logs see proxy/connector IPs and rely on HAProxy edge logs as the source of truth for public client IPs.
+- For Kubernetes TLS passthrough: HAProxy sends PROXY protocol v2 from VPS to connector to Envoy external so Kubernetes ingress logs can retain source client information.
+- Envoy external accepts PROXY and non-PROXY traffic. This keeps the HAProxy path working while allowing trusted LAN clients to reach split-horizon UniFi records that point directly at `10.10.40.62`; direct LAN clients could spoof PROXY headers, so this listener should remain reachable only from trusted home networks and the connector path.
 
 The edge logs on the VPS are authoritative for public client IPs. PROXY protocol into Envoy Gateway is an optimization to test after the basic path is stable.
 
