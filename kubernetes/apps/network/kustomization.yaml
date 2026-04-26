@@ -9,7 +9,6 @@ components:
 resources:
   - ./namespace.yaml
   - ./cloudflare-dns/ks.yaml
-  - ./cloudflare-tunnel/ks.yaml
   - ./envoy-gateway/ks.yaml
   - ./unifi-dns/ks.yaml
   - ./vpn-gateway/ks.yaml
