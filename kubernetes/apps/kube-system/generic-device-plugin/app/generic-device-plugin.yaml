@@ -31,7 +31,7 @@ spec:
         - operator: Exists
       containers:
         - name: generic-device-plugin
-          image: squat/generic-device-plugin@sha256:d9e098e33a20c32a561adb1ef8cace7d5912cd5ffb38f07dd9f83af4bdf38505
+          image: squat/generic-device-plugin@sha256:dc192e164c69b03f156765793a1be62ca437709ae477b27ca7d8f3dcf5021576
           args:
             - --config=/config/config.yaml
           resources:
