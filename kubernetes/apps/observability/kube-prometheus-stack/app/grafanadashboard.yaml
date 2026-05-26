@@ -66,7 +66,7 @@ spec:
       grafana.internal/instance: grafana
   datasources:
     - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
+      inputName: DS_PROMETHEUS-NAS
   url: https://grafana.com/api/dashboards/23251/revisions/1/download
 ---
 apiVersion: grafana.integreatly.org/v1beta1
