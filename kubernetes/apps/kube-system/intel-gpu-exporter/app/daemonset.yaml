@@ -42,7 +42,7 @@ spec:
               memory: 64Mi
             limits:
               memory: 128Mi
-              gpu.intel.com/monitoring: 1
+              gpu.intel.com/i915_monitoring: 1
           volumeMounts:
             - name: devfs
               mountPath: /dev/dri
