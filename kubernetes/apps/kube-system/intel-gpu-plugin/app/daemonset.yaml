@@ -32,6 +32,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - -shared-dev-num=5
+            - -enable-monitoring
             - -v=2
           env:
             - name: NODE_NAME

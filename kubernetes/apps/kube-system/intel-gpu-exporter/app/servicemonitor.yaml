@@ -1,0 +1,18 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: intel-gpu-exporter
+spec:
+  jobLabel: job
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: intel-gpu-exporter

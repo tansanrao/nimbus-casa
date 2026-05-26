@@ -24,6 +24,7 @@ Kubernetes should show allocatable Intel GPU resources:
 
 ```sh
 kubectl get node k8s0 -o jsonpath='{.status.allocatable.gpu\.intel\.com/i915}{"\n"}'
+kubectl get node k8s0 -o jsonpath='{.status.allocatable.gpu\.intel\.com/monitoring}{"\n"}'
 ```
 
 ## Validation
@@ -36,6 +37,24 @@ kubectl get node --show-labels | grep 'intel.feature.node.kubernetes.io/gpu=true
 ```
 
 The Intel GPU plugin is deployed directly as a `DaemonSet`. It does not use the Intel device plugin operator or the `GpuDevicePlugin` custom resource.
+
+Prometheus scrapes node-level Intel GPU telemetry through the `intel-gpu-exporter`
+DaemonSet. The exporter uses the plugin's `gpu.intel.com/monitoring` resource so
+it can read all Intel GPU devices without consuming the app-facing
+`gpu.intel.com/i915` capacity.
+
+```sh
+kubectl -n kube-system get pods -l app.kubernetes.io/name=intel-gpu-exporter -o wide
+kubectl -n kube-system port-forward svc/intel-gpu-exporter 8080:8080
+curl -fsSL http://127.0.0.1:8080/metrics | grep '^igpu_'
+```
+
+Prometheus query examples:
+
+```promql
+up{job="intel-gpu"}
+igpu_power_gpu
+```
 
 ## Workload Contract
 

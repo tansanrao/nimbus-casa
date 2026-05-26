@@ -1,0 +1,18 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: intel-gpu-exporter
+spec:
+  groups:
+    - name: intel-gpu.rules
+      rules:
+        - alert: IntelGpuExporterAbsent
+          expr: |
+            absent(up{job="intel-gpu"} == 1)
+          annotations:
+            summary: >
+              Intel GPU exporter has disappeared from Prometheus target discovery
+          for: 5m
+          labels:
+            severity: critical

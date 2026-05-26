@@ -14,6 +14,7 @@ resources:
   - ./generic-device-plugin/ks.yaml
   - ./node-feature-discovery/ks.yaml
   - ./intel-gpu-plugin/ks.yaml
+  - ./intel-gpu-exporter/ks.yaml
   - ./metrics-server/ks.yaml
   - ./reloader/ks.yaml
   - ./snapshot-controller/ks.yaml
