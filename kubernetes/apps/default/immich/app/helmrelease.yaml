@@ -54,6 +54,29 @@ spec:
             envFrom: *env
             env:
               MPLCONFIGDIR: "/cache/matplotlib"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: &machineLearningPort 3003
+                  initialDelaySeconds: 300
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 6
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *machineLearningPort
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 6
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -61,10 +84,10 @@ spec:
             resources:
               requests:
                 cpu: 100m
-                memory: 256Mi
+                memory: 4Gi
               limits:
                 gpu.intel.com/i915: 1
-                memory: 8Gi
+                memory: 16Gi
         pod:
           securityContext:
             runAsUser: 1001

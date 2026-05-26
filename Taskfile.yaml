@@ -120,3 +120,74 @@ tasks:
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which flux
+
+  immich:gpu:validate:
+    desc: Validate Immich ML Intel GPU/OpenVINO wiring
+    cmds:
+      - |
+        echo "== Intel GPU allocatable/capacity =="
+        kubectl get nodes -o custom-columns='NAME:.metadata.name,GPU_ALLOCATABLE:.status.allocatable.gpu\.intel\.com/i915,GPU_CAPACITY:.status.capacity.gpu\.intel\.com/i915'
+      - |
+        echo "== Intel GPU plugin =="
+        kubectl -n kube-system get pods -l app.kubernetes.io/name=intel-gpu-plugin -o wide
+        kubectl -n kube-system logs ds/intel-gpu-plugin --tail=40
+      - |
+        echo "== Immich ML pod =="
+        kubectl -n default get pods -l app.kubernetes.io/controller=machine-learning,app.kubernetes.io/instance=immich -o wide
+        pod="$(kubectl -n default get pod -l app.kubernetes.io/controller=machine-learning,app.kubernetes.io/instance=immich -o jsonpath='{.items[0].metadata.name}')"
+        kubectl -n default get pod "${pod}" -o json | jq '{node:.spec.nodeName, image:.spec.containers[0].image, resources:.spec.containers[0].resources, phase:.status.phase}'
+      - |
+        echo "== Immich ML runtime =="
+        kubectl -n default exec deploy/immich-machine-learning -- sh -c 'id; ls -l /dev/dri; env | sort | grep -Ei "^(DEVICE|MACHINE_LEARNING|TRANSFORMERS_CACHE|MPLCONFIGDIR)="'
+      - |
+        echo "== ONNX Runtime providers =="
+        kubectl -n default exec -i deploy/immich-machine-learning -- /opt/venv/bin/python - <<'PY'
+        import onnxruntime as ort
+        print(ort.get_available_providers())
+        PY
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+      - which jq
+
+  immich:gpu:watch:
+    desc: Watch Immich Smart Search, ML logs, and DRM fdinfo activity for 2 minutes
+    cmds:
+      - |
+        echo "Start or resume a Smart Search job now; watching for 120 seconds."
+        sh -c '
+          kubectl -n default logs deploy/immich-server --since=2m --follow 2>/dev/null | grep -Ei "smart|clip|machine|learning|embedding|error|warn" &
+          server_logs=$!
+          kubectl -n default logs deploy/immich-machine-learning --since=2m --follow &
+          ml_logs=$!
+          trap "kill ${server_logs} ${ml_logs} 2>/dev/null || true" EXIT
+          i=0
+          while [ "${i}" -lt 120 ]; do
+            i=$((i + 5))
+            echo "== drm fdinfo sample ${i}s =="
+            kubectl -n default exec deploy/immich-machine-learning -- sh -c '"'"'
+              found=0
+              for p in /proc/[0-9]*; do
+                test -r "${p}/comm" || continue
+                comm="$(cat "${p}/comm" 2>/dev/null || true)"
+                for f in "${p}"/fdinfo/*; do
+                  if grep -q "drm-" "${f}" 2>/dev/null; then
+                    found=1
+                    echo "pid=${p#/proc/} comm=${comm} fd=${f##*/}"
+                    grep "drm-" "${f}" 2>/dev/null
+                  fi
+                done
+              done
+              if [ "${found}" = 0 ]; then
+                echo "no-drm-fdinfo"
+              fi
+              exit 0
+            '"'"'
+            pod="$(kubectl -n default get pod -l app.kubernetes.io/controller=machine-learning,app.kubernetes.io/instance=immich -o jsonpath="{.items[0].metadata.name}" 2>/dev/null || true)"
+            test -n "${pod}" && kubectl -n default top pod "${pod}" --containers 2>/dev/null || true
+            sleep 5
+          done
+        ' || true
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
