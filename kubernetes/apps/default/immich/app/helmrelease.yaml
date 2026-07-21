@@ -19,7 +19,7 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-server
-              tag: v3.0.2@sha256:14390f3dc9512dc3273b12ccee6363d9be16c388699abc3f3fe0498bb9829937
+              tag: v3.0.3@sha256:c716dc20f957aafd89fa9d284a2ec63e25c9e2d8d8e87c6197d540a3dce237db
             envFrom: &env
               - secretRef:
                   name: immich-secret
@@ -50,7 +50,7 @@ spec:
           app:
             image:
               repository: ghcr.io/immich-app/immich-machine-learning
-              tag: v3.0.2-openvino@sha256:b817bc467a8f28a2b2150ae2f09845e80b5c9b59ea8832cef8f775c9ff77173c
+              tag: v3.0.3-openvino@sha256:d46dfbc0e190d22c6d8faa18ae2e51f2aa5e8ead942ea76f1bb0b420af9504fe
             envFrom: *env
             env:
               MPLCONFIGDIR: "/cache/matplotlib"
