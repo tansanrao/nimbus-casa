@@ -58,6 +58,7 @@ spec:
             port: *port
     serviceMonitor:
       app:
+        jobLabel: gatus
         endpoints:
           - port: http
     route:

@@ -56,6 +56,7 @@ spec:
             port: *port
     serviceMonitor:
       app:
+        jobLabel: echo
         endpoints:
           - port: http
     route:
