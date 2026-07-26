@@ -16,6 +16,8 @@ spec:
     remediation:
       retries: 3
   values:
+    defaultPodOptions:
+      automountServiceAccountToken: true
     controllers:
       dragonfly-operator:
         replicas: 1
@@ -87,6 +89,7 @@ spec:
             port: 8080
     serviceMonitor:
       app:
+        jobLabel: dragonfly-operator
         serviceName: *app
         endpoints:
           - port: metrics

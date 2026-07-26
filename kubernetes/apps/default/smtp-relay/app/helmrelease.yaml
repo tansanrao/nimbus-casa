@@ -70,6 +70,7 @@ spec:
             port: *port
     serviceMonitor:
       main:
+        jobLabel: smtp-relay
         serviceName: main
         endpoints:
           - port: http
