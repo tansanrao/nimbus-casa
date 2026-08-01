@@ -2,6 +2,8 @@ machine:
   kubelet:
     extraConfig:
       serializeImagePulls: false
+      shutdownGracePeriod: 3m
+      shutdownGracePeriodCriticalPods: 30s
     nodeIP:
       validSubnets:
         - 10.10.40.0/24

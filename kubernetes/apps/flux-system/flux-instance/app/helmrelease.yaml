@@ -108,6 +108,14 @@ spec:
             target:
               kind: Deployment
               name: helm-controller
+          - # Bound Helm action shutdown during node drains
+            patch: |
+              - op: add
+                path: /spec/template/spec/terminationGracePeriodSeconds
+                value: 120
+            target:
+              kind: Deployment
+              name: helm-controller
           - # Controller-level SOPS decryption
             patch: |
               - op: add

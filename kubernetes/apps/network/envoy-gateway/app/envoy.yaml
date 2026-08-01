@@ -12,6 +12,13 @@ spec:
     kubernetes:
       envoyDeployment:
         replicas: 1
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  terminationGracePeriodSeconds: 120
         container:
           imageRepository: mirror.gcr.io/envoyproxy/envoy
           resources:
@@ -22,7 +29,8 @@ spec:
       envoyService:
         externalTrafficPolicy: Cluster
   shutdown:
-    drainTimeout: 180s
+    drainTimeout: 60s
+    minDrainDuration: 10s
   telemetry:
     metrics:
       prometheus:

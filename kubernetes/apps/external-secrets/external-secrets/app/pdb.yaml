@@ -4,7 +4,8 @@ kind: PodDisruptionBudget
 metadata:
   name: external-secrets-webhook
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
   selector:
     matchLabels:
       app.kubernetes.io/instance: external-secrets
