@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/recyclarr/recyclarr/master/schemas/config-schema.json
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/v8/config-schema.json
 sonarr:
   sonarr:
     base_url: http://sonarr.media.svc.cluster.local
@@ -15,36 +15,24 @@ sonarr:
         reset_unmatched_scores:
           enabled: true
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
-    custom_formats:
-      # Optional
-      - trash_ids:
-          - 32b367365729d530ca1c124a0b180c64 # Bad Dual Groups
-          - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
-          - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
-          - 06d66ab109d4d2eddb2794d21526d140 # Retags
-          - 1b3994c551cbb92a2c781af061f4ab44 # Scene
-        assign_scores_to:
-          - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
-          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
-      - trash_ids:
-          # Comment out the next line if you and all of your users' setups are fully DV compatible
-          - 9b27ab6498ec0f31a3353992e19434ca # DV (WEBDL)
-
-          # HDR10+ Boost - Uncomment the next two lines if any of your devices DO support HDR10+
-          # - 0dad0a507451acddd754fe6dc3a7f5e7 # HDR10+ Boost
-          # - 385e9e8581d33133c3961bdcdeffb7b4 # DV HDR10+ Boost
-        assign_scores_to:
-          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
-      # Optional SDR
-      # Only ever use ONE of the following custom formats:
-      # SDR - block ALL SDR releases
-      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
-      - trash_ids:
-          # - 2016d1676f5ee13a5b7257ff86ac9a93 # SDR
-          # - 83304f261cf516bb208c18c54c0adf97 # SDR (no WEBDL)
-        assign_scores_to:
-          - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
+    # The TRaSH profile compatibility metadata assigns each group only to the
+    # quality profiles for which it is intended.
+    custom_format_groups:
+      add:
+        - trash_id: 158188097a58d7687dee647e04af0da3 # [Optional] Golden Rule HD
+        - trash_id: e3f37512790f00d0e89e54fe5e790d1c # [Optional] Golden Rule UHD
+        - trash_id: 74aff4168620ed49dcc67e92b2c2a5b4 # [Optional] Language Profiles
+        - trash_id: 85fae4a2294965b75710ef2989c850eb # [Streaming Services] HD/UHD boost
+        - trash_id: 59c3af66780d08332fdc64e68297098f # [Unwanted] Unwanted Formats
+          # Bad Dual Groups is a required group default.
+          select:
+            - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
+            - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
+            - 06d66ab109d4d2eddb2794d21526d140 # Retags
+            - 1b3994c551cbb92a2c781af061f4ab44 # Scene
+        - trash_id: d776a1ea912a117d66d83b880ff2055d # [HDR Formats] DV (w/o HDR fallback)
+        - trash_id: e0b2774083df4265f25c9e5bc6c80940 # [HDR Formats] DV Boost
+        - trash_id: 7d366c213e5c23a052b157356fac1921 # [HDR Formats] HDR10+ Boost
 
   sonarr-anime:
     base_url: http://sonarr-anime.media.svc.cluster.local
@@ -57,26 +45,6 @@ sonarr:
         reset_unmatched_scores:
           enabled: true
 
-    # Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
-    custom_formats:
-      - trash_ids:
-          - 026d5aadd1a6b4e550b134cb6c72b3ca # Uncensored
-        assign_scores_to:
-          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
-            score: 0 # Adjust scoring as desired
-
-      - trash_ids:
-          - b2550eb333d27b75833e25b8c2557b38 # 10bit
-        assign_scores_to:
-          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
-            score: 0 # Adjust scoring as desired
-
-      - trash_ids:
-          - 418f50b10f1907201b6cfdf881f467b7 # Anime Dual Audio
-        assign_scores_to:
-          - trash_id: 20e0fc959f1f1704bed501f23bdae76f # [Anime] Remux-1080p
-            score: 0 # Adjust scoring as desired
-
 radarr:
   radarr:
     base_url: http://radarr.media.svc.cluster.local
@@ -85,61 +53,42 @@ radarr:
     quality_definition:
       type: movie
     quality_profiles:
-      - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+      - trash_id: 9ca12ea80aa55ef916e3751f4b874151 # Remux + WEB 1080p
         reset_unmatched_scores:
           enabled: true
-      - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
+      - trash_id: fd161a61e3ab826d3a22d53f935696dd # Remux + WEB 2160p
         reset_unmatched_scores:
           enabled: true
 
-    custom_formats:
-      # Movie Versions
-      - trash_ids:
-          - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
-        assign_scores_to:
-          - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
-          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
-            # score: 0 # Uncomment this line to disable prioritised IMAX Enhanced releases
-      # Audio
-      - trash_ids:
-          # Uncomment the next section to enable Advanced Audio Formats
-          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
-          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
-          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
-          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
-          - 3cafb66171b47f226146a0770576870f # TrueHD
-          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
-          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
-          - e7c2fcae07cbada050a0af3357491d7b # PCM
-          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
-          - 185f1dd7264c4562b9022d963ac37424 # DD+
-          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
-          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
-          - 240770601cc226190c367ef59aba7463 # AAC
-          - c2998bd0d90ed5621d8df281e839436e # DD
-        assign_scores_to:
-          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
-      # Optional
-      - trash_ids:
-          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
-          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
-          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
-          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
-          - f537cf427b64c38c8e36298f657e4828 # Scene
-        assign_scores_to:
-          - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
-          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
-      - trash_ids:
-          # Comment out the next line if you and all of your users' setups are fully DV compatible
-          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
-
-          # HDR10+ Boost - Uncomment the next line if any of your devices DO support HDR10+
-          # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
-          # - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+ Boost
-        assign_scores_to:
-          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
-      - trash_ids:
-          # - 9c38ebb7384dada637be8899efa68e6f # SDR
-          # - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
-        assign_scores_to:
-          - trash_id: 64fb5f9858489bdac2af690e27c8f42f # UHD Bluray + WEB
+    # The TRaSH profile compatibility metadata assigns each group only to the
+    # quality profiles for which it is intended.
+    custom_format_groups:
+      add:
+        - trash_id: f8bf8eab4617f12dfdbd16303d8da245 # [Optional] Golden Rule HD
+        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d # [Optional] Golden Rule UHD
+        # All 14 recommended advanced audio formats are required defaults in
+        # this group; compatibility applies them to both Remux profiles.
+        - trash_id: 9d5acd8f1da78dfbae788182f7605200 # [Audio] Audio Formats
+        - trash_id: a3ac6af01d78e4f21fcb75f601ac96df # [Unwanted] Unwanted Formats
+          # Bad Dual Groups and Black and White Editions are required defaults.
+          select:
+            - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+            - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+            - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+            - f537cf427b64c38c8e36298f657e4828 # Scene
+        - trash_id: 7fc2751eef7e6bdc70b74136e5e35c76 # [HDR Formats] DV (w/o HDR fallback)
+        - trash_id: 1616617ab3a14397a2b2321bcbda44d1 # [HDR Formats] DV Boost
+        - trash_id: b29413a7487478fe98228ce79e5689e4 # [HDR Formats] HDR10+ Boost
+        - trash_id: f4f1474b963b24cf983455743aa9906c # [Optional] Movie Versions
+          select:
+            - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+            - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
+            - 0f12c086e289cf966fa5948eac571f44 # Hybrid
+            - eecf3a857724171f968a66cb5719e152 # IMAX
+            - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+            - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
+            - 09d9dd29a0fc958f9796e65c2a8864b4 # Open Matte
+            - 570bc9ebecd92723d2d21500f4be314c # Remaster
+            - 957d0f44b592285f26449575e8b1167e # Special Edition
+            - e9001909a4c88013a359d0b9920d7bea # Theatrical Cut
+            - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
