@@ -1,0 +1,106 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kavita
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: kavita
+  values:
+    controllers:
+      main:
+        replicas: 1
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: docker.io/jvmilazz0/kavita
+              tag: 0.9.0.2
+            env:
+              TZ: America/New_York
+              TMPDIR: /tmp/kavita
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: &port 5000
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: *port
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 50m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+        pod:
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            fsGroup: 1001
+            fsGroupChangePolicy: OnRootMismatch
+            seccompProfile: { type: RuntimeDefault }
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: DoNotSchedule
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: kavita
+    service:
+      main:
+        controller: main
+        ports:
+          http:
+            port: *port
+    route:
+      main:
+        hostnames: ["kavita.${SECRET_DOMAIN}"]
+        parentRefs:
+          # Keep the first-run setup private. Switch this to envoy-external
+          # only after completing and testing the OIDC setup in README.md.
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: kavita
+                port: *port
+    persistence:
+      config:
+        existingClaim: kavita
+        globalMounts:
+          - path: /kavita/config
+      tmp:
+        type: emptyDir
+        globalMounts:
+          # The image needs its baked-in /tmp/config during first startup.
+          - path: /tmp/kavita
+      media:
+        existingClaim: mediastore-nfs-pvc
+        globalMounts:
+          - path: /mediastore
+            readOnly: true
