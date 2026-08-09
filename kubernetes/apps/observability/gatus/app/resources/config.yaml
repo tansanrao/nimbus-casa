@@ -78,6 +78,14 @@ endpoints:
       insecure: true
     interval: 1m
     conditions: *app_http_conditions
+  - name: media/kapowarr
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: kapowarr.${SECRET_DOMAIN}
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
   - name: media/qbittorrent
     group: private-services
     url: *internal_gateway_url
