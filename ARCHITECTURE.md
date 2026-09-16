@@ -233,7 +233,7 @@ Keep external-dns managing public and local DNS with `external.${SECRET_DOMAIN}`
 
 - Cloudflare publishes `external.${SECRET_DOMAIN}` as a `CNAME` to `gw0.kiad.tansanrao.net`.
 - UniFi publishes `external.${SECRET_DOMAIN}` directly to the Envoy external LB IP, currently `10.10.40.62`.
-- Service HTTPRoutes continue to produce `CNAME service.${SECRET_DOMAIN} -> external.${SECRET_DOMAIN}` via the existing `external-dns.alpha.kubernetes.io/target` annotation.
+- Service HTTPRoutes continue to produce `CNAME service.${SECRET_DOMAIN} -> external.${SECRET_DOMAIN}` via the existing `external-dns.kubernetes.io/target` annotation.
 - `*.nimbus.casa` should ultimately route through the VPS to Envoy external with TLS passthrough, while internal-only hostnames should resolve locally through UniFi to Envoy internal.
 
 Important change needed in the repo:
