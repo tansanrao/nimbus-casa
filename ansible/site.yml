@@ -53,3 +53,26 @@
     - role: firewall
     - role: wireguard
     - role: haproxy
+
+- name: Configure Nexus production hosts
+  hosts: nexus_kb
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Wait for cloud-init to finish
+      ansible.builtin.command: cloud-init status --wait
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Verify Nexus operating system
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == "Ubuntu"
+          - ansible_facts['distribution_version'] == "24.04"
+          - ansible_facts['architecture'] == "x86_64"
+        fail_msg: "Nexus requires Ubuntu 24.04 LTS amd64."
+
+  roles:
+    - role: common
+    - role: docker

@@ -11,3 +11,8 @@ all:
         connector0:
           ansible_host: 10.10.40.21
           ansible_user: ubuntu
+    nexus_kb:
+      hosts:
+        nexus-kb:
+          ansible_host: 10.10.40.23
+          ansible_user: ubuntu

@@ -1,0 +1,14 @@
+---
+system_hostname: nexus-kb
+system_fqdn: nexus-kb.kbcb.tansanrao.net
+system_timezone: UTC
+
+ssh_listen_port: 22
+
+common_extra_apt_packages:
+  - git
+  - openssl
+  - grokmirror
+  - qemu-guest-agent
+common_extra_services:
+  - qemu-guest-agent
