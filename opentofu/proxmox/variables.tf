@@ -1,5 +1,5 @@
 variable "proxmox_node_name" {
-  description = "Proxmox node where connector0 should run."
+  description = "Proxmox node where managed VMs should run."
   type        = string
 }
 
@@ -16,13 +16,13 @@ variable "snippets_datastore_id" {
 }
 
 variable "vm_datastore_id" {
-  description = "Datastore used for the connector VM disk."
+  description = "Default datastore used for VM disks."
   type        = string
   default     = "local-lvm"
 }
 
 variable "cloudinit_datastore_id" {
-  description = "Datastore used for the connector VM cloud-init disk."
+  description = "Datastore used for VM cloud-init disks."
   type        = string
   default     = "local-lvm"
 }

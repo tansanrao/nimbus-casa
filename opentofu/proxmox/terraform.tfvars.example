@@ -18,3 +18,10 @@ cloudinit_datastore_id = "local-lvm"
 ssh_authorized_keys = [
   "ssh-ed25519 REPLACE_ME operator@nimbus-casa",
 ]
+
+# Nexus production VM (Ubuntu 24.04, 8 vCPU, 16 GiB RAM, 400 GiB disk).
+# This must be physically SSD-backed; SSD emulation alone is insufficient.
+nexus_kb_datastore_id = "vm-disks"
+nexus_kb_ipv4_address = "10.10.40.23"
+nexus_kb_vm_id        = null
+nexus_kb_vlan_id      = null

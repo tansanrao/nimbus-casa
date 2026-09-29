@@ -80,6 +80,7 @@ Reserved static addresses:
 
 - `10.10.40.21`: home connector VM.
 - `10.10.40.22`: database VM.
+- `10.10.40.23`: `nexus-kb`, Ubuntu 24.04 production host (8 vCPU, 16 GiB RAM, 400 GiB SSD-backed disk).
 - `10.10.40.62`: Envoy external gateway, already in use.
 - `10.10.40.61`: Envoy internal gateway, already in use.
 
