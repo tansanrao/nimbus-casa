@@ -1,0 +1,148 @@
+---
+- name: Validate the shared admin token contract
+  ansible.builtin.assert:
+    that:
+      - nexus_sops_secrets.admin_token is string
+      - nexus_sops_secrets.admin_token | length == 64
+      - nexus_sops_secrets.admin_token is match('^[0-9a-f]{64}$')
+    fail_msg: "Nexus requires a 32-byte lowercase hexadecimal admin token in SOPS."
+  no_log: true
+
+- name: Install Nexus host tools
+  ansible.builtin.apt:
+    name:
+      - cron
+      - rsync
+      - util-linux
+    state: present
+
+- name: Create Nexus persistent directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /opt/nexus
+    - /opt/nexus/db
+    - /opt/nexus/lore
+
+- name: Create private rollout staging directory
+  ansible.builtin.file:
+    path: /opt/nexus/.deploy
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Check out the pinned Nexus release
+  ansible.builtin.git:
+    repo: "{{ nexus_repository }}"
+    dest: "{{ nexus_checkout }}"
+    version: "{{ nexus_revision }}"
+  register: nexus_source
+
+- name: Stage private application and maintenance environments
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    # Keep credentials outside the Docker build context; install under flock.
+    dest: "/opt/nexus/.deploy/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  loop:
+    - src: env.j2
+      dest: nexus.env
+    - src: maintenance-env.j2
+      dest: maintenance.env
+
+- name: Stage Linux-only mirror configuration from infrastructure source of truth
+  ansible.builtin.copy:
+    src: grokmirror.conf
+    dest: /opt/nexus/.deploy/grokmirror.conf
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Stage authenticated mirror runner
+  ansible.builtin.copy:
+    src: "{{ nexus_checkout }}/deploy/run-grokmirror.sh"
+    dest: /opt/nexus/.deploy/run-grokmirror.sh
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install rollout helper
+  ansible.builtin.copy:
+    src: deploy.sh
+    dest: /usr/local/sbin/nexus-deploy
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Validate Compose configuration
+  ansible.builtin.command: docker compose --env-file /opt/nexus/.deploy/nexus.env config --quiet
+  args:
+    chdir: "{{ nexus_checkout }}"
+  changed_when: false
+
+- name: Check application images
+  ansible.builtin.command:
+    argv:
+      - docker
+      - image
+      - inspect
+      - "nexus-kb:{{ nexus_revision }}"
+      - "nexus-kb-web:{{ nexus_revision }}"
+  register: nexus_images
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Build pinned application images
+  ansible.builtin.command: >-
+    docker compose --env-file /opt/nexus/.deploy/nexus.env build
+    {{ '--no-cache' if nexus_force_rebuild | bool else '' }} server web
+  args:
+    chdir: "{{ nexus_checkout }}"
+  when: nexus_source.changed or nexus_images.rc != 0 or nexus_force_rebuild | bool
+  changed_when: true
+
+- name: Install credentials and activate Nexus under the maintenance lock
+  ansible.builtin.command:
+    argv:
+      - flock
+      - --wait
+      - "600"
+      - /run/lock/nexus-grokmirror.lock
+      - /usr/local/sbin/nexus-deploy
+      - "{{ nexus_checkout }}"
+      - "{{ (nexus_app_enabled | bool) | ternary('true', 'false') }}"
+      - "{{ (nexus_force_rebuild | bool) | ternary('true', 'false') }}"
+  no_log: true
+  register: nexus_rollout
+  changed_when: >-
+    'NEXUS_DEPLOY_CHANGED' in nexus_rollout.stdout or
+    'Applying:' in nexus_rollout.stdout or
+    'Started' in nexus_rollout.stderr or
+    'Created' in nexus_rollout.stderr or
+    'Recreated' in nexus_rollout.stderr
+
+- name: Schedule mirror updates only after application activation
+  ansible.builtin.cron:
+    name: Nexus mirror and mainline synchronization
+    cron_file: nexus-grokmirror
+    user: root
+    minute: "17"
+    hour: "*/4"
+    job: /usr/bin/flock -n /run/lock/nexus-grokmirror.lock /usr/local/sbin/nexus-grokmirror
+    state: "{{ 'present' if nexus_app_enabled | bool else 'absent' }}"
+
+- name: Enable cron
+  ansible.builtin.systemd_service:
+    name: cron
+    enabled: true
+    state: started

@@ -73,6 +73,15 @@
           - ansible_facts['architecture'] == "x86_64"
         fail_msg: "Nexus requires Ubuntu 24.04 LTS amd64."
 
+    - name: Load SOPS-encrypted Nexus variables
+      community.sops.load_vars:
+        file: "{{ playbook_dir }}/group_vars/nexus_kb.sops.yml"
+        name: nexus_sops_secrets
+        return_method: vars-only
+      no_log: true
+      tags: always
+
   roles:
     - role: common
     - role: docker
+    - role: nexus

@@ -1,0 +1,18 @@
+postgres_password: ENC[AES256_GCM,data:YgMxD13DqMCo0PmSKZx5Z/KOaqfLhMuGyhMkImoHL1a20X5rRgEyI0AogV6hQH4MJs3s0OGPDe7E1oTbVg3dhw==,iv:ArYQDyr05GuB0xJs13m7P8NbXSJnHXPa3VHtFfLkEaQ=,tag:K+AJN/1MKyTMP1geg2VZQg==,type:str]
+admin_token: ENC[AES256_GCM,data:kZa1pVGj69Gjm+vv8BHT4Pe5sXkjXejINNiJ0HI0+gly6Pev4tJHmmyiNQbPV9grWua81Tqr+L2uROt7cVX+iQ==,iv:PD46cUOqNGDuB+Zgnvley9WN7HDalvW2neKIP6YHJgs=,tag:pOODPC19JtbzWvZBWQCOlg==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPU09QQ0h1RExHOFFTRVdE
+        MUNGa1Z0SmxLak9RMEJXTE1lVGxkSVpCZFVRCkwxWm9tRWhzbXdxVTYxR05pMzBE
+        d1RnUm45Y0FNUHBrWlk3Tm5DcytITTgKLS0tIFlacmFpajBXajA3Yko3c2poZUMv
+        akpaalRmSU5ubFVqTjdGTnE5WUpPQ2sKMcdtxc6TsPEMmaI+YhOA4J+2sLmvYg30
+        wU42KzIIALVur1iG4DKElAIYyXhexEZBnqo+WCQIQebpshIUjGMJ3g==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  lastmodified: "2026-09-29T20:58:07Z"
+  mac: ENC[AES256_GCM,data:0tUe1lfAxPb5gESqiNpAZA82O1VKYx+d78Vh3GeKqtyYC4dxhpZ7ZX08RCaLiPOnOcF8VSUKIcYIxCcXUr2BXDEPChsfhP7/pJiicF/I7vZvarvdkVANVv2YXqfimKvxHBSRyaEY3eQi0DqhnYiT3rLn+awcAUpC8XKVP2qr4lM=,iv:7kndVc8YpZO/W8qaNrRhO6An3eB/0rR8e5tOeCEhc0M=,tag:0ZAn/WXk0cPHj2s3NOq8RA==,type:str]
+  mac_only_encrypted: true
+  unencrypted_suffix: _unencrypted
+  version: 3.13.3

@@ -12,3 +12,6 @@ common_extra_apt_packages:
   - qemu-guest-agent
 common_extra_services:
   - qemu-guest-agent
+
+# Shared admin authentication and Git mailing-list removal release.
+nexus_revision: fe493fb8ca7633c2e9c1a4be3e87904dddd63b55

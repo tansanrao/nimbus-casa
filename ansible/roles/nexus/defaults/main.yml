@@ -1,0 +1,7 @@
+---
+nexus_repository: https://github.com/nexus-kb/nexus.git
+nexus_checkout: /opt/nexus/app
+# Disable during an initial database restore. Only the database is started.
+nexus_app_enabled: true
+# Explicitly rebuild without cache and recreate application containers.
+nexus_force_rebuild: false
