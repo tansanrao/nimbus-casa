@@ -16,12 +16,16 @@ tasks:
   apply-node:
     desc: Apply Talos config to a node [IP=required]
     dir: '{{.TALOS_DIR}}'
-    cmd: talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}}' | bash
+    cmd: |
+      commands=$(talhelper gencommand apply --node {{.IP}} --extra-flags '--mode={{.MODE}}') || exit $?
+      bash -e -o pipefail -c "$commands"
     vars:
       MODE: '{{.MODE | default "auto"}}'
     requires:
       vars: [IP]
     preconditions:
+      - sh: 'test "{{.MODE}}" = auto || test "{{.MODE}}" = no-reboot || test "{{.MODE}}" = staged || test "{{.MODE}}" = try'
+        msg: 'Talos 1.14 supports MODE=auto, no-reboot, staged, or try; MODE=reboot was removed.'
       - talosctl --nodes {{.IP}} get machineconfig
       - talosctl config info
       - test -f {{.TALOSCONFIG}}
@@ -30,7 +34,9 @@ tasks:
   upgrade-node:
     desc: Upgrade Talos on a single node [IP=required]
     dir: '{{.TALOS_DIR}}'
-    cmd: talhelper gencommand upgrade --node {{.IP}} --extra-flags "--image='{{.TALOS_IMAGE}}:{{.TALOS_VERSION}}' --drain=true --drain-timeout=5m --timeout=30m" | bash
+    cmd: |
+      commands=$(talhelper gencommand upgrade --node {{.IP}} --extra-flags "--image='{{.TALOS_IMAGE}}:{{.TALOS_VERSION}}' --drain=true --drain-timeout=5m --timeout=30m") || exit $?
+      bash -e -o pipefail -c "$commands"
     vars:
       TALOS_IMAGE:
         sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .talosImageURL' {{.TALOS_DIR}}/talconfig.yaml
@@ -47,7 +53,9 @@ tasks:
   upgrade-k8s:
     desc: Upgrade Kubernetes
     dir: '{{.TALOS_DIR}}'
-    cmd: talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'" | bash
+    cmd: |
+      commands=$(talhelper gencommand upgrade-k8s --extra-flags "--to '{{.KUBERNETES_VERSION}}'") || exit $?
+      bash -e -o pipefail -c "$commands"
     vars:
       KUBERNETES_VERSION:
         sh: yq '.kubernetesVersion' {{.TALOS_DIR}}/talenv.yaml
@@ -60,6 +68,8 @@ tasks:
     desc: Resets nodes back to maintenance mode
     dir: '{{.TALOS_DIR}}'
     prompt: This will destroy your cluster and reset the nodes back to maintenance mode... continue?
-    cmd: talhelper gencommand reset --extra-flags="--reboot {{- if eq .CLI_FORCE false }} --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL{{ end }} --graceful=false --wait=false" | bash
+    cmd: |
+      commands=$(talhelper gencommand reset --extra-flags="--reboot {{- if eq .CLI_FORCE false }} --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL{{ end }} --graceful=false --wait=false") || exit $?
+      bash -e -o pipefail -c "$commands"
     preconditions:
       - which talhelper
