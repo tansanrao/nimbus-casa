@@ -94,7 +94,6 @@ This repo has three backup classes for persistent data:
 
 The shared VolSync component is intended for application PVCs on `openebs-lvm`, including:
 
-- `default/actual`
 - `default/karakeep`
 - `default/mealie`
 - `database/meilisearch-karakeep`

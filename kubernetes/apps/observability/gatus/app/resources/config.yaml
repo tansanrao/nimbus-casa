@@ -17,18 +17,13 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-  - name: default/actual
-    group: public-services
-    url: https://actual.${SECRET_DOMAIN}
-    interval: 1m
-    conditions: &app_http_conditions
-      - "[STATUS] >= 200"
-      - "[STATUS] < 400"
   - name: default/authentik
     group: public-services
     url: https://auth.${SECRET_DOMAIN}
     interval: 1m
-    conditions: *app_http_conditions
+    conditions: &app_http_conditions
+      - "[STATUS] >= 200"
+      - "[STATUS] < 400"
   - name: default/authentik-outpost
     group: public-services
     url: https://${SECRET_DOMAIN}/outpost.goauthentik.io/ping
