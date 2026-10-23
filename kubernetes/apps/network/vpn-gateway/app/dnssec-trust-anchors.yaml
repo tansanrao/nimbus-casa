@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vpn-gateway-dnssec-trust-anchors
+data:
+  trust-anchors.conf: |
+    # IANA root trust anchors, verified against the signed XML on 2026-10-23.
+    # https://data.iana.org/root-anchors/root-anchors.xml
+    # The stable pod-gateway v1.13.0 image predates the October 2026 KSK rollover.
+    # Remove this override once the stable image includes key 38696.
+    trust-anchor=.,20326,8,2,E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D
+    trust-anchor=.,38696,8,2,683D2D0ACB8C9B712A1948B27F741219298D0A450D612C483AF444A4C0FB2B16

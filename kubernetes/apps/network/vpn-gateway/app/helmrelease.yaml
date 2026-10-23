@@ -38,7 +38,7 @@ spec:
                   - NET_ADMIN
         pod:
           annotations:
-            configmap.reloader.stakater.com/reload: vpn-gateway-pod-gateway
+            configmap.reloader.stakater.com/reload: vpn-gateway-pod-gateway,vpn-gateway-dnssec-trust-anchors
             secret.reloader.stakater.com/reload: vpn-gateway-vpnconfig
       webhook:
         containers:
@@ -46,6 +46,17 @@ spec:
             image:
               repository: ghcr.io/angelnu/gateway-admision-controller
               tag: v3.12.0@sha256:6f6ab596afd5fef0ca4648eadfb21cd37ba86fa5afa8b85edcc072976a61fbed
+
+    persistence:
+      dnssec-trust-anchors:
+        type: configMap
+        name: vpn-gateway-dnssec-trust-anchors
+        advancedMounts:
+          main:
+            main:
+              - path: /usr/share/dnsmasq/trust-anchors.conf
+                subPath: trust-anchors.conf
+                readOnly: true
 
     networkpolicies:
       main:
