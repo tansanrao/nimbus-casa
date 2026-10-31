@@ -69,7 +69,7 @@ for app in UNTRUSTED:
 for app in ('radarr', 'sonarr', 'sonarr-anime', 'kapowarr'):
     assert endpoint_allowed('media', app, 'media', 'qbittorrent', 8080)
     assert endpoint_allowed('media', app, 'media', 'sabnzbd', 80)
-assert endpoint_allowed('media-services', 'jellyseerr', 'media', 'radarr', 80)
+assert endpoint_allowed('media-services', 'seerr', 'media', 'radarr', 80)
 assert not endpoint_allowed('media', 'qbittorrent', 'media-services', 'jellyfin', 8096)
 
 vpn = one(APPS / 'media-vpn/vpn-gateway/app/helmrelease.yaml')['spec']

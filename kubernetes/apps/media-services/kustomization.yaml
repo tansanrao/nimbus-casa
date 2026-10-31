@@ -5,7 +5,7 @@ resources:
   - ./namespace.yaml
   - ./jellyfin/ks.yaml
   - ./kavita/ks.yaml
-  - ./jellyseerr/ks.yaml
+  - ./seerr/ks.yaml
   - ./jellystat/ks.yaml
   - ./shared/ks.yaml
   - ./isolation/ks.yaml

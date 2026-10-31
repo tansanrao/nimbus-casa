@@ -45,7 +45,7 @@ spec:
             k8s:app.kubernetes.io/name: recyclarr
             k8s:io.kubernetes.pod.namespace: media
         - matchLabels:
-            k8s:app.kubernetes.io/name: jellyseerr
+            k8s:app.kubernetes.io/name: seerr
             k8s:io.kubernetes.pod.namespace: media-services
       toPorts:
         - ports:
@@ -187,7 +187,7 @@ spec:
             k8s:app.kubernetes.io/name: recyclarr
             k8s:io.kubernetes.pod.namespace: media
         - matchLabels:
-            k8s:app.kubernetes.io/name: jellyseerr
+            k8s:app.kubernetes.io/name: seerr
             k8s:io.kubernetes.pod.namespace: media-services
       toPorts:
         - ports:
@@ -329,7 +329,7 @@ spec:
             k8s:app.kubernetes.io/name: recyclarr
             k8s:io.kubernetes.pod.namespace: media
         - matchLabels:
-            k8s:app.kubernetes.io/name: jellyseerr
+            k8s:app.kubernetes.io/name: seerr
             k8s:io.kubernetes.pod.namespace: media-services
       toPorts:
         - ports:

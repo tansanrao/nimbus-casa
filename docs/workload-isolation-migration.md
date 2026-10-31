@@ -16,7 +16,7 @@ source databases are retained. Do not resume these legacy holds indiscriminately
 | `media` | Radarr, Sonarr, Sonarr Anime, Prowlarr, Kapowarr, qBittorrent, SABnzbd, Recyclarr | Internet through Gluetun only; explicit application peers and media DB; internal ingress gateway; mounted media library |
 | `media-vpn` | Gluetun/pod gateway, admission webhook, split DNS | Pinned Mullvad relay on UDP 51820 (three permitted relay IPs); local DNS and VXLAN clients |
 | `media-database` | Dedicated `media16` PostgreSQL | Arr clients, database operator/API/replication, backup endpoints |
-| `media-services` | Jellyfin, Jellyseerr, Kavita, Jellystat | Public HTTP(S) metadata services; explicit Arr/Jellyfin/database dependencies; read-only media library for Jellyfin/Kavita |
+| `media-services` | Jellyfin, Seerr, Kavita, Jellystat | Public HTTP(S) metadata services; explicit Arr/Jellyfin/database dependencies; read-only media library for Jellyfin/Kavita |
 
 Every target namespace has default-deny ingress and egress. Application policies
 use namespace-qualified endpoint selectors. Media applications cannot initiate
@@ -125,7 +125,7 @@ Perform in a maintenance window. Make each resumption explicit in Git; a manual
    secrets must reference `media-postgres` / `media16`, never shared `postgres16`.
 9. Enable restored frontend and Immich HelmReleases one at a time. Remove old
    conflicting HTTPRoutes before switching traffic; preserve route YAML for
-   rollback. Update persisted Jellyseerr/Jellystat URLs to services in
+   rollback. Update persisted Seerr/Jellystat URLs to services in
    `media-services`; verify Arr/downloader URLs still resolve in `media`.
    Immich must use `immich16-pguser-immich`, its dedicated cache and ML service.
    ML intentionally receives no application/database secrets.

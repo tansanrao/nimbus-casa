@@ -97,7 +97,7 @@ The shared VolSync component is intended for application PVCs on `openebs-lvm`, 
 - `default/karakeep`
 - `default/mealie`
 - `database/meilisearch-karakeep`
-- `media/jellyseerr`
+- `media-services/seerr`
 - `media/qbittorrent`
 - `media/radarr`
 - `media/recyclarr`

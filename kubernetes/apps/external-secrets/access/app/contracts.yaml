@@ -211,10 +211,10 @@ data:
       },
       {
         "namespace": "media-services",
-        "name": "jellyseerr-volsync",
+        "name": "seerr-volsync",
         "storeKind": "ClusterSecretStore",
         "store": "onepassword",
-        "target": "jellyseerr-volsync-secret",
+        "target": "seerr-volsync-secret",
         "keys": [
           "garage",
           "volsync-garage-template"

@@ -56,33 +56,6 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: jellyseerr
-  namespace: media
-  annotations:
-    isolation.nimbus.casa/migration: Legacy reconciliation hold; retain until stateful cutover is verified.
-  labels:
-    isolation.nimbus.casa/legacy-hold: "true"
-spec:
-  interval: 1h
-  path: ./kubernetes/migrations/isolation/hold
-  prune: false
-  suspend: true
-  targetNamespace: media
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: cluster-secrets
-  wait: true
-  timeout: 10m
-  deletionPolicy: Orphan
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
   name: jellystat
   namespace: media
   annotations:
