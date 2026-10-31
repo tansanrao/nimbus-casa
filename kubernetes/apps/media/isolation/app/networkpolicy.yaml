@@ -63,8 +63,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -184,8 +205,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -305,8 +347,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -429,8 +492,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -526,8 +610,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -642,8 +747,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -734,8 +860,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
@@ -801,8 +948,29 @@ spec:
           rules:
             dns:
               - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media.svc.cluster.local'
               - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-database.svc.cluster.local'
               - matchPattern: '*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
+              - matchPattern: '*.*.*.*.*.*.*.*.media-vpn.svc.cluster.local'
     - toEndpoints:
         - matchLabels:
             k8s:app.kubernetes.io/name: pod-gateway
