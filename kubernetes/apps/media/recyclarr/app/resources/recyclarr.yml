@@ -5,6 +5,11 @@ sonarr:
     base_url: http://sonarr.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
+    # Let guide custom-format scores control Proper/Repack upgrades.
+    media_management:
+      propers_and_repacks: do_not_prefer
+    # Sonarr v5 stores quality sizes per profile; guide-backed profiles inherit
+    # the guide definition, with this instance-level setting as a fallback.
     quality_definition:
       type: series
     quality_profiles:
@@ -24,7 +29,7 @@ sonarr:
         - trash_id: 74aff4168620ed49dcc67e92b2c2a5b4 # [Optional] Language Profiles
         - trash_id: 85fae4a2294965b75710ef2989c850eb # [Streaming Services] HD/UHD boost
         - trash_id: 59c3af66780d08332fdc64e68297098f # [Unwanted] Unwanted Formats
-          # Bad Dual Groups is a required group default.
+          # Required and default formats stay enabled; select adds optional ones.
           select:
             - 82d40da2bc6923f41e14394075dd4b03 # No-RlsGroup
             - e1a997ddb54e3ecbfe06341ad323c458 # Obfuscated
@@ -38,6 +43,9 @@ sonarr:
     base_url: http://sonarr-anime.media.svc.cluster.local
     api_key: !env_var SONARR_API_KEY
     delete_old_custom_formats: true
+    # Let guide custom-format scores control Proper/Repack upgrades.
+    media_management:
+      propers_and_repacks: do_not_prefer
     quality_definition:
       type: anime
     quality_profiles:
@@ -50,6 +58,9 @@ radarr:
     base_url: http://radarr.media.svc.cluster.local
     api_key: !env_var RADARR_API_KEY
     delete_old_custom_formats: true
+    # Let guide custom-format scores control Proper/Repack upgrades.
+    media_management:
+      propers_and_repacks: do_not_prefer
     quality_definition:
       type: movie
     quality_profiles:
@@ -70,7 +81,7 @@ radarr:
         # this group; compatibility applies them to both Remux profiles.
         - trash_id: 9d5acd8f1da78dfbae788182f7605200 # [Audio] Audio Formats
         - trash_id: a3ac6af01d78e4f21fcb75f601ac96df # [Unwanted] Unwanted Formats
-          # Bad Dual Groups and Black and White Editions are required defaults.
+          # Required and default formats stay enabled; select adds optional ones.
           select:
             - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
             - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
