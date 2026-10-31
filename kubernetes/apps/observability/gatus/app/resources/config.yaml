@@ -54,9 +54,9 @@ endpoints:
     url: https://reader.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
-  - name: media/jellyseerr
+  - name: media-services/seerr
     group: public-services
-    url: https://jellyseerr.${SECRET_DOMAIN}
+    url: https://seerr.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
   - name: media/jellystat

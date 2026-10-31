@@ -98,7 +98,7 @@ spec:
     route:
       main:
         hostnames:
-          - jellyseerr.${SECRET_DOMAIN}
+          - seerr.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-external
             namespace: network
