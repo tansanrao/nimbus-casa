@@ -123,6 +123,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -241,6 +244,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -359,6 +365,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -470,6 +479,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -566,6 +578,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -655,6 +670,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -744,6 +762,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host
@@ -822,6 +843,9 @@ spec:
         - ports:
             - port: "1053"
               protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
   egressDeny:
     - toEntities:
         - host

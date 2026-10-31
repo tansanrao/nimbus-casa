@@ -66,5 +66,9 @@ spec:
             subPath: recyclarr.yml
             readOnly: true
     defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       automountServiceAccountToken: false
   suspend: false

@@ -10,6 +10,11 @@ data:
         cache 30
         forward . 10.43.0.10
     }
+    cluster.local:1053 {
+        template IN ANY {
+            rcode NXDOMAIN
+        }
+    }
     .:1053 {
         errors
         health :8080

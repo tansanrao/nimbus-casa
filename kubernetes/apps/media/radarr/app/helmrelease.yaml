@@ -124,5 +124,9 @@ spec:
         globalMounts:
           - path: /mediastore
     defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       automountServiceAccountToken: false
   suspend: false

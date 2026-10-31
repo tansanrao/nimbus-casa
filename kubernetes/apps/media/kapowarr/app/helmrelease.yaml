@@ -128,5 +128,9 @@ spec:
           - path: /app/temp_downloads
             subPath: torrent/temp
     defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       automountServiceAccountToken: false
   suspend: false
