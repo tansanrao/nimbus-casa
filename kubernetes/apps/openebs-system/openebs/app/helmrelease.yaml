@@ -64,7 +64,7 @@ spec:
             registry: registry.k8s.io
             repository: sig-storage/snapshot-controller
             pullPolicy: IfNotPresent
-            tag: v8.2.0@sha256:9dade8f2f3ab29e3919c41b343f8d77b12178ac51f25574d7ed2d45a3e3ef69d
+            tag: v8.7.0@sha256:8511f417d0072efcd937aedd7cc79a937d5066e64ee17beb6097301c92742f19
         provisioner:
           image:
             registry: registry.k8s.io
