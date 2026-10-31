@@ -159,5 +159,9 @@ spec:
               - path: /.cache
                 subPath: dotCache
     defaultPodOptions:
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
       automountServiceAccountToken: false
-  suspend: true
+  suspend: false
