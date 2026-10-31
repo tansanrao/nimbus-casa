@@ -78,8 +78,10 @@ spec:
         - secret:
             name: crunchy-postgres-secret
       global:
-        compress-type: bz2
-        compress-level: "9"
+        compress-type: zst
+        compress-level: "3"
+        process-max: "2"
+        archive-timeout: "600"
         repo1-bundle: y
         repo1-block: y
         repo1-path: /isolation/media-database/media16
