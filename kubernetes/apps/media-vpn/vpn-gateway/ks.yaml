@@ -22,4 +22,4 @@ spec:
   targetNamespace: media-vpn
   timeout: 5m
   wait: true
-  suspend: true
+  suspend: false
