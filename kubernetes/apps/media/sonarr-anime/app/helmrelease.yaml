@@ -111,7 +111,7 @@ spec:
       pushover-notify:
         type: configMap
         name: sonarr-anime-configmap
-        defaultMode: 775
+        defaultMode: 509 # 0775
         globalMounts:
           - path: /scripts/pushover-notify.sh
             subPath: pushover-notify.sh
