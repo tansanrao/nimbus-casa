@@ -30,6 +30,21 @@
   },
   packageRules: [
     {
+      description: "Keep Karakeep and its browser immutable and check updates throughout the week",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/karakeep-app/karakeep", "ghcr.io/karakeep-app/karakeep-chrome"],
+      pinDigests: true,
+      schedule: ["at any time"],
+      automerge: false,
+      prPriority: 10,
+    },
+    {
+      description: "Track all four Chrome version components and image rebuild revisions",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/karakeep-app/karakeep-chrome"],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-r(?<revision>\\d+)$",
+    },
+    {
       description: "Override Helmfile Dependency Name",
       matchDatasources: ["docker"],
       matchManagers: ["helmfile"],

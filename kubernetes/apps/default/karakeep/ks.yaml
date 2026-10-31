@@ -5,6 +5,8 @@ metadata:
   name: karakeep
 spec:
   dependsOn:
+    - name: karakeep-browser
+      namespace: karakeep-browser
     - name: openebs
       namespace: openebs-system
     - name: snapshot-controller

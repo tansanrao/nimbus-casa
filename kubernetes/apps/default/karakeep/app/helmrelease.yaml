@@ -10,12 +10,15 @@ spec:
     name: karakeep
   values:
     defaultPodOptions:
+      automountServiceAccountToken: false
       securityContext:
         runAsUser: 1001
         runAsGroup: 1001
         runAsNonRoot: true
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     controllers:
       karakeep:
         strategy: Recreate
@@ -25,7 +28,12 @@ spec:
           app:
             image:
               repository: ghcr.io/karakeep-app/karakeep
-              tag: 0.34.1
+              tag: 0.34.1@sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
             envFrom:
               - secretRef:
                   name: karakeep-secret
@@ -41,35 +49,6 @@ spec:
                 cpu: 10m
               limits:
                 memory: 1Gi
-      chrome:
-        annotations:
-          reloader.stakater.com/auto: "true"
-        pod:
-          securityContext:
-            runAsUser: 65534
-            runAsGroup: 65534
-            runAsNonRoot: true
-        containers:
-          app:
-            image:
-              repository: ghcr.io/karakeep-app/karakeep-chrome
-              tag: release
-            args:
-              - --disable-gpu
-              - --disable-dev-shm-usage
-              - --hide-scrollbars
-              - --disable-blink-features=AutomationControlled
-              - --window-size=1440,900
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                memory: 1Gi
     service:
       app:
         controller: karakeep
@@ -77,11 +56,6 @@ spec:
         ports:
           http:
             port: &httpPort 3000
-      chrome:
-        controller: chrome
-        ports:
-          http:
-            port: 9222
     persistence:
       data:
         enabled: true

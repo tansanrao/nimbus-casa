@@ -17,3 +17,4 @@ resources:
   - ./media-services
   - ./media-vpn
   - ./media-database
+  - ./karakeep-browser

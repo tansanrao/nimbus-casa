@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: karakeep-browser-isolation
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/karakeep-browser/isolation/app
+  prune: true
+  targetNamespace: karakeep-browser
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true
