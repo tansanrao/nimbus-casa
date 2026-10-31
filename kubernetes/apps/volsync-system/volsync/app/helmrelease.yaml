@@ -24,3 +24,26 @@ spec:
       runAsNonRoot: true
       runAsUser: 1001
       runAsGroup: 1001
+    image:
+      repository: quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd
+    rclone:
+      repository: quay.io/backube/volsync
+      # renovate-image: depName=quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd
+    restic:
+      repository: quay.io/backube/volsync
+      # renovate-image: depName=quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd
+    rsync:
+      repository: quay.io/backube/volsync
+      # renovate-image: depName=quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd
+    rsync-tls:
+      repository: quay.io/backube/volsync
+      # renovate-image: depName=quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd
+    syncthing:
+      repository: quay.io/backube/volsync
+      # renovate-image: depName=quay.io/backube/volsync
+      tag: 0.17.0@sha256:bbc884d4fa108534260025bf1255a1010ebb6bb8dac9ba4f4a77f437ca7f8fbd

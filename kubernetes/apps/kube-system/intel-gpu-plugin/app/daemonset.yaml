@@ -28,7 +28,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: intel-gpu-plugin
-          image: intel/intel-gpu-plugin:0.37.1
+          image: intel/intel-gpu-plugin:0.37.1@sha256:004641b2547d58f1eadce58473fa160ad71377de1eb588cf1f82832387bf3e33
           imagePullPolicy: IfNotPresent
           args:
             - -shared-dev-num=5

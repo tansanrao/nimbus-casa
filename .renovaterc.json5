@@ -30,6 +30,22 @@
   },
   packageRules: [
     {
+      description: "Pin GPU and storage images and require review of privileged component updates",
+      matchFileNames: [
+        "kubernetes/apps/kube-system/intel-gpu-plugin/**",
+        "kubernetes/apps/kube-system/generic-device-plugin/**",
+        "kubernetes/apps/kube-system/node-feature-discovery/**",
+        "kubernetes/apps/kube-system/csi-driver-nfs/**",
+        "kubernetes/apps/kube-system/snapshot-controller/**",
+        "kubernetes/apps/openebs-system/openebs/**",
+        "kubernetes/apps/volsync-system/volsync/**",
+      ],
+      pinDigests: true,
+      schedule: ["at any time"],
+      automerge: false,
+      prPriority: 10,
+    },
+    {
       description: "Keep Karakeep and its browser immutable and check updates throughout the week",
       matchDatasources: ["docker"],
       matchPackageNames: ["ghcr.io/karakeep-app/karakeep", "ghcr.io/karakeep-app/karakeep-chrome"],
@@ -172,6 +188,18 @@
     },
   ],
   customManagers: [
+    {
+      description: "Track CSI sidecars and operator-generated backup worker images",
+      customType: "regex",
+      managerFilePatterns: [
+        "/kubernetes/apps/kube-system/csi-driver-nfs/app/helmrelease\\.yaml$/",
+        "/kubernetes/apps/volsync-system/volsync/app/helmrelease\\.yaml$/",
+      ],
+      matchStrings: [
+        "renovate-image: depName=(?<depName>[^\\s]+)\\n\\s+tag: (?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
+      ],
+      datasourceTemplate: "docker",
+    },
     {
       description: "Keep the VPN admission image pin aligned with the gateway",
       customType: "regex",
