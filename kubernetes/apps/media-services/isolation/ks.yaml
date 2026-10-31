@@ -6,7 +6,7 @@ metadata:
   namespace: media-services
 spec:
   interval: 1h
-  suspend: true
+  suspend: false
   path: ./kubernetes/apps/media-services/isolation/app
   prune: true
   targetNamespace: media-services

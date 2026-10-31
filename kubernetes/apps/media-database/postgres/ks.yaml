@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/media-database/postgres/app
   prune: true
-  suspend: true
+  suspend: false
   targetNamespace: media-database
   sourceRef:
     kind: GitRepository

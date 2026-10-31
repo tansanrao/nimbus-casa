@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/immich/cache/app
   prune: true
-  suspend: true
+  suspend: false
   targetNamespace: immich
   sourceRef:
     kind: GitRepository
