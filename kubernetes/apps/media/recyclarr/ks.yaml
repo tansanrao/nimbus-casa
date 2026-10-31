@@ -8,6 +8,8 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/media/recyclarr/app
   dependsOn:
+    - name: external-secrets-access
+      namespace: external-secrets
     - name: openebs
       namespace: openebs-system
     - name: snapshot-controller

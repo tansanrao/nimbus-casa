@@ -343,7 +343,8 @@ data:
         "target": "recyclarr-secret",
         "keys": [
           "radarr",
-          "sonarr"
+          "sonarr",
+          "sonarr-anime"
         ]
       },
       {

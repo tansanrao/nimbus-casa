@@ -274,7 +274,7 @@ spec:
             "storeKind": "ClusterSecretStore",
             "store": "onepassword",
             "target": "recyclarr-secret",
-            "keys": "radarr|sonarr"
+            "keys": "radarr|sonarr|sonarr-anime"
           },
           {
             "namespace": "media",
