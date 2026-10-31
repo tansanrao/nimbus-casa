@@ -12,10 +12,11 @@ spec:
     controllers:
       main:
         type: cronjob
-        annotations:
-          reloader.stakater.com/auto: "true"
         cronjob:
+          # Each scheduled pod reads the latest config and credentials.
+          # Reloader-triggered jobs bypass CronJob concurrency and contend for the PVC.
           schedule: '@daily'
+          concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:
