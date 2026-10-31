@@ -128,11 +128,13 @@ spec:
               - matchPattern: '*.huggingface.co'
               - matchPattern: '*.hf.co'
               - matchPattern: '*.xethub.hf.co'
+              - matchName: us.aws.cdn.hf.co
     - toFQDNs:
         - matchPattern: huggingface.co
         - matchPattern: '*.huggingface.co'
         - matchPattern: '*.hf.co'
         - matchPattern: '*.xethub.hf.co'
+        - matchName: us.aws.cdn.hf.co
       toPorts:
         - ports:
             - port: "443"
