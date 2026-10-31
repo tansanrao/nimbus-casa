@@ -30,6 +30,14 @@
   },
   packageRules: [
     {
+      description: "Pin official Seerr releases and require review of updates",
+      matchPackageNames: ["ghcr.io/seerr-team/seerr"],
+      pinDigests: true,
+      schedule: ["at any time"],
+      automerge: false,
+      prPriority: 10,
+    },
+    {
       description: "Pin GitOps and secret-controller dependencies and require review of updates",
       matchFileNames: [
         "kubernetes/apps/flux-system/flux-operator/**",

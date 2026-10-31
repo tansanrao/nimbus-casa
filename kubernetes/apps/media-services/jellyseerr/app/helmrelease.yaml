@@ -18,20 +18,31 @@ spec:
         containers:
           app:
             image:
-              repository: fallenbagel/jellyseerr
-              tag: 2.7.3
+              repository: ghcr.io/seerr-team/seerr
+              tag: v3.5.1@sha256:d8fab675b55ad293ded98fd71efcfd46054cbad9746534ae1cc4794a88c0b3be
+            command: [node, dist/index.js]
             env:
               TZ: America/New_York
               LOG_LEVEL: info
-              PORT: 80
+              PORT: 5055
             probes:
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/settings/public
+                    port: 5055
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+                  failureThreshold: 60
               liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /status
-                    port: 80
+                    path: /api/v1/settings/public
+                    port: 5055
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
@@ -41,8 +52,8 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /status
-                    port: 80
+                    path: /api/v1/settings/public
+                    port: 5055
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
@@ -60,11 +71,14 @@ spec:
               limits:
                 memory: 512Mi
         pod:
+          # The pod sandbox provides PID 1 and reaps orphaned child processes.
+          shareProcessNamespace: true
+          automountServiceAccountToken: false
           securityContext:
-            runAsUser: 1001
-            runAsGroup: 1001
+            runAsUser: 1000
+            runAsGroup: 1000
             runAsNonRoot: true
-            fsGroup: 1001
+            fsGroup: 1000
             fsGroupChangePolicy: OnRootMismatch
             seccompProfile:
               type: RuntimeDefault
@@ -80,7 +94,7 @@ spec:
         controller: main
         ports:
           http:
-            port: 80
+            port: 5055
     route:
       main:
         hostnames:
@@ -92,7 +106,7 @@ spec:
         rules:
           - backendRefs:
               - name: jellyseerr
-                port: 80
+                port: 5055
     persistence:
       config:
         existingClaim: jellyseerr
@@ -102,6 +116,10 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /app/config/logs
+      cache:
+        type: emptyDir
+        globalMounts:
+          - path: /app/.next/cache
       tmp:
         type: emptyDir
   suspend: false
