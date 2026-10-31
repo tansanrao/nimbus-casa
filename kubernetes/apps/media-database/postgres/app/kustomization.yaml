@@ -5,3 +5,4 @@ resources:
   - ./cluster.yaml
   - ./externalsecret.yaml
   - ./secretstore.yaml
+  - ./init-sql.yaml

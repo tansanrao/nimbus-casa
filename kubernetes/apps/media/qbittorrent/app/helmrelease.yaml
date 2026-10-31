@@ -123,4 +123,4 @@ spec:
           - path: /mediastore
     defaultPodOptions:
       automountServiceAccountToken: false
-  suspend: true
+  suspend: false

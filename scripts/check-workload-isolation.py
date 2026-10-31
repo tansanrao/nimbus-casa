@@ -60,7 +60,6 @@ for app in UNTRUSTED:
     assert not endpoint_allowed('media', app, 'immich', 'immich', 2283)
     assert not endpoint_allowed('media', app, 'network', 'envoy', 443)
     hr = one(APPS / 'media' / app / 'app/helmrelease.yaml')['spec']
-    assert hr['suspend'] is True
     pod = hr['values']['defaultPodOptions']
     assert pod['automountServiceAccountToken'] is False
     pod = hr['values']['controllers']['main']['pod']

@@ -4,6 +4,9 @@ kind: PostgresCluster
 metadata:
   name: media16
 spec:
+  databaseInitSQL:
+    name: application-database-grants
+    key: init.sql
   postgresVersion: 16
   monitoring:
     pgmonitor:

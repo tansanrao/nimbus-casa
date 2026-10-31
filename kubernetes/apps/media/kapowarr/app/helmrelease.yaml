@@ -129,4 +129,4 @@ spec:
             subPath: torrent/temp
     defaultPodOptions:
       automountServiceAccountToken: false
-  suspend: true
+  suspend: false

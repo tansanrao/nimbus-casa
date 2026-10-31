@@ -67,4 +67,4 @@ spec:
             readOnly: true
     defaultPodOptions:
       automountServiceAccountToken: false
-  suspend: true
+  suspend: false

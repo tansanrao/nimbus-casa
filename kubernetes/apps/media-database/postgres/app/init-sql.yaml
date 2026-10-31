@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application-database-grants
+data:
+  init.sql: |
+    \set ON_ERROR_STOP on
+    ALTER DATABASE "radarr_main" OWNER TO "radarr";
+    \connect radarr_main
+    GRANT USAGE, CREATE ON SCHEMA public TO "radarr";
+    ALTER DATABASE "sonarr_main" OWNER TO "sonarr";
+    \connect sonarr_main
+    GRANT USAGE, CREATE ON SCHEMA public TO "sonarr";
+    ALTER DATABASE "sonarr_anime_main" OWNER TO "sonarr-anime";
+    \connect sonarr_anime_main
+    GRANT USAGE, CREATE ON SCHEMA public TO "sonarr-anime";
+    ALTER DATABASE "prowlarr_main" OWNER TO "prowlarr";
+    \connect prowlarr_main
+    GRANT USAGE, CREATE ON SCHEMA public TO "prowlarr";

@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: application-database-grants
+data:
+  init.sql: |
+    \set ON_ERROR_STOP on
+    ALTER DATABASE "immich" OWNER TO "immich";
+    \connect immich
+    GRANT USAGE, CREATE ON SCHEMA public TO "immich";
