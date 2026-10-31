@@ -12,6 +12,17 @@ The first managed hosts are:
 
 ## Commands
 
+The repository pins Python 3.14 because Ansible Core 2.21 supports controller
+Python 3.12–3.14. Renovate allows Python patch updates within 3.14; review
+Ansible's supported Python versions before changing that constraint.
+After changing Python minor versions, rebuild the isolated Python tools:
+
+```sh
+mise install
+mise install --force pipx:ansible-core pipx:makejinja
+mise exec -- ansible-playbook --version
+```
+
 Run through Taskfile from the repository root:
 
 ```sh
