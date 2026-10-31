@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-services-nfs-pv
+  labels:
+    app.kubernetes.io/name: mediastore-nfs
+spec:
+  capacity:
+    storage: 10000Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-mediastore
+  mountOptions:
+    - nfsvers=4.2
+    - nconnect=16
+    - hard
+    - noatime
+    - ro
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: sandcrawler.kbcb.tansanrao.net/mnt/tank/mediastore-readers
+    volumeAttributes:
+      server: sandcrawler.kbcb.tansanrao.net
+      share: /mnt/tank/mediastore
+    readOnly: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-services-nfs-pvc
+  namespace: media-services
+  labels:
+    app.kubernetes.io/name: mediastore-nfs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10000Gi
+  volumeName: media-services-nfs-pv
+  storageClassName: nfs-mediastore

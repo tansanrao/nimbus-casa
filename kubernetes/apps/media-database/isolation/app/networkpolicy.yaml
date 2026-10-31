@@ -1,0 +1,117 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgres
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:postgres-operator.crunchydata.com/cluster: media16
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+            k8s:io.kubernetes.pod.namespace: media
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: media16
+            k8s:io.kubernetes.pod.namespace: media-database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/control-plane: pgo
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prometheus
+            k8s:io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.*.media-database.svc.cluster.local'
+              - matchPattern: kubernetes.default.svc.cluster.local
+              - matchPattern: s3.kbcb.tansanrao.net
+              - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: media16
+            k8s:io.kubernetes.pod.namespace: media-database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - toFQDNs:
+        - matchPattern: s3.kbcb.tansanrao.net
+        - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

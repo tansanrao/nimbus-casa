@@ -1,0 +1,312 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: jellyfin
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyfin
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            k8s:io.kubernetes.pod.namespace: network
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            k8s:io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: jellyseerr
+            k8s:io.kubernetes.pod.namespace: media-services
+        - matchLabels:
+            k8s:app.kubernetes.io/name: jellystat
+            k8s:io.kubernetes.pod.namespace: media-services
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: jellyseerr
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellyseerr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            k8s:io.kubernetes.pod.namespace: network
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            k8s:io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: jellyfin
+            k8s:io.kubernetes.pod.namespace: media-services
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kavita
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: kavita
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            k8s:io.kubernetes.pod.namespace: network
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            k8s:io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "5000"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: jellystat
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: jellystat
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            k8s:io.kubernetes.pod.namespace: network
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            k8s:io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: jellyfin
+            k8s:io.kubernetes.pod.namespace: media-services
+      toPorts:
+        - ports:
+            - port: "8096"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: postgres16
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backup-movers
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:isolation.nimbus.casa/role: backup
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: s3.kbcb.tansanrao.net
+              - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+    - toFQDNs:
+        - matchPattern: s3.kbcb.tansanrao.net
+        - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

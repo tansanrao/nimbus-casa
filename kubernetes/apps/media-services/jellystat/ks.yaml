@@ -1,0 +1,33 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: jellystat
+  namespace: media-services
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/media-services/jellystat/app
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
+    - name: crunchy-pgo-clusters
+      namespace: database
+    - name: media-services-shared
+      namespace: media-services
+    - name: media-services-isolation
+      namespace: media-services
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: media-services
+  timeout: 5m
+  wait: false
+  postBuild:
+    substitute:
+      APP: jellystat
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  suspend: true

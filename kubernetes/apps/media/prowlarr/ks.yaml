@@ -10,12 +10,14 @@ spec:
   dependsOn:
     - name: onepassword
       namespace: external-secrets
-    - name: crunchy-pgo-clusters
-      namespace: database
-    - name: vpn-gateway
-      namespace: network
     - name: media-shared
       namespace: media
+    - name: vpn-gateway
+      namespace: media-vpn
+    - name: media-isolation
+      namespace: media
+    - name: media-database-postgres
+      namespace: media-database
   prune: true
   sourceRef:
     kind: GitRepository
@@ -30,3 +32,4 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
+  suspend: true

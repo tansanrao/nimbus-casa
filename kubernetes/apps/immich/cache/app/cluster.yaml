@@ -1,0 +1,31 @@
+---
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  name: immich-cache
+spec:
+  labels:
+    dragonflydb.io/cluster: immich-cache
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2@sha256:061f00b201b58e12f974e4e96c761a881ee1c05e9d8ee967466a604b7299753b
+  networkPolicyEnabled: false
+  replicas: 1
+  args:
+    - --maxmemory=$(MAX_MEMORY)Mi
+    - --proactor_threads=2
+    - --cluster_mode=emulated
+    - --lock_on_hashtags
+    - --default_lua_flags=allow-undeclared-keys
+  env:
+    - name: MAX_MEMORY
+      valueFrom:
+        resourceFieldRef:
+          resource: limits.memory
+          divisor: 1Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  serviceSpec:
+    type: ClusterIP

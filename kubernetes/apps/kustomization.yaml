@@ -13,3 +13,7 @@ resources:
   - ./observability
   - ./openebs-system
   - ./volsync-system
+  - ./immich
+  - ./media-services
+  - ./media-vpn
+  - ./media-database

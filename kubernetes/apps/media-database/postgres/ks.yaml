@@ -1,0 +1,31 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: media-database-postgres
+  namespace: media-database
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/media-database/postgres/app
+  prune: true
+  suspend: true
+  targetNamespace: media-database
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  dependsOn:
+    - name: media-database-isolation
+      namespace: media-database
+    - name: crunchy-pgo
+      namespace: database
+    - name: onepassword
+      namespace: external-secrets
+    - name: openebs
+      namespace: openebs-system
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-secrets
+  wait: true
+  timeout: 10m

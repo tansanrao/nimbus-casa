@@ -22,31 +22,42 @@ spec:
               tag: 5.3.0
             env:
               TZ: America/New_York
-              QBT_WEBUI_PORT: &port 8080
-              QBITTORRENT__BT_PORT: &torrentPort 50413
+              QBT_WEBUI_PORT: 8080
+              QBITTORRENT__BT_PORT: 50413
               QBT_Application__MemoryWorkingSetLimit: 6000
               QBT_Preferences__WebUI__AlternativeUIEnabled: false
               QBT_Preferences__WebUI__AuthSubnetWhitelistEnabled: true
-              QBT_Preferences__WebUI__AuthSubnetWhitelist: |-
-                10.0.0.0/8, 192.168.0.0/16
+              QBT_Preferences__WebUI__AuthSubnetWhitelist: 10.0.0.0/8, 192.168.0.0/16
               QBT_Preferences__WebUI__LocalHostAuth: false
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /
-                    port: *port
+                    port: 8080
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
               runAsUser: 1001
               runAsGroup: 1001
               runAsNonRoot: true
@@ -63,8 +74,10 @@ spec:
             runAsNonRoot: true
             fsGroup: 1001
             fsGroupChangePolicy: OnRootMismatch
-            supplementalGroups: [10000]
-            seccompProfile: { type: RuntimeDefault }
+            supplementalGroups:
+              - 10000
+            seccompProfile:
+              type: RuntimeDefault
           annotations:
             setGateway: "true"
           topologySpreadConstraints:
@@ -74,19 +87,22 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: qbittorrent
+          labels:
+            isolation.nimbus.casa/zone: untrusted
     service:
       main:
         controller: main
         ports:
           http:
-            port: *port
+            port: 8080
           bittorrent:
             enabled: true
-            port: *torrentPort
+            port: 50413
             protocol: TCP
     route:
       main:
-        hostnames: ["qb.${SECRET_DOMAIN}"]
+        hostnames:
+          - qb.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -94,7 +110,7 @@ spec:
         rules:
           - backendRefs:
               - name: qbittorrent
-                port: *port
+                port: 8080
     persistence:
       config:
         existingClaim: qbittorrent
@@ -105,3 +121,6 @@ spec:
         existingClaim: mediastore-nfs-pvc
         globalMounts:
           - path: /mediastore
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

@@ -7,4 +7,5 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
   labels:
     vpn-routed-gateway: "true"
+    isolation.nimbus.casa/zone: untrusted
     name: media

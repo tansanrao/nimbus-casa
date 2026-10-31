@@ -27,7 +27,7 @@ spec:
               SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
               SONARR__LOG__DBENABLED: "False"
               SONARR__LOG__LEVEL: info
-              SONARR__SERVER__PORT: &port 80
+              SONARR__SERVER__PORT: 80
               TZ: America/New_York
             envFrom:
               - secretRef:
@@ -35,22 +35,34 @@ spec:
               - secretRef:
                   name: sonarr-anime-db-secret
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /ping
-                    port: *port
+                    port: 80
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: 80
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 10m
@@ -73,15 +85,18 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: sonarr-anime
+          labels:
+            isolation.nimbus.casa/zone: untrusted
     service:
       main:
         controller: main
         ports:
           http:
-            port: *port
+            port: 80
     route:
       main:
-        hostnames: ["sonarr-anime.${SECRET_DOMAIN}"]
+        hostnames:
+          - sonarr-anime.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -89,14 +104,14 @@ spec:
         rules:
           - backendRefs:
               - name: sonarr-anime
-                port: *port
+                port: 80
     persistence:
       config:
         existingClaim: sonarr-anime
       pushover-notify:
         type: configMap
         name: sonarr-anime-configmap
-        defaultMode: 0775
+        defaultMode: 775
         globalMounts:
           - path: /scripts/pushover-notify.sh
             subPath: pushover-notify.sh
@@ -108,3 +123,6 @@ spec:
         existingClaim: mediastore-nfs-pvc
         globalMounts:
           - path: /mediastore
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

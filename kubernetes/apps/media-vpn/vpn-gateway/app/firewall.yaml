@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vpn-gateway-firewall
+data:
+  post-rules.txt: |
+    iptables -I FORWARD 1 -i vxlan0 ! -o wg0 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 10.0.0.0/8 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 172.16.0.0/12 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 192.168.0.0/16 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 169.254.0.0/16 -j REJECT
+    iptables -A INPUT -i vxlan0 -p udp --dport 67 -j ACCEPT
+    iptables -A INPUT -i vxlan0 -p udp --dport 53 -j ACCEPT
+    iptables -A INPUT -i vxlan0 -p tcp --dport 53 -j ACCEPT
+    iptables -A INPUT -i vxlan0 -p icmp -j ACCEPT
+    iptables -A INPUT -i eth0 -s 10.42.0.0/16 -p icmp -j ACCEPT
+    ip6tables -P FORWARD DROP
+    iptables -A INPUT -i eth0 -s 10.42.0.0/16 -p udp --dport 53 -j ACCEPT
+    iptables -A INPUT -i eth0 -s 10.42.0.0/16 -p tcp --dport 53 -j ACCEPT
+  eth0.conf: |
+    interface=eth0
+    # Serve only the explicit pod/VXLAN interfaces.
+    except-interface=lo
+  forward-guard.sh: |
+    #!/bin/bash
+    set -euo pipefail
+    iptables -I FORWARD 1 -i vxlan0 ! -o wg0 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 10.0.0.0/8 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 172.16.0.0/12 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 192.168.0.0/16 -j REJECT
+    iptables -I FORWARD 1 -i vxlan0 -d 169.254.0.0/16 -j REJECT
+    ip6tables -P FORWARD DROP

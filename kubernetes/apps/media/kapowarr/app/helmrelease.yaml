@@ -26,25 +26,35 @@ spec:
               PYTHONDONTWRITEBYTECODE: "1"
               TZ: America/New_York
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /
-                    port: &port 5656
+                    port: 5656
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 2
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 5656
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 3
               startup:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /
-                    port: *port
+                    port: 5656
                   initialDelaySeconds: 0
                   periodSeconds: 5
                   timeoutSeconds: 2
@@ -52,7 +62,9 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 10m
@@ -66,7 +78,8 @@ spec:
             runAsNonRoot: true
             fsGroup: 1001
             fsGroupChangePolicy: OnRootMismatch
-            seccompProfile: { type: RuntimeDefault }
+            seccompProfile:
+              type: RuntimeDefault
           annotations:
             setGateway: "true"
           topologySpreadConstraints:
@@ -76,15 +89,18 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: kapowarr
+          labels:
+            isolation.nimbus.casa/zone: untrusted
     service:
       main:
         controller: main
         ports:
           http:
-            port: *port
+            port: 5656
     route:
       main:
-        hostnames: ["kapowarr.${SECRET_DOMAIN}"]
+        hostnames:
+          - kapowarr.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -92,7 +108,7 @@ spec:
         rules:
           - backendRefs:
               - name: kapowarr
-                port: *port
+                port: 5656
     persistence:
       config:
         existingClaim: kapowarr
@@ -111,3 +127,6 @@ spec:
           - path: /mediastore
           - path: /app/temp_downloads
             subPath: torrent/temp
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

@@ -1,0 +1,163 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: immich
+  values:
+    controllers:
+      server:
+        replicas: 1
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/immich-app/immich-server
+              tag: v3.3.5@sha256:485d546a2e31d6a8b4db8423fcba5c109de8c218d93410af115fd1ccfc4352a6
+            envFrom:
+              - secretRef:
+                  name: immich-secret
+              - secretRef:
+                  name: immich-db-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 8Gi
+        pod:
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+      machine-learning:
+        replicas: 1
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/immich-app/immich-machine-learning
+              tag: v3.3.5-openvino@sha256:e62befdfc8444fdf448ac8b43b6091651e5ce2e05207336ba3b98419c7afdf2d
+            env:
+              MPLCONFIGDIR: /cache/matplotlib
+              TZ: America/New_York
+              MACHINE_LEARNING_MODEL_REVISION: v2
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: 3003
+                  initialDelaySeconds: 300
+                  periodSeconds: 30
+                  timeoutSeconds: 10
+                  failureThreshold: 6
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: 3003
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 6
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 4Gi
+              limits:
+                gpu.intel.com/i915: 1
+                memory: 16Gi
+        pod:
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+    service:
+      server:
+        controller: server
+        ports:
+          http:
+            port: 2283
+      machine-learning:
+        controller: machine-learning
+        ports:
+          http:
+            port: 3003
+    route:
+      main:
+        hostnames:
+          - photos.${SECRET_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - name: immich-server
+                port: 2283
+    persistence:
+      matplotlib:
+        type: emptyDir
+        advancedMounts:
+          server:
+            app:
+              - path: /config/matplotlib
+      library:
+        existingClaim: immich-library
+        advancedMounts:
+          server:
+            app:
+              - path: /usr/src/app/upload
+      geocoding-dump:
+        type: emptyDir
+        advancedMounts:
+          server:
+            app:
+              - path: /usr/src/app/.reverse-geocoding-dump
+      transformers-cache:
+        type: emptyDir
+        advancedMounts:
+          server:
+            app:
+              - path: /usr/src/app/.transformers_cache
+      model-cache:
+        type: emptyDir
+        advancedMounts:
+          machine-learning:
+            app:
+              - path: /cache
+                subPath: cache
+              - path: /.cache
+                subPath: dotCache
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

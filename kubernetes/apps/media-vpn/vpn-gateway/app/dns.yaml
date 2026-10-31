@@ -1,0 +1,100 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: media-dns
+data:
+  Corefile: |
+    media.svc.cluster.local:1053 media-database.svc.cluster.local:1053 media-vpn.svc.cluster.local:1053 {
+        errors
+        cache 30
+        forward . 10.43.0.10
+    }
+    .:1053 {
+        errors
+        health :8080
+        ready :8181
+        cache 30
+        forward . 10.43.0.54
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: media-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: media-dns
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: media-dns
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: dns
+          image: mirror.gcr.io/coredns/coredns:1.14.7@sha256:7efd3c635b03efd68c4e8398fc45f0d993d0e9ab016f72c1cefb0fd6d01aa286
+          args:
+            - -conf
+            - /etc/coredns/Corefile
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: dns
+              containerPort: 1053
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: 1053
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              port: 8181
+              path: /ready
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coredns
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: media-dns
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: media-dns
+spec:
+  clusterIP: 10.43.0.53
+  selector:
+    app.kubernetes.io/name: media-dns
+  ports:
+    - name: dns
+      port: 53
+      targetPort: dns
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: dns-tcp
+      protocol: TCP

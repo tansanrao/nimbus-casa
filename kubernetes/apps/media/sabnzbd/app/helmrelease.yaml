@@ -22,34 +22,40 @@ spec:
               tag: 5.1.3
             env:
               TZ: America/New_York
-              SABNZBD__PORT: &port 80
-              SABNZBD__HOST_WHITELIST_ENTRIES: >-
-                sabnzbd,
-                sabnzbd.media,
-                sabnzbd.media.svc,
-                sabnzbd.media.svc.cluster,
-                sabnzbd.media.svc.cluster.local,
-                sab.${SECRET_DOMAIN}
+              SABNZBD__PORT: 80
+              SABNZBD__HOST_WHITELIST_ENTRIES: sabnzbd, sabnzbd.media, sabnzbd.media.svc, sabnzbd.media.svc.cluster, sabnzbd.media.svc.cluster.local, sab.${SECRET_DOMAIN}
             envFrom:
               - secretRef:
                   name: sabnzbd-secret
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /api?mode=version
-                    port: *port
+                    port: 80
                   initialDelaySeconds: 30
                   periodSeconds: 10
                   timeoutSeconds: 5
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api?mode=version
+                    port: 80
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 100m
@@ -63,7 +69,8 @@ spec:
             runAsNonRoot: true
             fsGroup: 1001
             fsGroupChangePolicy: OnRootMismatch
-            seccompProfile: { type: RuntimeDefault }
+            seccompProfile:
+              type: RuntimeDefault
           annotations:
             setGateway: "true"
           topologySpreadConstraints:
@@ -73,15 +80,18 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: sabnzbd
+          labels:
+            isolation.nimbus.casa/zone: untrusted
     service:
       main:
         controller: main
         ports:
           http:
-            port: *port
+            port: 80
     route:
       main:
-        hostnames: ["sab.${SECRET_DOMAIN}"]
+        hostnames:
+          - sab.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -89,7 +99,7 @@ spec:
         rules:
           - backendRefs:
               - name: sabnzbd
-                port: *port
+                port: 80
     persistence:
       config:
         existingClaim: sabnzbd
@@ -104,3 +114,6 @@ spec:
         existingClaim: mediastore-nfs-pvc
         globalMounts:
           - path: /mediastore
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

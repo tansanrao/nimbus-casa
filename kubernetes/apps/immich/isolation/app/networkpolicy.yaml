@@ -1,0 +1,259 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: server
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: immich
+      k8s:app.kubernetes.io/controller: server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            k8s:io.kubernetes.pod.namespace: network
+        - matchLabels:
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            k8s:io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "2283"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*.immich.svc.cluster.local'
+              - matchPattern: auth.${SECRET_DOMAIN}
+              - matchPattern: download.geonames.org
+    - toEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: immich16
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: immich
+            k8s:app.kubernetes.io/controller: machine-learning
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "3003"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:app: immich-cache
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - toFQDNs:
+        - matchPattern: auth.${SECRET_DOMAIN}
+        - matchPattern: download.geonames.org
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: machine-learning
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: immich
+      k8s:app.kubernetes.io/controller: machine-learning
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: immich
+            k8s:app.kubernetes.io/controller: server
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "3003"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: huggingface.co
+              - matchPattern: '*.huggingface.co'
+              - matchPattern: '*.hf.co'
+              - matchPattern: '*.xethub.hf.co'
+    - toFQDNs:
+        - matchPattern: huggingface.co
+        - matchPattern: '*.huggingface.co'
+        - matchPattern: '*.hf.co'
+        - matchPattern: '*.xethub.hf.co'
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cache
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app: immich-cache
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: immich
+            k8s:app.kubernetes.io/controller: server
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: dragonfly-operator
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "9999"
+              protocol: TCP
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgres
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:postgres-operator.crunchydata.com/cluster: immich16
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: immich
+            k8s:app.kubernetes.io/controller: server
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: immich16
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/control-plane: pgo
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prometheus
+            k8s:io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*.immich.svc.cluster.local'
+              - matchPattern: '*.*.immich.svc.cluster.local'
+              - matchPattern: kubernetes.default.svc.cluster.local
+              - matchPattern: s3.kbcb.tansanrao.net
+              - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:postgres-operator.crunchydata.com/cluster: immich16
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8008"
+              protocol: TCP
+            - port: "8432"
+              protocol: TCP
+            - port: "2022"
+              protocol: TCP
+    - toFQDNs:
+        - matchPattern: s3.kbcb.tansanrao.net
+        - matchPattern: c6b94fac3912990d5ba196ac12a2f2ed.r2.cloudflarestorage.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

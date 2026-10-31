@@ -16,6 +16,10 @@ spec:
       namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
+    - name: vpn-gateway
+      namespace: media-vpn
+    - name: media-isolation
+      namespace: media
   prune: true
   sourceRef:
     kind: GitRepository
@@ -31,3 +35,4 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
+  suspend: true

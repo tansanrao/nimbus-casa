@@ -1,0 +1,30 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  dependsOn:
+    - name: immich-postgres
+      namespace: immich
+    - name: immich-cache
+      namespace: immich
+    - name: immich-isolation
+      namespace: immich
+    - name: intel-gpu-plugin
+      namespace: kube-system
+  interval: 1h
+  path: ./kubernetes/apps/immich/immich/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: immich
+  wait: false
+  suspend: true

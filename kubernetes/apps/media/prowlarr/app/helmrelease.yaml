@@ -27,7 +27,7 @@ spec:
               PROWLARR__AUTH__REQUIRED: DisabledForLocalAddresses
               PROWLARR__LOG__DBENABLED: "False"
               PROWLARR__LOG__LEVEL: info
-              PROWLARR__SERVER__PORT: &port 80
+              PROWLARR__SERVER__PORT: 80
               TZ: America/New_York
             envFrom:
               - secretRef:
@@ -35,22 +35,34 @@ spec:
               - secretRef:
                   name: prowlarr-db-secret
             probes:
-              liveness: &probes
+              liveness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
                     path: /ping
-                    port: *port
+                    port: 80
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: 80
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 10m
@@ -71,15 +83,18 @@ spec:
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: prowlarr
+          labels:
+            isolation.nimbus.casa/zone: untrusted
     service:
       main:
         controller: main
         ports:
           http:
-            port: *port
+            port: 80
     route:
       main:
-        hostnames: ["prowlarr.${SECRET_DOMAIN}"]
+        hostnames:
+          - prowlarr.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -87,9 +102,12 @@ spec:
         rules:
           - backendRefs:
               - name: prowlarr
-                port: *port
+                port: 80
     persistence:
       config:
         type: emptyDir
       tmp:
         type: emptyDir
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

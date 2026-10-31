@@ -15,7 +15,7 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         cronjob:
-          schedule: "@daily"
+          schedule: '@daily'
           successfulJobsHistory: 1
           failedJobsHistory: 1
         containers:
@@ -28,11 +28,14 @@ spec:
             envFrom:
               - secretRef:
                   name: recyclarr-secret
-            args: ["sync"]
+            args:
+              - sync
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { drop: ["ALL"] }
+              capabilities:
+                drop:
+                  - ALL
             resources:
               requests:
                 cpu: 10m
@@ -46,7 +49,12 @@ spec:
             runAsNonRoot: true
             fsGroup: 1001
             fsGroupChangePolicy: OnRootMismatch
-            seccompProfile: { type: RuntimeDefault }
+            seccompProfile:
+              type: RuntimeDefault
+          labels:
+            isolation.nimbus.casa/zone: untrusted
+          annotations:
+            setGateway: "true"
     persistence:
       config:
         existingClaim: recyclarr
@@ -57,3 +65,6 @@ spec:
           - path: /config/recyclarr.yml
             subPath: recyclarr.yml
             readOnly: true
+    defaultPodOptions:
+      automountServiceAccountToken: false
+  suspend: true

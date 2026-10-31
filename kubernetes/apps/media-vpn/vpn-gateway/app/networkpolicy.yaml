@@ -1,0 +1,202 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  endpointSelector: {}
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gateway
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: pod-gateway
+      k8s:app.kubernetes.io/controller: main
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: kapowarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: qbittorrent
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sabnzbd
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: recyclarr
+            k8s:io.kubernetes.pod.namespace: media
+      toPorts:
+        - ports:
+            - port: "4789"
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: kapowarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: qbittorrent
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sabnzbd
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: recyclarr
+            k8s:io.kubernetes.pod.namespace: media
+      icmps:
+        - fields:
+            - family: IPv4
+              type: 8
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-vpn
+            k8s:app.kubernetes.io/name: media-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: kapowarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: qbittorrent
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sabnzbd
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: recyclarr
+            k8s:io.kubernetes.pod.namespace: media
+      toPorts:
+        - ports:
+            - port: "4789"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.media-vpn.svc.cluster.local'
+    - toCIDR:
+        - 185.156.46.130/32
+        - 185.156.46.143/32
+        - 185.156.46.156/32
+      toPorts:
+        - ports:
+            - port: "51820"
+              protocol: UDP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: webhook
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: pod-gateway
+      k8s:app.kubernetes.io/controller: webhook
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: split-dns
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: media-dns
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            k8s:isolation.nimbus.casa/zone: untrusted
+      toPorts:
+        - ports:
+            - port: "1053"
+              protocol: ANY
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-vpn
+            k8s:app.kubernetes.io/name: pod-gateway
+            k8s:app.kubernetes.io/controller: main
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*.media.svc.cluster.local'
+              - matchPattern: '*.media-database.svc.cluster.local'
+              - matchPattern: '*.media-vpn.svc.cluster.local'

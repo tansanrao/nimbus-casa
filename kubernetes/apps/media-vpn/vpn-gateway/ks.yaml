@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: vpn-gateway
+  namespace: media-vpn
+spec:
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/media-vpn/vpn-gateway/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: media-vpn
+  timeout: 5m
+  wait: true
+  suspend: true

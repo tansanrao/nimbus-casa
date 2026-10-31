@@ -1,0 +1,37 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: media-requires-vpn
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - pods
+  matchConditions:
+    - name: media-workload
+      expression: object.metadata.namespace == 'media' && has(object.metadata.labels) && 'app.kubernetes.io/name' in object.metadata.labels && object.metadata.labels['app.kubernetes.io/name'] in ["radarr", "sonarr", "sonarr-anime", "prowlarr", "kapowarr", "qbittorrent", "sabnzbd", "recyclarr"]
+  validations:
+    - expression: has(object.metadata.labels) && 'isolation.nimbus.casa/zone' in object.metadata.labels && object.metadata.labels['isolation.nimbus.casa/zone'] == 'untrusted'
+      message: Media applications must enroll in the untrusted VPN zone.
+    - expression: has(object.spec.initContainers) && object.spec.initContainers.exists(c, c.image == 'ghcr.io/angelnu/pod-gateway:v1.13.0@sha256:a5b032e15f7570493977b330a5a86dcffebb807d35685ad803e47afb62d105f2' && has(c.restartPolicy) && c.restartPolicy == 'Always')
+      message: Media applications require the pinned native VPN sidecar before admission.
+    - expression: '!has(object.spec.hostNetwork) || !object.spec.hostNetwork'
+      message: Media applications cannot bypass pod networking with hostNetwork.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: media-requires-vpn
+spec:
+  policyName: media-requires-vpn
+  validationActions:
+    - Deny

@@ -16,9 +16,11 @@ spec:
       namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
-    - name: vpn-gateway
-      namespace: network
     - name: media-shared
+      namespace: media
+    - name: vpn-gateway
+      namespace: media-vpn
+    - name: media-isolation
       namespace: media
   prune: true
   sourceRef:
@@ -35,3 +37,4 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
+  suspend: true

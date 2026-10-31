@@ -158,6 +158,13 @@
   ],
   customManagers: [
     {
+      description: "Keep the VPN admission image pin aligned with the gateway",
+      customType: "regex",
+      managerFilePatterns: ["/kubernetes/apps/media/isolation/app/admission\\.yaml$/"],
+      matchStrings: ["c\\.image == '(?<depName>ghcr\\.io/angelnu/pod-gateway):(?<currentValue>[^@']+)@(?<currentDigest>sha256:[a-f0-9]+)'"],
+      datasourceTemplate: "docker",
+    },
+    {
       description: "Process annotated dependencies",
       customType: "regex",
       managerFilePatterns: [
