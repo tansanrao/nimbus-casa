@@ -1,11 +1,12 @@
 # Workload isolation and staged migration
 
-Status: repository implementation, **not deployed or runtime certified**. Namespace
-moves are a stateful migration. New and affected Flux Kustomizations are suspended;
-application HelmReleases are also suspended so their PVCs can be restored before
-starting an application. Existing legacy Kustomizations retain their inventory with
-`prune: false`, `deletionPolicy: Orphan`, and reconciliation suspended. The root
-Flux patch explicitly excludes these holds. Do not simply resume everything.
+Status: **deployed on 2026-10-31** after cluster recovery and stateful migration.
+See [deployment evidence and remaining limits](cluster-recovery-and-isolation-2026-10-31.md).
+The ordered migration below is retained as a recovery/reference procedure, not
+an instruction to repeat the completed migration. Replacement Kustomizations and
+HelmReleases are active. Legacy Kustomizations remain suspended with `prune: false`
+and `deletionPolicy: Orphan`; legacy applications are stopped and their PVCs and
+source databases are retained. Do not resume these legacy holds indiscriminately.
 
 ## Boundaries
 
@@ -13,7 +14,7 @@ Flux patch explicitly excludes these holds. Do not simply resume everything.
 | --- | --- | --- |
 | `immich` | Immich server, ML, dedicated PostgreSQL, dedicated Dragonfly | Ingress gateway to server; server to its database/cache/ML; restricted OAuth/geocoding/model downloads; database backups/operator/API |
 | `media` | Radarr, Sonarr, Sonarr Anime, Prowlarr, Kapowarr, qBittorrent, SABnzbd, Recyclarr | Internet through Gluetun only; explicit application peers and media DB; internal ingress gateway; mounted media library |
-| `media-vpn` | Gluetun/pod gateway, admission webhook, split DNS | Three selected Mullvad relay IPs on UDP 51820; local DNS and VXLAN clients |
+| `media-vpn` | Gluetun/pod gateway, admission webhook, split DNS | Pinned Mullvad relay on UDP 51820 (three permitted relay IPs); local DNS and VXLAN clients |
 | `media-database` | Dedicated `media16` PostgreSQL | Arr clients, database operator/API/replication, backup endpoints |
 | `media-services` | Jellyfin, Jellyseerr, Kavita, Jellystat | Public HTTP(S) metadata services; explicit Arr/Jellyfin/database dependencies; read-only media library for Jellyfin/Kavita |
 
@@ -25,7 +26,7 @@ adding UI authentication is deferred as requested.
 
 The VXLAN gateway and Gluetun firewall both fail closed. Cilium independently
 restricts the gateway's underlay egress to selected VPN relays. The client routing
-exceptions for pod/service CIDRs are routes, **not network permissions**; Cilium
+exceptions for pod/service CIDRs and the node probe return address are routes, **not network permissions**; Cilium
 still requires an explicit allowed destination. The admission webhook fails closed
 and a validating policy requires the pinned native VPN sidecar on known media apps.
 
@@ -36,7 +37,7 @@ is disabled. The gateway cannot send direct underlay DNS to that address.
 During VPN failure existing pods retain local service discovery, UI replies,
 Arr/downloader/database connections, and mounted NFS access. New pods may wait
 for the gateway during initialization. Public DNS caching never authorizes direct
-internet egress. Reserved DNS IPs must be rechecked immediately before deployment.
+internet egress. The two reserved DNS service IPs were verified during deployment.
 
 NFS is mounted by the node CSI driver; application pods do not need arbitrary
 network access to the NAS. New PV aliases preserve the existing exports without
@@ -174,9 +175,16 @@ the same export. Keep legacy holds until successful cutover is established.
 
 ## Validation and remaining security work
 
-The implementation was checked with Kustomize builds, policy contract checks,
-Helm rendering and server-side dry-run of policy schemas. No live workload was
-changed. Runtime failure testing and state migration remain required.
+The implementation passed Kustomize builds, policy contract checks, Helm renders,
+server-side admission checks and live network tests. The automated live suite
+passed 31 checks, including relay loss and gateway shutdown with local access
+preserved. See the deployment report for the exact checks performed; the broader
+acceptance matrix above also lists future regression tests and is not a claim that
+every listed failure mode or authenticated application workflow was exercised.
+
+Run `python3 scripts/verify-workload-isolation.py` for read-only baseline checks.
+The `--exercise-underlay --exercise-outages` flags deliberately change routing,
+block relays and stop the gateway, and belong in an authorized maintenance window.
 
 This change addresses workload isolation. It does not finish the separate audit
 of image maintenance/trust, all image digest pins, general Renovate coverage,

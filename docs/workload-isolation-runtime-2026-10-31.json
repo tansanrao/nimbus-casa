@@ -1,0 +1,160 @@
+{
+  "time": "2026-10-31T15:59:09.671024+00:00",
+  "results": [
+    {
+      "test": "baseline: public egress via Mullvad",
+      "passed": true,
+      "detail": "curl exit=0"
+    },
+    {
+      "test": "baseline: Arr to downloader",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "baseline: Arr to database",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "baseline: Arr to indexer",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "baseline: mounted NFS accessible",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "baseline: home UI through ingress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "baseline: Immich server denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "baseline: Immich cache denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "baseline: Immich database pod denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "baseline: API service denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "baseline: node API denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "baseline: NAS network service denied",
+      "passed": true,
+      "detail": "exit=1"
+    },
+    {
+      "test": "baseline: direct underlay internet denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "relay outage: public egress blocked",
+      "passed": true,
+      "detail": "curl exit=28"
+    },
+    {
+      "test": "relay outage: Arr to downloader",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "relay outage: Arr to database",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "relay outage: Arr to indexer",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "relay outage: mounted NFS accessible",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "relay outage: home UI through ingress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "gateway stopped: public egress blocked",
+      "passed": true,
+      "detail": "curl exit=28"
+    },
+    {
+      "test": "gateway stopped: Arr to downloader",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "gateway stopped: Arr to database",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "gateway stopped: Arr to indexer",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "gateway stopped: mounted NFS accessible",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "gateway stopped: home UI through ingress",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "recovered: public egress via Mullvad",
+      "passed": true,
+      "detail": "curl exit=0"
+    },
+    {
+      "test": "recovered: Arr to downloader",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "recovered: Arr to database",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "recovered: Arr to indexer",
+      "passed": true,
+      "detail": "exit=0"
+    },
+    {
+      "test": "recovered: mounted NFS accessible",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "recovered: home UI through ingress",
+      "passed": true,
+      "detail": ""
+    }
+  ]
+}
