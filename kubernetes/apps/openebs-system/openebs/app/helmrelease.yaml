@@ -70,7 +70,7 @@ spec:
             registry: registry.k8s.io
             repository: sig-storage/csi-provisioner
             pullPolicy: IfNotPresent
-            tag: v6.1.0@sha256:e5900dc98b0d02f317ea9572f3824983c47a2fb5d5fe2b160aedf1b99c14c9e4
+            tag: v6.4.0@sha256:6ebe60fd8ed67a7f8a90d34402e9e706b274e53612d6fa5fbb8285728db622e2
       lvmPlugin:
         image:
           registry: docker.io
