@@ -73,7 +73,8 @@ if args.live:
         dep=json.loads(run(['kubectl','get','deployment',name,'-n',ns,'-o','json']))
         assert [c['image'] for c in dep['spec']['template']['spec']['containers']]==refs,(ns,name,'runtime images differ')
         assert dep['status'].get('observedGeneration')==dep['metadata']['generation'],name
-        assert dep['status'].get('readyReplicas',0)==dep['spec'].get('replicas',1),name
+        desired=dep['spec'].get('replicas',1)
+        assert all(dep['status'].get(field,0)==desired for field in ['replicas','updatedReplicas','readyReplicas']),name+' rollout incomplete'
     current=json.loads(run(['kubectl','get','fluxinstance','flux','-n','flux-system','-o','json']))
     assert current['spec']['distribution']['artifact']==distribution['artifact']
     assert current['status']['lastAppliedRevision'].startswith('v'+version.lstrip('v')+'@')
