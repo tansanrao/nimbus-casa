@@ -1,0 +1,73 @@
+{
+  "renovateVersion": "44.198.3",
+  "runs": [
+    {
+      "scenario": "deployed",
+      "dependencies": [
+        {
+          "file": "kubernetes/apps/default/karakeep/app/helmrelease.yaml",
+          "depName": "ghcr.io/karakeep-app/karakeep",
+          "currentValue": "0.34.1",
+          "currentDigest": "sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987",
+          "versioning": "docker",
+          "updates": [],
+          "warnings": []
+        },
+        {
+          "file": "kubernetes/apps/default/karakeep/app/helmrelease.yaml",
+          "depName": "ghcr.io/karakeep-app/karakeep",
+          "currentValue": "0.34.1",
+          "currentDigest": "sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987",
+          "versioning": "docker",
+          "updates": [],
+          "warnings": []
+        },
+        {
+          "file": "kubernetes/apps/karakeep-browser/browser/app/helmrelease.yaml",
+          "depName": "ghcr.io/karakeep-app/karakeep-chrome",
+          "currentValue": "156.0.8078.47-r1",
+          "currentDigest": "sha256:4ad61127638dd27bfe685222787c5780dd1d083d23a7658c39af657775814c44",
+          "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-r(?<revision>\\d+)$",
+          "updates": [],
+          "warnings": []
+        }
+      ]
+    },
+    {
+      "scenario": "upgrade-fixture",
+      "dependencies": [
+        {
+          "file": "kubernetes/apps/default/karakeep/app/helmrelease.yaml",
+          "depName": "ghcr.io/karakeep-app/karakeep",
+          "currentValue": "0.34.1",
+          "currentDigest": "sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987",
+          "versioning": "docker",
+          "updates": [],
+          "warnings": []
+        },
+        {
+          "file": "kubernetes/apps/karakeep-browser/browser/app/helmrelease.yaml",
+          "depName": "ghcr.io/karakeep-app/karakeep-chrome",
+          "currentValue": "154.0.8037.57-r1",
+          "currentDigest": "sha256:c51a8c8e6c3c1040a50fa0ecfd0b2fc298401b4229262636552458151f6f18fa",
+          "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-r(?<revision>\\d+)$",
+          "updates": [
+            {
+              "bucket": "major",
+              "newVersion": "156.0.8078.47-r1",
+              "newValue": "156.0.8078.47-r1",
+              "newMajor": 156,
+              "newMinor": 0,
+              "newPatch": 8078,
+              "updateType": "major",
+              "isBreaking": true,
+              "newDigest": "sha256:4ad61127638dd27bfe685222787c5780dd1d083d23a7658c39af657775814c44",
+              "branchName": "renovate/ghcr.io-karakeep-app-karakeep-chrome-156.x"
+            }
+          ],
+          "warnings": []
+        }
+      ]
+    }
+  ]
+}

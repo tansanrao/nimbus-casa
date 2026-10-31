@@ -1,0 +1,115 @@
+{
+  "time": "2026-10-31T16:28:19.857667+00:00",
+  "results": [
+    {
+      "test": "browser image digest pinned",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "browser API token disabled",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "app image digest pinned",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "app API token disabled",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "browser has no secrets or persistent volumes",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "browser restricted security context",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "browser runtime privilege restrictions",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "test": "Karakeep controls browser and renders public HTTPS",
+      "passed": true,
+      "detail": "Browser Chrome/156.0.8078.47\nRendered Example Domain"
+    },
+    {
+      "test": "Karakeep database, search, OAuth and UI dependencies",
+      "passed": true,
+      "detail": "search HTTP 200\nOAuth HTTP 200\napp HTTP 200\ndatabase connected"
+    },
+    {
+      "test": "browser to Karakeep app denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to shared database pod denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to search database denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to Immich server denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to Immich cache denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to downloader denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to API service denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to node API denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to NAS denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to link-local metadata denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "browser to direct external DNS denied",
+      "passed": true,
+      "detail": "exit=124"
+    },
+    {
+      "test": "application download path denies unrelated private services",
+      "passed": true,
+      "detail": "Immich, API, node and NAS blocked"
+    },
+    {
+      "test": "only Karakeep can access browser; app backend requires ingress",
+      "passed": true,
+      "detail": "Unrelated pod blocked from browser control port and app backend"
+    }
+  ]
+}
