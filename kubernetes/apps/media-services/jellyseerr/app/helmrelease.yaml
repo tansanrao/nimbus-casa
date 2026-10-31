@@ -104,4 +104,4 @@ spec:
           - path: /app/config/logs
       tmp:
         type: emptyDir
-  suspend: true
+  suspend: false

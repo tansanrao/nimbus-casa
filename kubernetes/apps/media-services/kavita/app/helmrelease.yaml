@@ -115,4 +115,4 @@ spec:
         globalMounts:
           - path: /mediastore
             readOnly: true
-  suspend: true
+  suspend: false

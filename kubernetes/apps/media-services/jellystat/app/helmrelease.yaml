@@ -109,4 +109,4 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /app/backend/backup-data
-  suspend: true
+  suspend: false
