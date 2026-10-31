@@ -97,13 +97,16 @@ for name, target, port in [('Immich server', immich_server, 2283), ('Immich cach
 
 if options.exercise_underlay:
     # Force one public address onto the pod underlay, then remove that temporary route.
+    route_added = False
     try:
         r = kubectl('exec', '-n', 'media', qb, '-c', 'gateway-sidecar', '--',
                     'ip', 'route', 'add', '1.1.1.1/32', 'via', '10.42.0.95')
         r.check_returncode()
+        route_added = True
         tcp('direct underlay internet denied', '1.1.1.1', 443, False)
     finally:
-        kubectl('exec', '-n', 'media', qb, '-c', 'gateway-sidecar', '--', 'ip', 'route', 'del', '1.1.1.1/32')
+        if route_added:
+            kubectl('exec', '-n', 'media', qb, '-c', 'gateway-sidecar', '--', 'ip', 'route', 'del', '1.1.1.1/32').check_returncode()
 
 if options.exercise_outages:
     deny = {'apiVersion': 'cilium.io/v2', 'kind': 'CiliumNetworkPolicy',

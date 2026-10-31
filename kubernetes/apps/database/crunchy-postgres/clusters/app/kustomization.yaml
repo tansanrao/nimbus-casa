@@ -6,3 +6,4 @@ resources:
   - ./podmonitor.yaml
   - ./postgres16.yaml
   - ./immich16.yaml
+  - ./immich-rollback-policy.yaml
