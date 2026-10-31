@@ -1,10 +1,13 @@
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
 metadata:
   name: default-deny
 spec:
-  endpointSelector: {}
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
   ingress: []
   egress: []
 ---

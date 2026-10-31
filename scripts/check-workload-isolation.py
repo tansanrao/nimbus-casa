@@ -32,7 +32,7 @@ def policy(ns):
 
 policies = {ns: policy(ns) for ns in ZONES}
 for ns, ps in policies.items():
-    assert ps['default-deny'] == {'endpointSelector': {}, 'ingress': [], 'egress': []}, ns
+    assert ps['default-deny'] == {'podSelector': {}, 'policyTypes': ['Ingress', 'Egress'], 'ingress': [], 'egress': []}, ns
 
 # A positive or negative assertion below concerns explicit endpoint rules.
 # CIDR/FQDN/entity exceptions are checked separately; this is not a Cilium simulator.
