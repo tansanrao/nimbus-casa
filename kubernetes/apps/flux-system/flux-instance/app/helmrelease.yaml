@@ -11,8 +11,10 @@ spec:
   values:
     instance:
       distribution:
-        artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests:v0.62.1
-        version: 2.x
+        artifact: oci://ghcr.io/controlplaneio-fluxcd/flux-operator-manifests:v0.62.1@sha256:033a75c33b911d534e10c58cbcc60dda75027c99054fcd414339c9fd5019f7c3
+        # Track the matching official Flux release; the artifact pins controller images.
+        # renovate: datasource=docker depName=ghcr.io/fluxcd/flux-cli
+        version: v2.10.0
       cluster:
         networkPolicy: false
       components:

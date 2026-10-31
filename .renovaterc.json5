@@ -30,6 +30,24 @@
   },
   packageRules: [
     {
+      description: "Pin GitOps and secret-controller dependencies and require review of updates",
+      matchFileNames: [
+        "kubernetes/apps/flux-system/flux-operator/**",
+        "kubernetes/apps/flux-system/flux-instance/**",
+        "kubernetes/apps/external-secrets/external-secrets/**",
+      ],
+      pinDigests: true,
+      schedule: ["at any time"],
+      automerge: false,
+      prPriority: 10,
+    },
+    {
+      description: "Flux distribution version follows the official CLI release, not an image reference",
+      matchFileNames: ["kubernetes/apps/flux-system/flux-instance/app/helmrelease.yaml"],
+      matchPackageNames: ["ghcr.io/fluxcd/flux-cli"],
+      pinDigests: false,
+    },
+    {
       description: "Pin GPU and storage images and require review of privileged component updates",
       matchFileNames: [
         "kubernetes/apps/kube-system/intel-gpu-plugin/**",
@@ -70,7 +88,7 @@
       description: "Flux Operator Group",
       groupName: "flux-operator",
       matchDatasources: ["docker"],
-      matchPackageNames: ["/flux-operator/", "/flux-instance/", "/flux-operator-manifests/"],
+      matchPackageNames: ["/flux-operator/", "/flux-instance/", "/flux-operator-manifests/", "ghcr.io/fluxcd/flux-cli"],
       group: {
         commitMessageTopic: "{{{groupName}}} group",
       },
@@ -236,7 +254,7 @@
         "/\\.yaml(?:\\.j2)?$/",
       ],
       matchStrings: [
-        "oci://(?<depName>[^:]+):(?<currentValue>\\S+)",
+        "oci://(?<depName>[^\\s:@]+):(?<currentValue>[^\\s@\"']+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?",
       ],
       datasourceTemplate: "docker",
     },

@@ -17,10 +17,16 @@ spec:
     certController:
       serviceMonitor:
         enabled: true
+      image:
+        repository: ghcr.io/external-secrets/external-secrets
+        tag: v2.14.0@sha256:10608eb53e636e744903d5f3657a4d9c44e28d9d9c181b73e07bc7dd2e6884dc
     webhook:
       replicaCount: 1
       serviceMonitor:
         enabled: true
+      image:
+        repository: ghcr.io/external-secrets/external-secrets
+        tag: v2.14.0@sha256:10608eb53e636e744903d5f3657a4d9c44e28d9d9c181b73e07bc7dd2e6884dc
     extraEnv:
       - name: SSL_CERT_DIR
         value: /etc/ssl/certs:/etc/onepassword-ca
@@ -37,3 +43,6 @@ spec:
         readOnly: true
     deploymentAnnotations:
       reloader.stakater.com/auto: "true"
+    image:
+      repository: ghcr.io/external-secrets/external-secrets
+      tag: v2.14.0@sha256:10608eb53e636e744903d5f3657a4d9c44e28d9d9c181b73e07bc7dd2e6884dc
