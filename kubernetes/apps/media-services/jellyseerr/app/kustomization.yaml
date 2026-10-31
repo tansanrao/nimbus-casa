@@ -10,3 +10,10 @@ labels:
       app.kubernetes.io/name: jellyseerr
       app.kubernetes.io/instance: jellyseerr
       app.kubernetes.io/part-of: jellyseerr
+patches:
+  - target:
+      kind: ReplicationSource
+    patch: |-
+      - op: add
+        path: /spec/paused
+        value: true

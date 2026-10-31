@@ -10,3 +10,10 @@ labels:
       app.kubernetes.io/name: kavita
       app.kubernetes.io/instance: kavita
       app.kubernetes.io/part-of: kavita
+patches:
+  - target:
+      kind: ReplicationSource
+    patch: |-
+      - op: add
+        path: /spec/paused
+        value: true

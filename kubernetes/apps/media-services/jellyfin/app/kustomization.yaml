@@ -10,3 +10,10 @@ labels:
       app.kubernetes.io/name: jellyfin
       app.kubernetes.io/instance: jellyfin
       app.kubernetes.io/part-of: jellyfin
+patches:
+  - target:
+      kind: ReplicationSource
+    patch: |-
+      - op: add
+        path: /spec/paused
+        value: true
