@@ -161,7 +161,18 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-  egress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchName: media-vpn-main.media-vpn.svc.cluster.local
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
