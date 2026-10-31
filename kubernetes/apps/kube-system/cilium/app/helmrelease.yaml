@@ -9,6 +9,7 @@ spec:
     name: cilium
   interval: 1h
   values:
+    upgradeCompatibility: "1.18"
     autoDirectNodeRoutes: true
     bpf:
       masquerade: true
