@@ -1,0 +1,396 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: external-secret-contracts
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - external-secrets.io
+        apiVersions:
+          - '*'
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - externalsecrets
+  variables:
+    - name: contracts
+      expression: |-
+        [
+          {
+            "namespace": "database",
+            "name": "crunchy-postgres-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "crunchy-postgres-secret",
+            "keys": "crunchy-postgres|garage"
+          },
+          {
+            "namespace": "database",
+            "name": "meilisearch-karakeep",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "meilisearch-karakeep",
+            "keys": "karakeep"
+          },
+          {
+            "namespace": "database",
+            "name": "meilisearch-karakeep-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "meilisearch-karakeep-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "default",
+            "name": "authentik-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "crunchy-pgo-secrets",
+            "target": "authentik-db-secret",
+            "keys": "postgres16-pguser-authentik"
+          },
+          {
+            "namespace": "default",
+            "name": "authentik-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "authentik-secret",
+            "keys": "authentik"
+          },
+          {
+            "namespace": "default",
+            "name": "karakeep-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "crunchy-pgo-secrets",
+            "target": "karakeep-db-secret",
+            "keys": "postgres16-pguser-karakeep"
+          },
+          {
+            "namespace": "default",
+            "name": "karakeep-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "karakeep-secret",
+            "keys": "karakeep"
+          },
+          {
+            "namespace": "default",
+            "name": "karakeep-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "karakeep-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "default",
+            "name": "mealie-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "crunchy-pgo-secrets",
+            "target": "mealie-db-secret",
+            "keys": "postgres16-pguser-mealie"
+          },
+          {
+            "namespace": "default",
+            "name": "mealie-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "mealie-secret",
+            "keys": "mealie"
+          },
+          {
+            "namespace": "default",
+            "name": "mealie-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "mealie-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "default",
+            "name": "miniflux-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "crunchy-pgo-secrets",
+            "target": "miniflux-db-secret",
+            "keys": "postgres16-pguser-miniflux"
+          },
+          {
+            "namespace": "default",
+            "name": "miniflux-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "miniflux-secret",
+            "keys": "miniflux"
+          },
+          {
+            "namespace": "default",
+            "name": "smtp-relay-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "smtp-relay-secret",
+            "keys": "smtp-relay"
+          },
+          {
+            "namespace": "immich",
+            "name": "crunchy-postgres-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "crunchy-postgres-secret",
+            "keys": "crunchy-postgres|garage"
+          },
+          {
+            "namespace": "immich",
+            "name": "immich-db-secret",
+            "storeKind": "SecretStore",
+            "store": "immich-postgres",
+            "target": "immich-db-secret",
+            "keys": "immich16-pguser-immich"
+          },
+          {
+            "namespace": "immich",
+            "name": "immich-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "immich-secret",
+            "keys": "immich"
+          },
+          {
+            "namespace": "media-database",
+            "name": "crunchy-postgres-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "crunchy-postgres-secret",
+            "keys": "crunchy-postgres|garage"
+          },
+          {
+            "namespace": "media-services",
+            "name": "jellyfin-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "jellyfin-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media-services",
+            "name": "jellyseerr-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "jellyseerr-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media-services",
+            "name": "jellystat-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "crunchy-pgo-secrets",
+            "target": "jellystat-db-secret",
+            "keys": "postgres16-pguser-jellystat"
+          },
+          {
+            "namespace": "media-services",
+            "name": "jellystat-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "jellystat-secret",
+            "keys": "jellystat"
+          },
+          {
+            "namespace": "media-services",
+            "name": "kavita-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "kavita-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media-vpn",
+            "name": "vpn-gateway-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "vpn-gateway-secret",
+            "keys": "vpn-gateway"
+          },
+          {
+            "namespace": "media",
+            "name": "kapowarr-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "kapowarr-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "prowlarr-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "media-postgres",
+            "target": "prowlarr-db-secret",
+            "keys": "media16-pguser-prowlarr"
+          },
+          {
+            "namespace": "media",
+            "name": "prowlarr-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "prowlarr-secret",
+            "keys": "prowlarr"
+          },
+          {
+            "namespace": "media",
+            "name": "qbittorrent-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "qbittorrent-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "radarr-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "media-postgres",
+            "target": "radarr-db-secret",
+            "keys": "media16-pguser-radarr"
+          },
+          {
+            "namespace": "media",
+            "name": "radarr-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "radarr-secret",
+            "keys": "pushover|radarr"
+          },
+          {
+            "namespace": "media",
+            "name": "radarr-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "radarr-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "recyclarr-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "recyclarr-secret",
+            "keys": "radarr|sonarr"
+          },
+          {
+            "namespace": "media",
+            "name": "recyclarr-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "recyclarr-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "sabnzbd-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sabnzbd-secret",
+            "keys": "sabnzbd"
+          },
+          {
+            "namespace": "media",
+            "name": "sabnzbd-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sabnzbd-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-anime-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "media-postgres",
+            "target": "sonarr-anime-db-secret",
+            "keys": "media16-pguser-sonarr-anime"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-anime-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sonarr-anime-secret",
+            "keys": "sonarr-anime|pushover"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-anime-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sonarr-anime-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-db-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "media-postgres",
+            "target": "sonarr-db-secret",
+            "keys": "media16-pguser-sonarr"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-secret",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sonarr-secret",
+            "keys": "sonarr|pushover"
+          },
+          {
+            "namespace": "media",
+            "name": "sonarr-volsync",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "sonarr-volsync-secret",
+            "keys": "garage|volsync-garage-template"
+          },
+          {
+            "namespace": "network",
+            "name": "unifi-dns",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "unifi-dns-secret",
+            "keys": "unifi"
+          },
+          {
+            "namespace": "observability",
+            "name": "grafana-admin-password",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "grafana-admin-password-secret",
+            "keys": "grafana"
+          }
+        ]
+    - name: matches
+      expression: variables.contracts.filter(c, c.namespace == object.metadata.namespace && c.name == object.metadata.name)
+    - name: contract
+      expression: 'variables.matches.size() == 1 ? variables.matches[0] : variables.contracts[0]'
+  validations:
+    - expression: variables.matches.size() == 1
+      message: ExternalSecret is not in the reviewed namespace/name contract inventory.
+    - expression: has(object.spec.secretStoreRef) && object.spec.secretStoreRef.name == variables.contract.store && object.spec.secretStoreRef.kind == variables.contract.storeKind
+      message: ExternalSecret must use its approved store.
+    - expression: has(object.spec.target) && has(object.spec.target.name) && object.spec.target.name == variables.contract.target
+      message: ExternalSecret must write only its approved destination Secret.
+    - expression: '!has(object.spec.dataFrom) || object.spec.dataFrom.all(d, has(d.extract) && !has(d.find) && !has(d.sourceRef) && d.extract.key in variables.contract.keys.split(''|''))'
+      message: Only approved exact extract keys are allowed; discovery and source overrides are prohibited.
+    - expression: '!has(object.spec.data) || object.spec.data.all(d, !has(d.sourceRef) && d.remoteRef.key in variables.contract.keys.split(''|''))'
+      message: Only approved exact remote keys are allowed; per-entry store overrides are prohibited.
+    - expression: '!has(object.spec.target) || !has(object.spec.target.template) || !has(object.spec.target.template.templateFrom)'
+      message: ExternalSecret templateFrom cannot import other Kubernetes Secrets or ConfigMaps.
+  matchConditions:
+    - name: allow-controller-finalizer-maintenance
+      expression: '!(request.operation == ''UPDATE'' && request.userInfo.username == ''system:serviceaccount:external-secrets:external-secrets'' && object.spec == oldObject.spec)'
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: external-secret-contracts
+spec:
+  policyName: external-secret-contracts
+  validationActions:
+    - Deny

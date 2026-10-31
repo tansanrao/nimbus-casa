@@ -1,0 +1,465 @@
+# Reviewed active consumers only. Update the matching immutable CEL inventory in
+# admission.yaml when adding consumers; verify-secret-isolation.py checks parity.
+# This ConfigMap is documentation, not a mutable policy parameter.
+# Legacy rollback syncs in default/media/network were removed after confirming
+# their workloads were stopped. Re-authorize any rollback explicitly.
+# Shared Garage/VolSync provider credentials still require storage-side separation.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: external-secret-contracts
+data:
+  contracts.json: |-
+    [
+      {
+        "namespace": "database",
+        "name": "crunchy-postgres-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "crunchy-postgres-secret",
+        "keys": [
+          "crunchy-postgres",
+          "garage"
+        ]
+      },
+      {
+        "namespace": "database",
+        "name": "meilisearch-karakeep",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "meilisearch-karakeep",
+        "keys": [
+          "karakeep"
+        ]
+      },
+      {
+        "namespace": "database",
+        "name": "meilisearch-karakeep-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "meilisearch-karakeep-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "authentik-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "authentik-db-secret",
+        "keys": [
+          "postgres16-pguser-authentik"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "authentik-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "authentik-secret",
+        "keys": [
+          "authentik"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "karakeep-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "karakeep-db-secret",
+        "keys": [
+          "postgres16-pguser-karakeep"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "karakeep-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "karakeep-secret",
+        "keys": [
+          "karakeep"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "karakeep-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "karakeep-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "mealie-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "mealie-db-secret",
+        "keys": [
+          "postgres16-pguser-mealie"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "mealie-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "mealie-secret",
+        "keys": [
+          "mealie"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "mealie-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "mealie-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "miniflux-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "miniflux-db-secret",
+        "keys": [
+          "postgres16-pguser-miniflux"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "miniflux-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "miniflux-secret",
+        "keys": [
+          "miniflux"
+        ]
+      },
+      {
+        "namespace": "default",
+        "name": "smtp-relay-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "smtp-relay-secret",
+        "keys": [
+          "smtp-relay"
+        ]
+      },
+      {
+        "namespace": "immich",
+        "name": "crunchy-postgres-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "crunchy-postgres-secret",
+        "keys": [
+          "crunchy-postgres",
+          "garage"
+        ]
+      },
+      {
+        "namespace": "immich",
+        "name": "immich-db-secret",
+        "storeKind": "SecretStore",
+        "store": "immich-postgres",
+        "target": "immich-db-secret",
+        "keys": [
+          "immich16-pguser-immich"
+        ]
+      },
+      {
+        "namespace": "immich",
+        "name": "immich-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "immich-secret",
+        "keys": [
+          "immich"
+        ]
+      },
+      {
+        "namespace": "media-database",
+        "name": "crunchy-postgres-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "crunchy-postgres-secret",
+        "keys": [
+          "crunchy-postgres",
+          "garage"
+        ]
+      },
+      {
+        "namespace": "media-services",
+        "name": "jellyfin-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "jellyfin-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media-services",
+        "name": "jellyseerr-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "jellyseerr-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media-services",
+        "name": "jellystat-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "jellystat-db-secret",
+        "keys": [
+          "postgres16-pguser-jellystat"
+        ]
+      },
+      {
+        "namespace": "media-services",
+        "name": "jellystat-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "jellystat-secret",
+        "keys": [
+          "jellystat"
+        ]
+      },
+      {
+        "namespace": "media-services",
+        "name": "kavita-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "kavita-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media-vpn",
+        "name": "vpn-gateway-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "vpn-gateway-secret",
+        "keys": [
+          "vpn-gateway"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "kapowarr-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "kapowarr-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "prowlarr-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "media-postgres",
+        "target": "prowlarr-db-secret",
+        "keys": [
+          "media16-pguser-prowlarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "prowlarr-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "prowlarr-secret",
+        "keys": [
+          "prowlarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "qbittorrent-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "qbittorrent-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "radarr-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "media-postgres",
+        "target": "radarr-db-secret",
+        "keys": [
+          "media16-pguser-radarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "radarr-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "radarr-secret",
+        "keys": [
+          "pushover",
+          "radarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "radarr-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "radarr-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "recyclarr-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "recyclarr-secret",
+        "keys": [
+          "radarr",
+          "sonarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "recyclarr-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "recyclarr-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sabnzbd-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sabnzbd-secret",
+        "keys": [
+          "sabnzbd"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sabnzbd-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sabnzbd-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-anime-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "media-postgres",
+        "target": "sonarr-anime-db-secret",
+        "keys": [
+          "media16-pguser-sonarr-anime"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-anime-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sonarr-anime-secret",
+        "keys": [
+          "sonarr-anime",
+          "pushover"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-anime-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sonarr-anime-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "media-postgres",
+        "target": "sonarr-db-secret",
+        "keys": [
+          "media16-pguser-sonarr"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sonarr-secret",
+        "keys": [
+          "sonarr",
+          "pushover"
+        ]
+      },
+      {
+        "namespace": "media",
+        "name": "sonarr-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "sonarr-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "network",
+        "name": "unifi-dns",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "unifi-dns-secret",
+        "keys": [
+          "unifi"
+        ]
+      },
+      {
+        "namespace": "observability",
+        "name": "grafana-admin-password",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "grafana-admin-password-secret",
+        "keys": [
+          "grafana"
+        ]
+      }
+    ]

@@ -1,0 +1,54 @@
+# Bootstrap independently of External Secrets to avoid a secret-provider cycle.
+# ESO mounts only the public ca.crt from the leaf Secret; Connect mounts the key.
+# CA rotation requires coordinated leaf reissuance/trust rollout; do not delete
+# the CA Secret as a routine certificate renewal operation.
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: onepassword-selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: onepassword-ca
+spec:
+  isCA: true
+  commonName: onepassword-connect-ca
+  secretName: onepassword-ca
+  duration: 87600h
+  renewBefore: 8760h
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: onepassword-selfsigned
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: onepassword-ca
+spec:
+  ca:
+    secretName: onepassword-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: onepassword-tls
+spec:
+  secretName: onepassword-tls
+  dnsNames:
+    - onepassword.external-secrets.svc.cluster.local
+    - onepassword.external-secrets.svc
+    - onepassword
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  issuerRef:
+    name: onepassword-ca
+    kind: Issuer

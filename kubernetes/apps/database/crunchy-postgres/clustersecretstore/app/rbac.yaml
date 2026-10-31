@@ -10,8 +10,12 @@ rules:
       - secrets
     verbs:
       - get
-      - list
-      - watch
+    resourceNames:
+      - postgres16-pguser-authentik
+      - postgres16-pguser-jellystat
+      - postgres16-pguser-karakeep
+      - postgres16-pguser-mealie
+      - postgres16-pguser-miniflux
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -31,6 +35,7 @@ kind: ServiceAccount
 metadata:
   name: external-secrets-pg
   namespace: database
+automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

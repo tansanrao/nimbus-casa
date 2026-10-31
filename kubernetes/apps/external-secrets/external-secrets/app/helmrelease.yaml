@@ -21,3 +21,19 @@ spec:
       replicaCount: 1
       serviceMonitor:
         enabled: true
+    extraEnv:
+      - name: SSL_CERT_DIR
+        value: /etc/ssl/certs:/etc/onepassword-ca
+    extraVolumes:
+      - name: onepassword-ca
+        secret:
+          secretName: onepassword-tls
+          items:
+            - key: ca.crt
+              path: ca.crt
+    extraVolumeMounts:
+      - name: onepassword-ca
+        mountPath: /etc/onepassword-ca
+        readOnly: true
+    deploymentAnnotations:
+      reloader.stakater.com/auto: "true"

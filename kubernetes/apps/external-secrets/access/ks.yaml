@@ -1,0 +1,17 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: external-secrets-access
+spec:
+  dependsOn:
+    - name: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/external-secrets/access/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: external-secrets
+  wait: true

@@ -1,0 +1,45 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: secret-provider-administration
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - external-secrets.io
+        apiVersions:
+          - '*'
+        operations:
+          - CREATE
+          - UPDATE
+          - DELETE
+        resources:
+          - secretstores
+          - clustersecretstores
+          - clusterexternalsecrets
+          - pushsecrets
+          - clusterpushsecrets
+      - apiGroups:
+          - generators.external-secrets.io
+        apiVersions:
+          - '*'
+        operations:
+          - CREATE
+          - UPDATE
+          - DELETE
+        resources:
+          - '*'
+  validations:
+    - expression: request.userInfo.groups.exists(g, g == 'system:masters') || request.userInfo.username == 'system:serviceaccount:flux-system:kustomize-controller' || (request.operation == 'UPDATE' && request.userInfo.username == 'system:serviceaccount:external-secrets:external-secrets' && object.spec == oldObject.spec)
+      message: Secret providers, generators, and push/cluster-wide syncs are managed only by the platform administrator or Flux.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: secret-provider-administration
+spec:
+  policyName: secret-provider-administration
+  validationActions:
+    - Deny
