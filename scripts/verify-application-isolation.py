@@ -39,7 +39,7 @@ ports = {'authentik': 80, 'karakeep': 3000, 'mealie': 9000, 'miniflux': 80}
 extras = {
     'authentik': [(svc('database', 'dragonfly'), 6379), (svc('default', 'smtp-relay'), 25)],
     'mealie': [(svc('default', 'smtp-relay'), 25)],
-    'karakeep': [(svc('karakeep-browser', 'karakeep-browser'), 9222), (svc('database', 'meilisearch-karakeep'), 7700)],
+    'karakeep': [(svc('karakeep-browser', 'karakeep-browser'), 9222), (svc('karakeep', 'meilisearch-karakeep'), 7700)],
     'miniflux': [],
 }
 code = '''import json,socket,urllib.request

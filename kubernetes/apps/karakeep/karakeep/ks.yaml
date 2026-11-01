@@ -16,7 +16,7 @@ spec:
     - name: onepassword
       namespace: external-secrets
     - name: meilisearch-karakeep
-      namespace: database
+      namespace: karakeep
     - name: karakeep-isolation
       namespace: karakeep
     - name: external-secrets-access

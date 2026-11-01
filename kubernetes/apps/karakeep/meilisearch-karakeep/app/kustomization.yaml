@@ -1,4 +1,3 @@
----
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -23,3 +22,9 @@ patches:
         path: /spec/restic/moverSecurityContext/seccompProfile
         value:
           type: RuntimeDefault
+  - target:
+      kind: PersistentVolumeClaim
+    patch: |-
+      - op: add
+        path: /spec/volumeName
+        value: pvc-49763522-3cbd-474a-bc22-8b1d4ac4d22a

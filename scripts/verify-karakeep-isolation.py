@@ -99,7 +99,7 @@ pg.check_returncode()
 db_ip = json.loads(pg.stdout)['items'][0]['status']['podIP']
 targets = [('Karakeep app', service('karakeep', 'karakeep'), 3000),
            ('shared database pod', db_ip, 5432),
-           ('search database', service('meilisearch-karakeep', 'database'), 7700),
+           ('search database', service('meilisearch-karakeep', 'karakeep'), 7700),
            ('Immich server', service('immich-server', 'immich'), 2283),
            ('Immich cache', service('immich-cache', 'immich'), 6379),
            ('downloader', service('qbittorrent', 'media'), 8080),
