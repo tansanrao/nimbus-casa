@@ -1,0 +1,31 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: authentik
+spec:
+  dependsOn:
+    - name: onepassword
+      namespace: external-secrets
+    - name: dragonfly-cluster
+      namespace: database
+    - name: crunchy-pgo-clusters
+      namespace: database
+    - name: authentik-isolation
+      namespace: authentik
+    - name: external-secrets-access
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/authentik/authentik/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: authentik
+  wait: false
+  suspend: true

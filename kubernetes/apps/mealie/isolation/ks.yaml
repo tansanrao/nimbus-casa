@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mealie-isolation
+spec:
+  interval: 1h
+  suspend: false
+  path: ./kubernetes/apps/mealie/isolation/app
+  prune: true
+  targetNamespace: mealie
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-secrets
+  wait: true

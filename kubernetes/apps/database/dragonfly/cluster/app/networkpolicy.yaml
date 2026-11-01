@@ -23,6 +23,12 @@ spec:
                 values:
                   - authentik
                   - immich
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: authentik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
       ports:
         - port: 6379
           protocol: TCP

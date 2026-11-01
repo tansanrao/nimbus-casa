@@ -1,9 +1,3 @@
-# Reviewed active consumers only. Update the matching immutable CEL inventory in
-# admission.yaml when adding consumers; verify-secret-isolation.py checks parity.
-# This ConfigMap is documentation, not a mutable policy parameter.
-# Legacy rollback syncs in default/media/network were removed after confirming
-# their workloads were stopped. Re-authorize any rollback explicitly.
-# Shared Garage/VolSync provider credentials still require storage-side separation.
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -461,6 +455,108 @@ data:
         "target": "grafana-admin-password-secret",
         "keys": [
           "grafana"
+        ]
+      },
+      {
+        "namespace": "authentik",
+        "name": "authentik-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "authentik-db-secret",
+        "keys": [
+          "postgres16-pguser-authentik"
+        ]
+      },
+      {
+        "namespace": "authentik",
+        "name": "authentik-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "authentik-secret",
+        "keys": [
+          "authentik"
+        ]
+      },
+      {
+        "namespace": "karakeep",
+        "name": "karakeep-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "karakeep-db-secret",
+        "keys": [
+          "postgres16-pguser-karakeep"
+        ]
+      },
+      {
+        "namespace": "karakeep",
+        "name": "karakeep-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "karakeep-secret",
+        "keys": [
+          "karakeep"
+        ]
+      },
+      {
+        "namespace": "karakeep",
+        "name": "karakeep-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "karakeep-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "mealie",
+        "name": "mealie-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "mealie-db-secret",
+        "keys": [
+          "postgres16-pguser-mealie"
+        ]
+      },
+      {
+        "namespace": "mealie",
+        "name": "mealie-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "mealie-secret",
+        "keys": [
+          "mealie"
+        ]
+      },
+      {
+        "namespace": "mealie",
+        "name": "mealie-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "mealie-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
+        "namespace": "miniflux",
+        "name": "miniflux-db-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "crunchy-pgo-secrets",
+        "target": "miniflux-db-secret",
+        "keys": [
+          "postgres16-pguser-miniflux"
+        ]
+      },
+      {
+        "namespace": "miniflux",
+        "name": "miniflux-secret",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "miniflux-secret",
+        "keys": [
+          "miniflux"
         ]
       }
     ]

@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: karakeep-isolation
+spec:
+  interval: 1h
+  suspend: false
+  path: ./kubernetes/apps/karakeep/isolation/app
+  prune: true
+  targetNamespace: karakeep
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-secrets
+  wait: true

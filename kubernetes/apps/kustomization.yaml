@@ -18,3 +18,7 @@ resources:
   - ./media-vpn
   - ./media-database
   - ./karakeep-browser
+  - ./authentik
+  - ./karakeep
+  - ./mealie
+  - ./miniflux

@@ -1,0 +1,39 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: mealie
+spec:
+  dependsOn:
+    - name: openebs
+      namespace: openebs-system
+    - name: snapshot-controller
+      namespace: kube-system
+    - name: volsync
+      namespace: volsync-system
+    - name: onepassword
+      namespace: external-secrets
+    - name: crunchy-pgo-clusters
+      namespace: database
+    - name: mealie-isolation
+      namespace: mealie
+    - name: external-secrets-access
+      namespace: external-secrets
+  interval: 1h
+  path: ./kubernetes/apps/mealie/mealie/app
+  postBuild:
+    substitute:
+      APP: mealie
+      GATUS_PATH: /
+      VOLSYNC_CAPACITY: 20Gi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: mealie
+  wait: false
+  suspend: true
