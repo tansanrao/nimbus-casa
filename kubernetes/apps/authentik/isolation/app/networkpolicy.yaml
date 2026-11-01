@@ -56,6 +56,14 @@ spec:
               protocol: TCP
             - port: "6636"
               protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            k8s:app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9300"
+              protocol: TCP
   egress:
     - toEndpoints:
         - matchLabels:
@@ -121,6 +129,14 @@ spec:
       toPorts:
         - ports:
             - port: "9000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            k8s:app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9300"
               protocol: TCP
   egress:
     - toEndpoints:
