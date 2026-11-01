@@ -1,4 +1,5 @@
----
+# Retain the original volume binding during the namespace cutover.
+# Remove the volumeName patch only when intentionally restoring onto a new PV.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -23,3 +24,10 @@ patches:
         path: /spec/restic/moverSecurityContext/seccompProfile
         value:
           type: RuntimeDefault
+  - target:
+      kind: PersistentVolumeClaim
+      name: ${APP}
+    patch: |-
+      - op: add
+        path: /spec/volumeName
+        value: pvc-4d64169b-15a5-440b-a849-0d65cf08c337
