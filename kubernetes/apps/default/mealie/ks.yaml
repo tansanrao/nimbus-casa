@@ -3,6 +3,8 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: mealie
+  labels:
+    isolation.nimbus.casa/legacy-hold: "true"
 spec:
   dependsOn:
     - name: openebs
@@ -25,7 +27,9 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
-  prune: true
+  suspend: true
+  deletionPolicy: Orphan
+  prune: false
   sourceRef:
     kind: GitRepository
     name: flux-system
