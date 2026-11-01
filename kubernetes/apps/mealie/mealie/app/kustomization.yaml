@@ -26,7 +26,6 @@ patches:
           type: RuntimeDefault
   - target:
       kind: PersistentVolumeClaim
-      name: ${APP}
     patch: |-
       - op: add
         path: /spec/volumeName

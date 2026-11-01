@@ -53,4 +53,4 @@ spec:
         capabilities:
           drop:
             - ALL
-      replicas: 0
+      replicas: 1
