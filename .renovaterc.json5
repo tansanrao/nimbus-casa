@@ -30,6 +30,23 @@
   },
   packageRules: [
     {
+      "description": "Review all Immich database image updates, including rebuilds and VectorChord changes",
+      "matchPackageNames": [
+        "ghcr.io/aaronspruit/crunchy-postgres-vectorchord"
+      ],
+      "pinDigests": true,
+      "schedule": [
+        "at any time"
+      ],
+      "automerge": false,
+      "prPriority": 20,
+      "versioning": "regex:^(?<compatibility>ubi9-16)\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+      "allowedVersions": "/^ubi9-16\\.\\d+-\\d+-(?:0|1)\\.\\d+\\.\\d+$/",
+      "prBodyNotes": [
+        "PostgreSQL major stays 16. Composite ordering is PostgreSQL patch, Crunchy build, then VectorChord major/minor/patch. Rehearse restore, ALTER EXTENSION, and vector-index rebuilds before merging; do not assume the Renovate update type describes extension compatibility."
+      ]
+    },
+    {
       description: "Pin official Seerr releases and require review of updates",
       matchPackageNames: ["ghcr.io/seerr-team/seerr"],
       pinDigests: true,
