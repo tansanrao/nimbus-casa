@@ -6,9 +6,7 @@ components:
   - ../../components/sops
 resources:
   - ./namespace.yaml
-  - ./asif-blog/ks.yaml
   - ./authentik/ks.yaml
-  - ./echo/ks.yaml
   - ./karakeep/ks.yaml
   - ./mealie/ks.yaml
   - ./miniflux/ks.yaml

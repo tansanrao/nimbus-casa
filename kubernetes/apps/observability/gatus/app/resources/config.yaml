@@ -29,11 +29,6 @@ endpoints:
     url: https://${SECRET_DOMAIN}/outpost.goauthentik.io/ping
     interval: 1m
     conditions: *app_http_conditions
-  - name: default/echo
-    group: public-services
-    url: https://echo.${SECRET_DOMAIN}
-    interval: 1m
-    conditions: *app_http_conditions
   - name: default/immich
     group: public-services
     url: https://photos.${SECRET_DOMAIN}
