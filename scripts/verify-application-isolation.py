@@ -77,8 +77,8 @@ def probe(app):
     targets += [(app_ips[a],ports[a],False) for a in APPS if a != app]
     labels = {'app.kubernetes.io/name':app,'app.kubernetes.io/controller':'karakeep' if app == 'karakeep' else 'main'}
     if app == 'authentik':
-        labels['app.kubernetes.io/component'] = 'server'
-    podspec = {'restartPolicy':'Never','automountServiceAccountToken':False,'securityContext':{'runAsUser':1001,'runAsGroup':1001,'runAsNonRoot':True,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'check','image':image,'command':['python3','-c',code.replace('TARGETS',repr(targets))],'securityContext':{'allowPrivilegeEscalation':False,'capabilities':{'drop':['ALL']}},'resources':{'limits':{'memory':'128Mi'}}}]}
+        labels['app.kubernetes.io/component'] = 'isolation-check'
+    podspec = {'restartPolicy':'Never','automountServiceAccountToken':False,'securityContext':{'runAsUser':1001,'runAsGroup':1001,'runAsNonRoot':True,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'check','image':image,'command':['python3','-c',code.replace('TARGETS',repr(targets))],'readinessProbe':{'exec':{'command':['python3','-c','raise SystemExit(1)']},'periodSeconds':1},'securityContext':{'allowPrivilegeEscalation':False,'capabilities':{'drop':['ALL']}},'resources':{'limits':{'memory':'128Mi'}}}]}
     job = {'apiVersion':'batch/v1','kind':'Job','metadata':{'name':NAME,'namespace':app},'spec':{'backoffLimit':0,'activeDeadlineSeconds':60,'ttlSecondsAfterFinished':300,'template':{'metadata':{'labels':labels},'spec':podspec}}}
     try:
         kube('create','-f','-',input=json.dumps(job)).check_returncode()
