@@ -24,6 +24,7 @@ metadata:
   name: &clusters crunchy-pgo-clusters
   namespace: &namespace database
 spec:
+  suspend: true
   commonMetadata:
     labels:
       app.kubernetes.io/name: *clusters

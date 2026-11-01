@@ -32,4 +32,4 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
-  suspend: false
+  suspend: true

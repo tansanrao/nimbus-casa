@@ -27,4 +27,4 @@ spec:
     namespace: flux-system
   targetNamespace: immich
   wait: false
-  suspend: false
+  suspend: true
