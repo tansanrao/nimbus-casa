@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-01",
+  "image": "ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-16.15-2633-1.1.1@sha256:fdf943c944bd07d2efe33b4230f651f94ec3d62ebf17bfdbe6ffeea2bfa97b68",
+  "previousImage": "ghcr.io/budimanjojo/crunchy-postgres-vectorchord:ubi9-16.9-2520-0.4.3",
+  "publisher": "aaronspruit/crunchy-postgres-vectorchord",
+  "sourceCommit": "90ab80a1806b69b22942f3acfd25b8d822c25464",
+  "provenance": {
+    "verified": true,
+    "predicateType": "https://slsa.dev/provenance/v1",
+    "workflow": "aaronspruit/crunchy-postgres-vectorchord/.github/workflows/ci.yml",
+    "verifier": "gh attestation verify",
+    "trustBoundary": "Publisher identity and source provenance verified; this remains a community extension image, not a Crunchy-published image.",
+    "buildReview": "Crunchy PostgreSQL base with upstream VectorChord release binaries. The Dockerfile does not independently checksum those release archives."
+  },
+  "versions": {
+    "postgresql": "16.15",
+    "vectorchord": "1.1.1",
+    "pgvector": "0.8.6",
+    "immich": "3.3.5"
+  },
+  "rehearsal": {
+    "restoredExistingPgBackRestBackup": true,
+    "isolatedNamespace": "immich-db-rehearsal",
+    "productionPhotoMounts": false,
+    "postgresMajorUnchanged": true,
+    "extensionUpgradePathTested": true,
+    "indexesRebuilt": [
+      "face_index",
+      "clip_index"
+    ],
+    "aggregateCountsUnchanged": true,
+    "nearestNeighborQueriesPassed": true,
+    "immichApiStartupPassed": true,
+    "temporaryNamespaceDeleted": true,
+    "temporaryVolumesDeleted": true
+  },
+  "production": {
+    "preUpgradeFullBackup": "20261101-004632F",
+    "retainedStoppedDatabaseSnapshot": "immich/immich16-before-pg16-15-vchord1",
+    "aggregateCountsUnchanged": true,
+    "vectorQueriesAsApplicationRolePassed": true,
+    "apiDeploymentReady": true,
+    "publicApiAndUiHttpStatus": 200,
+    "startupErrorLines": 0,
+    "postUpgradeFullBackups": [
+      {
+        "repo": 1,
+        "label": "20261101-004821F",
+        "completed": true,
+        "timestamp": {
+          "start": 1793494101,
+          "stop": 1793494185
+        }
+      },
+      {
+        "repo": 2,
+        "label": "20261101-004947F",
+        "completed": true,
+        "timestamp": {
+          "start": 1793494187,
+          "stop": 1793494238
+        }
+      }
+    ]
+  },
+  "renovate": {
+    "version": "44.198.3",
+    "manager": "kubernetes",
+    "nativeSpecImageExtractionVerified": true,
+    "digestLookupVerified": true,
+    "upgradeFixture": {
+      "from": "ubi9-16.13-2610-0.5.3",
+      "to": "ubi9-16.15-2633-1.1.1"
+    },
+    "postgresMajorRestrictedTo": 16,
+    "vectorchordMajorAllowed": [
+      0,
+      1
+    ],
+    "automerge": false,
+    "schedule": "at any time",
+    "sameTagDigestDriftDetected": true
+  },
+  "rollback": "Stop Immich and restore the pre-upgrade snapshot or backup with the previous image. Do not downgrade only the image after the extension/index format upgrade.",
+  "sources": [
+    "https://github.com/aaronspruit/crunchy-postgres-vectorchord/tree/90ab80a1806b69b22942f3acfd25b8d822c25464",
+    "https://docs.immich.app/administration/postgres-standalone/",
+    "https://www.postgresql.org/support/security/16/"
+  ],
+  "previousImagePinned": "ghcr.io/budimanjojo/crunchy-postgres-vectorchord:ubi9-16.9-2520-0.4.3@sha256:02ab55c7f4e2a80abc59fb6bc631d7bf186899e4a8e204ae3fd040f8fae185f4",
+  "scope": "Active immich/immich16 only. The stopped legacy database/immich16 rollback definition is intentionally unchanged."
+}
