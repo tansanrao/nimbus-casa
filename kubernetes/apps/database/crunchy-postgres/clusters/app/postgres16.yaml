@@ -18,8 +18,6 @@ spec:
 
   metadata:
     labels:
-      crunchy-userinit.ramblurr.github.com/enabled: "true"
-      crunchy-userinit.ramblurr.github.com/superuser: "postgres"
       postgres-operator.crunchydata.com/crunchy-postgres-exporter: "true"
       postgres-operator.crunchydata.com/cluster: *name
 
