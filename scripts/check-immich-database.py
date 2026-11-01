@@ -22,10 +22,10 @@ def run(*cmd):
     return subprocess.check_output(cmd, text=True)
 cluster = json.loads(run('yq', '-o=json', '.', str(path)))
 image = cluster['spec']['image']
-m = re.fullmatch(r'ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-(16\.\d+)-\d+-(\d+\.\d+\.\d+)@(sha256:[a-f0-9]{64})', image)
-assert m, 'Expected reviewed publisher, PostgreSQL 16, composite release tag and digest'
-assert cluster['spec']['postgresVersion'] == 16
-print('PASS pinned PostgreSQL 16 image')
+m = re.fullmatch(r'ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-(18\.\d+)-\d+-(\d+\.\d+\.\d+)@(sha256:[a-f0-9]{64})', image)
+assert m, 'Expected reviewed publisher, PostgreSQL 18, composite release tag and digest'
+assert cluster['spec']['postgresVersion'] == 18
+print('PASS pinned PostgreSQL 18 image')
 if a.renovate_log:
     text = a.renovate_log.read_text()
     marker = text.index('DEBUG: packageFiles with updates')

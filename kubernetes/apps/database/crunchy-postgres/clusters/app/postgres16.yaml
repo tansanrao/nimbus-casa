@@ -4,7 +4,8 @@ kind: PostgresCluster
 metadata:
   name: &name postgres16
 spec:
-  postgresVersion: 16
+  postgresVersion: 18
+  image: registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi9-18.6-2633@sha256:eb80bdfcb4d995f6a591b16deaa56932802d5b9f984c4c8e558ff11da3187ec3
 
   monitoring:
     pgmonitor:

@@ -28,4 +28,4 @@ spec:
     namespace: flux-system
   targetNamespace: authentik
   wait: false
-  suspend: true
+  suspend: false

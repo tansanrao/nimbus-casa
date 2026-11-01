@@ -1,0 +1,185 @@
+{
+  "date": "2026-11-01",
+  "targetPostgreSQL": "18.6",
+  "userInit": {
+    "removed": true,
+    "rbacRemoved": true,
+    "existingDatabaseOwnersAndSchemaGrantsVerified": true,
+    "futureProvisioning": "Crunchy still manages declared users and databases. The retired controller no longer assigns application ownership/grants. Review explicit grants for fresh shared databases until the deferred database rework."
+  },
+  "scope": "Three active clusters only. Historical cluster/service/PVC/Secret names remain unchanged. Quarantined legacy database/immich16 rollback data remains on PG16.",
+  "clusters": [
+    {
+      "namespace": "media-database",
+      "name": "media16",
+      "rehearsal": {
+        "restoredPg16Backup": true,
+        "upgradeSucceeded": true,
+        "tableCountsOwnersAndSchemaGrantsPreserved": true,
+        "applicationStartupPassed": true,
+        "externalAppAccessDenied": true,
+        "productionStorageMounted": false,
+        "applicationsTested": [
+          "radarr",
+          "sonarr",
+          "sonarr-anime",
+          "prowlarr"
+        ]
+      },
+      "production": {
+        "version": "18.6",
+        "countsPreserved": true,
+        "applicationsReady": true,
+        "preUpgradeFullBackup": "20261101-135710F",
+        "stoppedSnapshot": "media16-before-pg18-20261101",
+        "snapshotRetention": "Retain",
+        "vectorSearchPassed": null,
+        "postUpgradeFullBackups": [
+          {
+            "repo": 1,
+            "label": "20261101-140128F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541688,
+              "stop": 1793541938
+            }
+          },
+          {
+            "repo": 2,
+            "label": "20261101-140542F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541942,
+              "stop": 1793541947
+            }
+          }
+        ]
+      }
+    },
+    {
+      "namespace": "immich",
+      "name": "immich16",
+      "rehearsal": {
+        "restoredPg16Backup": true,
+        "upgradeSucceeded": true,
+        "tableCountsOwnersAndSchemaGrantsPreserved": true,
+        "applicationStartupPassed": true,
+        "externalAppAccessDenied": true,
+        "productionStorageMounted": false,
+        "applicationsTested": [
+          "immich-server"
+        ]
+      },
+      "production": {
+        "version": "18.6",
+        "countsPreserved": true,
+        "applicationsReady": true,
+        "preUpgradeFullBackup": "20261101-135710F",
+        "stoppedSnapshot": "immich16-before-pg18-20261101",
+        "snapshotRetention": "Retain",
+        "vectorSearchPassed": true,
+        "postUpgradeFullBackups": [
+          {
+            "repo": 1,
+            "label": "20261101-140404F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541844,
+              "stop": 1793541905
+            }
+          },
+          {
+            "repo": 2,
+            "label": "20261101-140536F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541936,
+              "stop": 1793541983
+            }
+          }
+        ]
+      }
+    },
+    {
+      "namespace": "database",
+      "name": "postgres16",
+      "rehearsal": {
+        "restoredPg16Backup": true,
+        "upgradeSucceeded": true,
+        "tableCountsOwnersAndSchemaGrantsPreserved": true,
+        "applicationStartupPassed": true,
+        "externalAppAccessDenied": true,
+        "productionStorageMounted": false,
+        "applicationsTested": [
+          "mealie",
+          "miniflux",
+          "jellystat"
+        ]
+      },
+      "production": {
+        "version": "18.6",
+        "countsPreserved": true,
+        "applicationsReady": true,
+        "preUpgradeFullBackup": "20261101-135711F",
+        "stoppedSnapshot": "postgres16-before-pg18-20261101",
+        "snapshotRetention": "Retain",
+        "vectorSearchPassed": null,
+        "postUpgradeFullBackups": [
+          {
+            "repo": 1,
+            "label": "20261101-140536F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541936,
+              "stop": 1793541963
+            }
+          },
+          {
+            "repo": 2,
+            "label": "20261101-140610F",
+            "version": "18",
+            "timestamp": {
+              "start": 1793541970,
+              "stop": 1793542021
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "renovate": {
+    "configurationValidated": true,
+    "allThreeImagesExtractedWithDigests": true,
+    "postgresMajorRestrictedTo": 18,
+    "automerge": false,
+    "immichRegistryLookupVerified": true,
+    "officialCrunchyRegistryLookupVerified": false,
+    "limitation": "Local Renovate lookup returned no-result for official Crunchy images; independent anonymous registry requests returned HTTP 403. Keep manual patch/build checks until registry lookup access is verified. Do not describe automatic update coverage for these images as verified."
+  },
+  "images": {
+    "officialCrunchy": "registry.developers.crunchydata.com/crunchydata/crunchy-postgres:ubi9-18.6-2633@sha256:eb80bdfcb4d995f6a591b16deaa56932802d5b9f984c4c8e558ff11da3187ec3",
+    "immich": "ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-18.6-2633-1.1.1@sha256:ebad4eda2e213bdee11b58e8d5356a7068984a264b13b6b7e8bf45dca84c2ed3",
+    "immichUpgrade": "ghcr.io/aaronspruit/crunchy-postgres-vectorchord-upgrade:ubi9-18.6-2633-1.1.1@sha256:53bee0c00341845a172401c932440d9d20d79a0c3ea0e711f73cb44289be6025"
+  },
+  "provenance": {
+    "immichDatabaseAndUpgradeImagesVerified": true,
+    "signerWorkflow": "aaronspruit/crunchy-postgres-vectorchord/.github/workflows/ci.yml",
+    "trustBoundary": "Community extension images remain community-published. Signer verification does not eliminate the upstream extension archive checksum limitation recorded in the prior upgrade evidence."
+  },
+  "sources": [
+    "https://access.crunchydata.com/documentation/postgres-operator/latest/guides/major-postgres-version-upgrade",
+    "https://github.com/aaronspruit/crunchy-postgres-vectorchord"
+  ],
+  "rollback": "Stop dependent applications and restore retained PG16 snapshots or pre-upgrade backups using the old image/configuration. Changing the image tag back alone is unsafe. PGUpgrade used Copy, and original PG16 directories have not been deleted.",
+  "observations": [
+    "The rehearsal preload configuration needed pgnodemx alongside pgaudit and pg_stat_statements.",
+    "The shared rehearsal data comparison was repeated cleanly after a test sequencing error. Comparison excludes its own temporary tables.",
+    "Media WAL archiving initially stalled on the old stanza identity. The stale archive-push command was terminated after stanza-upgrade, PostgreSQL retried, and archival and PG18 full backups recovered."
+  ],
+  "cleanup": {
+    "temporaryNamespacesAndCopiedCredentialsDeleted": true,
+    "pgUpgradeResourcesDeleted": true,
+    "helmReconciliationResumed": true,
+    "retainedSnapshots": 3
+  }
+}

@@ -30,6 +30,16 @@
   },
   packageRules: [
     {
+      description: "Pin Crunchy PostgreSQL 18 patches and builds; require review",
+      matchPackageNames: ["registry.developers.crunchydata.com/crunchydata/crunchy-postgres"],
+      pinDigests: true,
+      automerge: false,
+      schedule: ["at any time"],
+      versioning: "regex:^(?<compatibility>ubi9-18)\\.(?<major>\\d+)-(?<minor>\\d+)$",
+      allowedVersions: "/^ubi9-18\\.\\d+-\\d+$/",
+      prBodyNotes: ["Major PostgreSQL upgrades require an explicit PGUpgrade migration and restore rehearsal; never change the image major automatically."],
+    },
+    {
       "description": "Review all Immich database image updates, including rebuilds and VectorChord changes",
       "matchPackageNames": [
         "ghcr.io/aaronspruit/crunchy-postgres-vectorchord"
@@ -40,10 +50,10 @@
       ],
       "automerge": false,
       "prPriority": 20,
-      "versioning": "regex:^(?<compatibility>ubi9-16)\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
-      "allowedVersions": "/^ubi9-16\\.\\d+-\\d+-(?:0|1)\\.\\d+\\.\\d+$/",
+      "versioning": "regex:^(?<compatibility>ubi9-18)\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+      "allowedVersions": "/^ubi9-18\\.\\d+-\\d+-(?:0|1)\\.\\d+\\.\\d+$/",
       "prBodyNotes": [
-        "PostgreSQL major stays 16. Composite ordering is PostgreSQL patch, Crunchy build, then VectorChord major/minor/patch. Rehearse restore, ALTER EXTENSION, and vector-index rebuilds before merging; do not assume the Renovate update type describes extension compatibility."
+        "PostgreSQL major stays 18. Composite ordering is PostgreSQL patch, Crunchy build, then VectorChord major/minor/patch. Rehearse restore, ALTER EXTENSION, and vector-index rebuilds before merging; do not assume the Renovate update type describes extension compatibility."
       ]
     },
     {

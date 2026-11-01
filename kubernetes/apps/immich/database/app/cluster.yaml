@@ -7,8 +7,8 @@ spec:
   databaseInitSQL:
     name: application-database-grants
     key: init.sql
-  postgresVersion: 16
-  image: ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-16.15-2633-1.1.1@sha256:fdf943c944bd07d2efe33b4230f651f94ec3d62ebf17bfdbe6ffeea2bfa97b68
+  postgresVersion: 18
+  image: ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-18.6-2633-1.1.1@sha256:ebad4eda2e213bdee11b58e8d5356a7068984a264b13b6b7e8bf45dca84c2ed3
   monitoring:
     pgmonitor:
       exporter:
