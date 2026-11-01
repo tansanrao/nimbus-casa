@@ -40,108 +40,6 @@ data:
       },
       {
         "namespace": "default",
-        "name": "authentik-db-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
-        "target": "authentik-db-secret",
-        "keys": [
-          "postgres16-pguser-authentik"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "authentik-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "authentik-secret",
-        "keys": [
-          "authentik"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "karakeep-db-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
-        "target": "karakeep-db-secret",
-        "keys": [
-          "postgres16-pguser-karakeep"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "karakeep-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "karakeep-secret",
-        "keys": [
-          "karakeep"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "karakeep-volsync",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "karakeep-volsync-secret",
-        "keys": [
-          "garage",
-          "volsync-garage-template"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "mealie-db-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
-        "target": "mealie-db-secret",
-        "keys": [
-          "postgres16-pguser-mealie"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "mealie-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "mealie-secret",
-        "keys": [
-          "mealie"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "mealie-volsync",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "mealie-volsync-secret",
-        "keys": [
-          "garage",
-          "volsync-garage-template"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "miniflux-db-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
-        "target": "miniflux-db-secret",
-        "keys": [
-          "postgres16-pguser-miniflux"
-        ]
-      },
-      {
-        "namespace": "default",
-        "name": "miniflux-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "onepassword",
-        "target": "miniflux-secret",
-        "keys": [
-          "miniflux"
-        ]
-      },
-      {
-        "namespace": "default",
         "name": "smtp-relay-secret",
         "storeKind": "ClusterSecretStore",
         "store": "onepassword",
@@ -557,6 +455,27 @@ data:
         "target": "miniflux-secret",
         "keys": [
           "miniflux"
+        ]
+      },
+      {
+        "namespace": "karakeep",
+        "name": "meilisearch-karakeep",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "meilisearch-karakeep",
+        "keys": [
+          "karakeep"
+        ]
+      },
+      {
+        "namespace": "karakeep",
+        "name": "meilisearch-karakeep-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "meilisearch-karakeep-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
         ]
       }
     ]

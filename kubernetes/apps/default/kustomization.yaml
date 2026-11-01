@@ -6,9 +6,5 @@ components:
   - ../../components/sops
 resources:
   - ./namespace.yaml
-  - ./authentik/ks.yaml
-  - ./karakeep/ks.yaml
-  - ./mealie/ks.yaml
-  - ./miniflux/ks.yaml
   - ./smtp-relay/ks.yaml
   - ./isolation-legacy.yaml

@@ -44,7 +44,7 @@ def pod(ns, name):
 
 
 browser = pod('karakeep-browser', 'karakeep-browser')
-app = pod('default', 'karakeep')
+app = pod('karakeep', 'karakeep')
 for label, p in [('browser', browser), ('app', app)]:
     image = p['spec']['containers'][0]['image']
     record(label + ' image digest pinned', '@sha256:' in image)
@@ -76,7 +76,7 @@ try {
  if(title!=='Example Domain')throw new Error('Public page did not render');console.log('Rendered Example Domain');
 } finally {if(context)await send('Target.disposeBrowserContext',{browserContextId:context});ws.close()}
 '''
-r = run('default', 'karakeep', 'node', '--input-type=module', input=cdp)
+r = run('karakeep', 'karakeep', 'node', '--input-type=module', input=cdp)
 record('Karakeep controls browser and renders public HTTPS', r.returncode == 0, r.stdout.strip() if r.returncode == 0 else r.stderr[-400:])
 
 checks = r'''
@@ -86,7 +86,7 @@ await new Promise((resolve,reject)=>{const s=net.createConnection({host:db.hostn
 for(const [name,url] of [['search',process.env.MEILI_ADDR+'/health'],['OAuth',process.env.OAUTH_WELLKNOWN_URL],['app','http://127.0.0.1:3000']]){const r=await fetch(url,{signal:AbortSignal.timeout(5000)});if(!r.ok)throw new Error(name+' HTTP '+r.status);console.log(name+' HTTP '+r.status)}
 console.log('database connected');if(process.env.COREPACK_INTEGRITY_KEYS==='0')throw new Error('Corepack integrity disabled');
 '''
-r = run('default', 'karakeep', 'node', '--input-type=module', input=checks)
+r = run('karakeep', 'karakeep', 'node', '--input-type=module', input=checks)
 record('Karakeep database, search, OAuth and UI dependencies', r.returncode == 0, r.stdout.strip() if r.returncode == 0 else r.stderr[-400:])
 
 
@@ -97,7 +97,7 @@ def service(name, ns):
 pg = kube('get', 'pods', '-n', 'database', '-l', 'postgres-operator.crunchydata.com/cluster=postgres16,postgres-operator.crunchydata.com/role=master', '-o', 'json')
 pg.check_returncode()
 db_ip = json.loads(pg.stdout)['items'][0]['status']['podIP']
-targets = [('Karakeep app', service('karakeep', 'default'), 3000),
+targets = [('Karakeep app', service('karakeep', 'karakeep'), 3000),
            ('shared database pod', db_ip, 5432),
            ('search database', service('meilisearch-karakeep', 'database'), 7700),
            ('Immich server', service('immich-server', 'immich'), 2283),
@@ -118,12 +118,12 @@ import net from 'node:net';
 for(const [host,port] of TARGETS){await new Promise((resolve,reject)=>{const s=net.createConnection({host,port},()=>{s.destroy();reject(Error('unexpected private access'))});s.setTimeout(3000,()=>{s.destroy();resolve()});s.on('error',e=>{if(['ECONNREFUSED','EHOSTUNREACH','ENETUNREACH'].includes(e.code))resolve();else reject(e)})})}
 console.log('Immich, API, node and NAS blocked');
 """.replace('TARGETS', json.dumps(app_targets))
-r = run('default', 'karakeep', 'node', '--input-type=module', input=code)
+r = run('karakeep', 'karakeep', 'node', '--input-type=module', input=code)
 record('application download path denies unrelated private services', r.returncode == 0, r.stdout.strip() or r.stderr[-200:])
 
 # An unrestricted source in default proves ingress denial, independent of media policies.
 name = 'karakeep-ingress-validation'
-probe_targets = [(service('karakeep-browser', 'karakeep-browser'), 9222), (service('karakeep', 'default'), 3000)]
+probe_targets = [(service('karakeep-browser', 'karakeep-browser'), 9222), (service('karakeep', 'karakeep'), 3000)]
 code = '''const net=require('node:net');(async()=>{const r=await fetch('https://example.com');if(!r.ok)throw Error('public baseline');for(const [host,port] of TARGETS){await new Promise((resolve,reject)=>{const s=net.createConnection({host,port},()=>{s.destroy();reject(Error('unexpected access '+host+':'+port))});s.setTimeout(3000,()=>{s.destroy();resolve()});s.on('error',e=>{if(['ECONNREFUSED','EHOSTUNREACH','ENETUNREACH'].includes(e.code))resolve();else reject(e)})})}console.log('Unrelated pod blocked from browser control port and app backend')})().catch(e=>{console.error(e.message);process.exitCode=1})'''.replace('TARGETS', json.dumps(probe_targets))
 job = {'apiVersion':'batch/v1','kind':'Job','metadata':{'name':name,'namespace':'default'},'spec':{'backoffLimit':0,'activeDeadlineSeconds':45,'ttlSecondsAfterFinished':600,'template':{'spec':{'restartPolicy':'Never','automountServiceAccountToken':False,'securityContext':{'runAsUser':1001,'runAsGroup':1001,'runAsNonRoot':True,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'check','image':app['spec']['containers'][0]['image'],'command':['node','-e',code],'securityContext':{'allowPrivilegeEscalation':False,'readOnlyRootFilesystem':True,'capabilities':{'drop':['ALL']}},'resources':{'limits':{'memory':'128Mi'}}}]}}}}
 created = False

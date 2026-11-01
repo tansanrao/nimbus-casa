@@ -17,14 +17,14 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-  - name: default/authentik
+  - name: authentik/authentik
     group: public-services
     url: https://auth.${SECRET_DOMAIN}
     interval: 1m
     conditions: &app_http_conditions
       - "[STATUS] >= 200"
       - "[STATUS] < 400"
-  - name: default/authentik-outpost
+  - name: authentik/authentik-outpost
     group: public-services
     url: https://${SECRET_DOMAIN}/outpost.goauthentik.io/ping
     interval: 1m
@@ -34,17 +34,17 @@ endpoints:
     url: https://photos.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
-  - name: default/karakeep
+  - name: karakeep/karakeep
     group: public-services
     url: https://karakeep.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
-  - name: default/mealie
+  - name: mealie/mealie
     group: public-services
     url: https://mealie.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
-  - name: default/miniflux
+  - name: miniflux/miniflux
     group: public-services
     url: https://reader.${SECRET_DOMAIN}
     interval: 1m

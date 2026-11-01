@@ -8,3 +8,4 @@ resources:
   - ./namespace.yaml
   - ./isolation/ks.yaml
   - ./karakeep/ks.yaml
+  - ./meilisearch-karakeep/ks.yaml

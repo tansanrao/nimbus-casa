@@ -2,12 +2,14 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: &app meilisearch-karakeep
-  namespace: &namespace database
+  name: meilisearch-karakeep
+  namespace: database
+  labels:
+    isolation.nimbus.casa/legacy-hold: "true"
 spec:
   commonMetadata:
     labels:
-      app.kubernetes.io/name: *app
+      app.kubernetes.io/name: meilisearch-karakeep
   dependsOn:
     - name: openebs
       namespace: openebs-system
@@ -26,10 +28,12 @@ spec:
     substituteFrom:
       - kind: Secret
         name: cluster-secrets
-  prune: true
+  prune: false
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: *namespace
+  targetNamespace: database
   wait: false
+  suspend: true
+  deletionPolicy: Orphan

@@ -101,6 +101,14 @@ spec:
               protocol: TCP
           serverNames:
             - auth.${SECRET_DOMAIN}
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: karakeep
+            k8s:app.kubernetes.io/name: meilisearch-karakeep
+      toPorts:
+        - ports:
+            - port: "7700"
+              protocol: TCP
   egressDeny:
     - toEntities:
         - host
@@ -136,3 +144,34 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: search
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: meilisearch-karakeep
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: karakeep
+            k8s:app.kubernetes.io/name: karakeep
+            k8s:app.kubernetes.io/controller: karakeep
+      toPorts:
+        - ports:
+            - port: "7700"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'

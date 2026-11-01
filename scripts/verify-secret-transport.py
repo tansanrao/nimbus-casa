@@ -22,7 +22,7 @@ try:
 finally:
  k('delete','rolebinding,role',name,'-n',ns,'--ignore-not-found')
 # The diagnostic pod mounts only the public CA certificate and has no API token.
-image=json.loads(k('get','deploy','karakeep','-n','default','-o','json').stdout)['spec']['template']['spec']['containers'][0]['image']
+image=json.loads(k('get','deploy','karakeep','-n','karakeep','-o','json').stdout)['spec']['template']['spec']['containers'][0]['image']
 code=r'''const https=require('https'),fs=require('fs');
 const host='onepassword.external-secrets.svc.cluster.local';
 const ca=fs.readFileSync('/ca/ca.crt');
@@ -39,5 +39,5 @@ svc=json.loads(k('get','svc','onepassword','-n','external-secrets','-o','json').
 pods=json.loads(k('get','pods','-n','external-secrets','-l','app.kubernetes.io/name=onepassword','-o','json').stdout)['items']
 ip=next(p['status']['podIP'] for p in pods if not p['metadata'].get('deletionTimestamp'))
 code='import socket\nfor host,port in '+repr([(svc,8443),(ip,8443),(ip,8080),(ip,8081)])+':\n try:\n  s=socket.create_connection((host,port),3)\n except (TimeoutError,ConnectionRefusedError):\n  print("PASS unauthorized connection blocked",host,port)\n else:\n  s.close();raise RuntimeError("Connect exposed to unauthorized application")\n'
-r=k('exec','-i','deploy/mealie','-n','default','-c','app','--','python3','-',input=code)
+r=k('exec','-i','deploy/mealie','-n','mealie','-c','app','--','python3','-',input=code)
 print(r.stdout.strip());assert r.returncode==0,r.stderr

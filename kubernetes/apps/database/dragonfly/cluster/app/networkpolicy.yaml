@@ -15,16 +15,6 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                  - authentik
-                  - immich
-        - namespaceSelector:
-            matchLabels:
               kubernetes.io/metadata.name: authentik
           podSelector:
             matchLabels:
