@@ -53,8 +53,6 @@ spec:
             envFrom:
               - secretRef:
                   name: karakeep-secret
-              - secretRef:
-                  name: karakeep-db-secret
             probes:
               liveness:
                 enabled: true

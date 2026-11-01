@@ -94,9 +94,9 @@ This repo has three backup classes for persistent data:
 
 The shared VolSync component is intended for application PVCs on `openebs-lvm`, including:
 
-- `default/karakeep`
-- `default/mealie`
-- `database/meilisearch-karakeep`
+- `karakeep/karakeep`
+- `mealie/mealie`
+- `karakeep/meilisearch-karakeep`
 - `media-services/seerr`
 - `media/qbittorrent`
 - `media/radarr`
@@ -192,3 +192,13 @@ This repo now assumes a fresh thin-only bootstrap. The single `openebs-lvm` Stor
 ## Thin-pool monitoring note
 
 OpenEBS 4.4 adds Local PV LVM snapshot restore support, but thin-pool accounting still has limitations. Monitor thin-pool usage on `openebs-vg` and extend capacity before the pool fills.
+
+## Application namespace migration
+
+Authentik, Karakeep, Mealie, and Miniflux now have dedicated namespaces with restricted Pod Security and default-deny networking. SMTP remains in `default`. Karakeep’s search service is in `karakeep`; its browser remains separately isolated in `karakeep-browser`. Shared PostgreSQL and Dragonfly remain in `database`. Karakeep uses its local SQLite database and no longer receives the unused PostgreSQL credential.
+
+Mealie, Karakeep, and Meilisearch retained their original OpenEBS PVs and volume handles. The application kustomizations explicitly preserve these bindings. Remove a `volumeName` patch only for an intentional restore onto a replacement PV. Retained pre-cutover snapshots are `default/mealie-namespace-cutover`, `default/karakeep-namespace-cutover`, and `database/meilisearch-karakeep-namespace-cutover`. They are recovery checkpoints, not substitutes for off-node backups. VolSync continues using the existing repositories; automatic restore-once destinations are omitted to avoid overwriting migrated volumes.
+
+Authentik’s existing outpost configuration in PostgreSQL now targets `authentik`. Its LDAP deployment disables service-account token mounting, and its Service requests `10.10.40.72` through `lbipam.cilium.io/ips`. Preserve these outpost settings when restoring Authentik. Only the worker retains namespace-scoped outpost-management permissions.
+
+Run `python scripts/verify-application-isolation.py`, `python scripts/verify-karakeep-isolation.py`, and `python scripts/verify-secret-isolation.py` after changes to these boundaries. Run the first two sequentially because the application-label probes intentionally share policy selectors.

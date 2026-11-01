@@ -77,22 +77,6 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: database
-            k8s:postgres-operator.crunchydata.com/cluster: postgres16
-      toPorts:
-        - ports:
-            - port: "5432"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: database
-            k8s:app.kubernetes.io/name: meilisearch-karakeep
-      toPorts:
-        - ports:
-            - port: "7700"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
             k8s:io.kubernetes.pod.namespace: network
             k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
       toPorts:

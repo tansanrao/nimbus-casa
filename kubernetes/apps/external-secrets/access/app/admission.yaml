@@ -29,22 +29,6 @@ spec:
             "keys": "crunchy-postgres|garage"
           },
           {
-            "namespace": "database",
-            "name": "meilisearch-karakeep",
-            "storeKind": "ClusterSecretStore",
-            "store": "onepassword",
-            "target": "meilisearch-karakeep",
-            "keys": "karakeep"
-          },
-          {
-            "namespace": "database",
-            "name": "meilisearch-karakeep-volsync",
-            "storeKind": "ClusterSecretStore",
-            "store": "onepassword",
-            "target": "meilisearch-karakeep-volsync-secret",
-            "keys": "garage|volsync-garage-template"
-          },
-          {
             "namespace": "default",
             "name": "smtp-relay-secret",
             "storeKind": "ClusterSecretStore",
@@ -299,14 +283,6 @@ spec:
             "store": "onepassword",
             "target": "authentik-secret",
             "keys": "authentik"
-          },
-          {
-            "namespace": "karakeep",
-            "name": "karakeep-db-secret",
-            "storeKind": "ClusterSecretStore",
-            "store": "crunchy-pgo-secrets",
-            "target": "karakeep-db-secret",
-            "keys": "postgres16-pguser-karakeep"
           },
           {
             "namespace": "karakeep",

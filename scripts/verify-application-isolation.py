@@ -72,7 +72,7 @@ def probe(app):
         worker = app == 'authentik' and p['metadata']['labels'].get('app.kubernetes.io/component') == 'worker'
         if not worker:
             check(app + '/' + p['metadata']['name'] + ' has no API token', spec.get('automountServiceAccountToken') is False and not any(s.get('serviceAccountToken') for v in spec.get('volumes', []) for s in v.get('projected', {}).get('sources', [])))
-    targets = [(pg,5432,True)] + [(h,p,True) for h,p in extras[app]]
+    targets = [(pg,5432,app != 'karakeep')] + [(h,p,True) for h,p in extras[app]]
     targets += [(api,443,False), ('10.10.40.40',6443,False), ('10.10.40.10',2049,False), (immich,2283,False), (sonarr,8989,False)]
     targets += [(app_ips[a],ports[a],False) for a in APPS if a != app]
     labels = {'app.kubernetes.io/name':app,'app.kubernetes.io/controller':'karakeep' if app == 'karakeep' else 'main'}

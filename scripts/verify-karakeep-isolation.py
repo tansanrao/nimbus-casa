@@ -80,14 +80,15 @@ r = run('karakeep', 'karakeep', 'node', '--input-type=module', input=cdp)
 record('Karakeep controls browser and renders public HTTPS', r.returncode == 0, r.stdout.strip() if r.returncode == 0 else r.stderr[-400:])
 
 checks = r'''
-import net from 'node:net';
-const db=new URL(process.env.DATABASE_URL);
-await new Promise((resolve,reject)=>{const s=net.createConnection({host:db.hostname,port:Number(db.port||5432)},()=>{s.destroy();resolve()});s.setTimeout(4000,()=>{s.destroy();reject(new Error('database timeout'))});s.on('error',reject)});
+import fs from 'node:fs';
+const fd=fs.openSync('/data/db.db','r');const header=Buffer.alloc(16);fs.readSync(fd,header,0,16,0);fs.closeSync(fd);
+if(header.toString()!=='SQLite format 3\0')throw new Error('SQLite database missing');
+if(process.env.DATABASE_URL)throw new Error('Unused PostgreSQL credential still mounted');
 for(const [name,url] of [['search',process.env.MEILI_ADDR+'/health'],['OAuth',process.env.OAUTH_WELLKNOWN_URL],['app','http://127.0.0.1:3000']]){const r=await fetch(url,{signal:AbortSignal.timeout(5000)});if(!r.ok)throw new Error(name+' HTTP '+r.status);console.log(name+' HTTP '+r.status)}
-console.log('database connected');if(process.env.COREPACK_INTEGRITY_KEYS==='0')throw new Error('Corepack integrity disabled');
+console.log('local SQLite database present');if(process.env.COREPACK_INTEGRITY_KEYS==='0')throw new Error('Corepack integrity disabled');
 '''
 r = run('karakeep', 'karakeep', 'node', '--input-type=module', input=checks)
-record('Karakeep database, search, OAuth and UI dependencies', r.returncode == 0, r.stdout.strip() if r.returncode == 0 else r.stderr[-400:])
+record('Karakeep SQLite, search, OAuth and UI dependencies', r.returncode == 0, r.stdout.strip() if r.returncode == 0 else r.stderr[-400:])
 
 
 def service(name, ns):
@@ -112,7 +113,7 @@ for name, host, port in targets:
     record('browser to ' + name + ' denied', blocked, 'exit=' + str(r.returncode))
 
 # Downloads performed by the application itself must also stay out of private services.
-app_targets = [(host, port) for name, host, port in targets if name in ('Immich server', 'API service', 'node API', 'NAS')]
+app_targets = [(host, port) for name, host, port in targets if name in ('shared database pod', 'Immich server', 'API service', 'node API', 'NAS')]
 code = r"""
 import net from 'node:net';
 for(const [host,port] of TARGETS){await new Promise((resolve,reject)=>{const s=net.createConnection({host,port},()=>{s.destroy();reject(Error('unexpected private access'))});s.setTimeout(3000,()=>{s.destroy();resolve()});s.on('error',e=>{if(['ECONNREFUSED','EHOSTUNREACH','ENETUNREACH'].includes(e.code))resolve();else reject(e)})})}
