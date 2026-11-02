@@ -45,6 +45,16 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
+            k8s:io.kubernetes.pod.namespace: authentik
+            k8s:app.kubernetes.io/name: authentik-outpost-ldap
+      toPorts:
+        - ports:
+            - port: "3389"
+              protocol: TCP
+            - port: "6636"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
             k8s:k8s-app: kube-dns
             k8s:io.kubernetes.pod.namespace: kube-system
       toPorts:

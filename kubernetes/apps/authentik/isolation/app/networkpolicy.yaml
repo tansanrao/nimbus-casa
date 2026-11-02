@@ -48,6 +48,16 @@ spec:
     matchLabels:
       k8s:app.kubernetes.io/name: authentik-outpost-ldap
   ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media-services
+            k8s:app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "3389"
+              protocol: TCP
+            - port: "6636"
+              protocol: TCP
     - fromCIDR:
         - 10.10.0.0/16
       toPorts:
