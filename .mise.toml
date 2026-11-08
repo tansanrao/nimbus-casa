@@ -8,7 +8,7 @@ TALOSCONFIG = "{{config_root}}/talos/clusterconfig/talosconfig"
 # Keep on 3.14: ansible-core 2.21 supports controller Python through 3.14.
 "python" = "3.14.10"
 "pipx:ansible-core" = "2.22.0"
-"pipx:makejinja" = "2.9.1"
+"pipx:makejinja" = "2.9.2"
 "aqua:budimanjojo/talhelper" = "3.1.17"
 "aqua:cilium/cilium-cli" = "0.20.2"
 "aqua:cli/cli" = "2.103.3"
