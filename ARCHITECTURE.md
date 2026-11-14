@@ -2,7 +2,7 @@
 
 Target architecture for the Nimbus Casa homelab: a Hetzner VPS public edge, WireGuard backhaul, HAProxy routing, GitOps-managed Kubernetes, and scriptable host infrastructure with minimal third-party runtime dependency.
 
-Last updated: 2026-04-23
+Last updated: 2026-11-14
 
 ## Goals
 
@@ -13,8 +13,8 @@ Last updated: 2026-04-23
   - TLS passthrough edge for all Kubernetes services attached to Envoy external.
   - L7 TLS-terminating frontend for selected future services hosted on separate Proxmox VMs.
 - Keep home services private by default, with narrow, auditable paths from the VPS into Kubernetes.
-- Move shared Postgres and Valkey out of Kubernetes into a dedicated Proxmox VM.
-- Make the VPS, database VM, and eventually Proxmox VM lifecycle reproducible from this repository.
+- Keep PostgreSQL and the Redis-compatible cache in Kubernetes, managed by operators (CloudNativePG and Dragonfly).
+- Make the VPS, connector VM, and eventually Proxmox VM lifecycle reproducible from this repository.
 - Prefer boring, recoverable tools over enterprise-heavy platforms.
 
 ## Existing State
@@ -45,9 +45,9 @@ Last updated: 2026-04-23
 - `envoy-internal` routes remain home-network-only through UniFi local DNS pointing at the internal Envoy gateway.
 - Keep Proxmox guests on the HOMELAB VLAN.
 - Connector VM target IP: `10.10.40.21`.
-- Database VM target IP: `10.10.40.22`.
-- Database VM target OS: Ubuntu Server 26.04 LTS.
-- Postgres backup design should continue using pgBackRest to Garage and R2, with WAL and more frequent backups going only to Garage.
+- PostgreSQL stays in Kubernetes on CloudNativePG, with one cluster per role (`auth`, `media`, `immich-db`, `postgres`, `paradedb`) rather than a database VM.
+- Postgres backups use the Barman Cloud plugin: continuous WAL archiving and daily base backups to Garage. Off-site copies come from replicating Garage as a whole, not from a second database backup target.
+- The Redis-compatible cache stays in Kubernetes on Dragonfly.
 
 ## Home Network Model
 
@@ -64,7 +64,7 @@ Policy direction:
 - MGMT can administer Proxmox/TrueNAS/UniFi and selected infrastructure.
 - LAN can reach selected internal services through `envoy-internal`.
 - IOT should have minimal egress and only explicitly-needed access to services such as Home Assistant, DNS, NTP, or mDNS reflectors if used.
-- HOMELAB east-west access should not be assumed; DB and connector VMs should still have host firewalls.
+- HOMELAB east-west access should not be assumed; the connector VM should still have a host firewall.
 - VPS must never receive a route to MGMT, LAN, IOT, or the full HOMELAB subnet.
 
 HOMELAB known addresses:
@@ -80,7 +80,6 @@ HOMELAB known addresses:
 Reserved static addresses:
 
 - `10.10.40.21`: home connector VM.
-- `10.10.40.22`: database VM.
 - `10.10.40.23`: `nexus-kb`, Ubuntu 24.04 production host (8 vCPU, 16 GiB RAM, 400 GiB SSD-backed disk).
 - `10.10.40.62`: Envoy external gateway, already in use.
 - `10.10.40.61`: Envoy internal gateway, already in use.
@@ -90,10 +89,10 @@ Reserved static addresses:
 Use three IaC layers:
 
 1. **Kubernetes apps:** keep Flux as the source of truth for Kubernetes workloads, Gateway API routes, cert-manager, external-dns, app secrets, and in-cluster monitoring.
-2. **Machine creation:** use OpenTofu/Terraform for Proxmox-created VMs, starting with the connector VM and database VM. Optionally add Hetzner Cloud resources later, but since the VPS is manually created, do not force Hetzner into Terraform on day one.
-3. **Machine configuration:** use Ansible for the Hetzner VPS, connector VM, and database VM OS/application configuration.
+2. **Machine creation:** use OpenTofu/Terraform for Proxmox-created VMs, starting with the connector VM. Optionally add Hetzner Cloud resources later, but since the VPS is manually created, do not force Hetzner into Terraform on day one.
+3. **Machine configuration:** use Ansible for the Hetzner VPS and connector VM OS/application configuration.
 
-This split is intentionally simple. Terraform/OpenTofu is good at declarative resources such as Proxmox VMs, disks, NICs, cloud-init snippets, and DNS/server resources. Ansible is better at converging an already-existing Linux host: packages, files, services, firewall rules, Docker/Podman Compose, HAProxy, WireGuard, Postgres, Valkey, backups, and exporters.
+This split is intentionally simple. Terraform/OpenTofu is good at declarative resources such as Proxmox VMs, disks, NICs, cloud-init snippets, and DNS/server resources. Ansible is better at converging an already-existing Linux host: packages, files, services, firewall rules, Docker/Podman Compose, HAProxy, WireGuard, backups, and exporters.
 
 Chef/Puppet/Salt feel too heavy for a single-user homelab unless you specifically want a long-lived configuration management server. Shell scripts are tempting but tend to become hard to safely re-run. Ansible gives us idempotence, SSH transport, readable YAML, and no agent.
 
@@ -116,8 +115,8 @@ flowchart LR
   envoy --> k8s["Talos Kubernetes apps"]
   homedns["UniFi local DNS"] --> internal["Envoy internal gateway"]
 
-  k8s --> dbvm["Postgres 18 + Valkey VM"]
-  dbvm --> backups["TrueNAS/Garage/R2 backup targets"]
+  k8s --> cnpg["CloudNativePG Postgres clusters"]
+  cnpg --> backups["Garage on TrueNAS"]
 ```
 
 The key security boundary is that the VPS does not get a route to the whole home network. It gets a point-to-point WireGuard tunnel to the dedicated home connector VM, and that connector only forwards to explicitly-approved HOMELAB destinations.
@@ -251,58 +250,6 @@ Policy:
 - `envoy-external` means public through VPS.
 - `envoy-internal` means private via UniFi/home DNS only.
 
-## Database VM Plan
-
-Purpose:
-
-- Host Postgres 18 and Valkey outside Kubernetes.
-- Give stateful services a more stable persistence boundary than the single-node Kubernetes storage layer.
-- Keep data close to the cluster on the same Proxmox host/network.
-
-VM:
-
-- Ubuntu Server 26.04 LTS.
-- Separate OS disk and data disk.
-- Static IP on HOMELAB: `10.10.40.22`.
-- Firewall allows Postgres `5432` and Valkey `6379` only from Kubernetes node/pod CIDRs or a narrow service VLAN.
-- Optional local-only admin access via SSH from management VLAN.
-
-Postgres:
-
-- Install Postgres 18 from PGDG apt repository if the distro does not ship the desired version.
-- Use roles/databases managed by Ansible.
-- Use TLS for app connections if crossing VLANs.
-- Use `pgbackrest` for backups.
-- Export metrics with postgres_exporter.
-
-Backup policy:
-
-- Continue the current two-repository shape:
-  - repo1: Garage, primary and frequent.
-  - repo2: Cloudflare R2, less frequent offsite.
-- WAL archiving and frequent incremental/differential backup cadence go only to Garage.
-- R2 keeps the lower-frequency offsite retention copy.
-- Keep the Garage-first backup design of the in-cluster CloudNativePG clusters while moving ownership into Ansible-managed host config.
-
-Valkey:
-
-- Install distro package where available.
-- Bind to the DB VM's HOMELAB IP only.
-- Enable protected mode/auth.
-- Choose persistence deliberately:
-  - cache-only: no AOF/RDB, simplest.
-  - durable queues/sessions: AOF every second plus backups/snapshots.
-
-Migration:
-
-1. Build DB VM with OpenTofu + cloud-init.
-2. Configure Postgres 18 and Valkey with Ansible.
-3. Create databases/users matching current Kubernetes secrets.
-4. Dump/restore from the CloudNativePG clusters to the VM's Postgres 18 per app.
-5. Update ExternalSecrets/application env vars to point to DB VM.
-6. Cut apps over one by one.
-7. Keep the CloudNativePG clusters stopped (hibernated) until the rollback window expires.
-
 ## Proxmox IaC Plan
 
 Use OpenTofu/Terraform with the `bpg/proxmox` provider for VM lifecycle.
@@ -316,13 +263,10 @@ infrastructure/
       providers.tf
       variables.tf
       connector-vm.tf
-      db-vm.tf
       outputs.tf
       cloud-init/
         connector-user-data.yaml.tftpl
         connector-network-data.yaml.tftpl
-        db-user-data.yaml.tftpl
-        db-network-data.yaml.tftpl
   ansible/
     inventory.yml
     site.yml
@@ -332,8 +276,6 @@ infrastructure/
       wireguard/
       edge_proxy/
       connector_proxy/
-      postgres/
-      valkey/
       node_exporter/
 ```
 
@@ -352,8 +294,6 @@ Ansible responsibilities:
 - Write service configs.
 - Manage systemd services.
 - Manage firewall.
-- Manage Postgres users/databases.
-- Manage Valkey config.
 - Manage WireGuard and edge proxy config.
 - Manage connector HAProxy and firewall policy.
 
@@ -380,8 +320,8 @@ VPS should monitor from the outside:
 Home Kubernetes should monitor from the inside:
 
 - Node, pod, Gateway, certificate, and storage health.
-- DB VM Postgres/Valkey exporters.
-- Backup freshness.
+- CloudNativePG metrics, WAL archiving, and base backup freshness (`scripts/check-postgres.py --live`).
+- VolSync backup freshness.
 - Tunnel health from home side.
 
 Decision:
@@ -398,8 +338,6 @@ Decision:
 - Proxmox API supports token authentication, which is preferable for automation over password-based access.
 - Talos KubeSpan is WireGuard-based and useful for multi-node/multi-site clusters, but it is not the cleanest answer for a public edge proxy into a single-node home cluster.
 - Tailscale subnet routers are designed to expose non-Tailscale subnets into a tailnet; that is exactly the feature to avoid or tightly constrain for the VPS.
-- PostgreSQL's official apt repository is the path for installing supported versions such as Postgres 18 when distro defaults lag.
-- Valkey has Debian/Ubuntu package installation paths and can be run as a system service.
 
 Sources:
 
@@ -414,8 +352,6 @@ Sources:
 - Tailscale ACL syntax: https://tailscale.com/kb/1337/acl-syntax/
 - Ubuntu release cycle: https://ubuntu.com/about/release-cycle
 - Ubuntu 26.04 release announcement: https://lists.ubuntu.com/archives/ubuntu-announce/2026-April/000323.html
-- PostgreSQL Debian packages: https://www.postgresql.org/download/linux/debian/
-- Valkey installation: https://valkey.io/topics/installation/
 
 ## Implementation Inputs
 
@@ -424,31 +360,26 @@ These are not architecture blockers, but they are needed before writing the firs
 - Hetzner VPS public IPv4/IPv6 addresses.
 - Hetzner VPS SSH username and target OS image.
 - Proxmox API token details and storage/network bridge names.
-- Final VM sizing for the connector VM and database VM.
+- Final VM sizing for the connector VM.
 - Whether connector HAProxy should send PROXY protocol to Envoy external after testing Envoy Gateway support.
 - Exact list of future VM service hostnames and backend IPs once those VMs exist.
-- Postgres backup retention windows for Garage and R2.
-- Postgres network policy choice: accept from Talos node IP only, pod CIDRs, or a controlled egress/NAT path.
 
 ## Implementation Sequence
 
-1. Add OpenTofu/Proxmox skeleton for connector VM and database VM.
-2. Add Ansible skeleton for common host baseline, WireGuard, HAProxy, firewall, observability, Postgres, Valkey, and pgBackRest.
+1. Add OpenTofu/Proxmox skeleton for the connector VM.
+2. Add Ansible skeleton for common host baseline, WireGuard, HAProxy, firewall, and observability.
 3. Provision connector VM at `10.10.40.21`.
 4. Configure WireGuard between VPS `10.200.0.1` and connector `10.200.0.2`.
 5. Configure VPS HAProxy for `*.nimbus.casa` TLS passthrough to connector HAProxy.
 6. Configure connector HAProxy to forward Kubernetes passthrough traffic to Envoy external at `10.10.40.62:443`.
 7. Remove Cloudflare proxying and replace Cloudflare Tunnel DNS target with the Hetzner VPS.
 8. Test public ingress and logs before decommissioning Cloudflare Tunnel.
-9. Provision database VM at `10.10.40.22`.
-10. Configure Postgres 18, Valkey, pgBackRest, exporters, and firewall policy.
-11. Migrate apps from in-cluster Postgres/Dragonfly to the database VM one service at a time.
 
 ## Open Risks
 
 - Single Proxmox host remains the largest availability boundary.
+- PostgreSQL data lives on single-node `openebs-lvm` volumes inside the Kubernetes VM; recovery depends on the Garage backups, so keep restore drills current and replicate Garage off-site.
 - Public exposure through Hetzner means the VPS is now a high-value host and needs tight firewalling, automatic patching, minimal services, and clear backups.
 - TLS passthrough makes the VPS simpler but reduces edge-layer visibility into HTTP health/routing.
 - TLS termination on the VPS improves edge observability/control but duplicates certificate and route configuration.
-- Moving Postgres from CloudNativePG to a VM removes operator-managed conveniences; Ansible must cover users, backups, upgrades, metrics, and restore runbooks.
 - Terraform/OpenTofu state can leak sensitive data if secrets are placed there; keep secrets out of resource definitions where possible.
