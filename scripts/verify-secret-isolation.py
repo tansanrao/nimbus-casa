@@ -52,24 +52,25 @@ def case(name, fn):
     fn(x)
     cases.append((name, x))
 case('Immich item extraction', lambda x: x['spec'].update(dataFrom=[{'extract': {'key': 'immich'}}]))
-case('infrastructure item extraction', lambda x: x['spec'].update(dataFrom=[{'extract': {'key': 'crunchy-postgres'}}]))
+case('infrastructure item extraction', lambda x: x['spec'].update(dataFrom=[{'extract': {'key': 'garage'}}]))
 case('unknown ExternalSecret name', lambda x: x['metadata'].update(name='secret-isolation-negative-test'))
 case('cross-namespace contract reuse', lambda x: x['metadata'].update(namespace='karakeep-browser'))
 case('arbitrary destination Secret', lambda x: x['spec']['target'].update(name='stolen-credentials'))
-case('alternate top-level store', lambda x: x['spec']['secretStoreRef'].update(name='crunchy-pgo-secrets'))
+case('alternate top-level store', lambda x: x['spec']['secretStoreRef'].update(name='database-postgres'))
 case('alternate store kind', lambda x: x['spec']['secretStoreRef'].update(kind='SecretStore'))
 case('remoteRef cross-app key', lambda x: x['spec'].update(data=[{'secretKey':'password','remoteRef':{'key':'immich'}}]))
 case('dataFrom discovery', lambda x: x['spec'].update(dataFrom=[{'find':{'name':{'regexp':'.*'}}}]))
-case('dataFrom store override', lambda x: x['spec'].update(dataFrom=[{'extract':{'key':'radarr'},'sourceRef':{'storeRef':{'name':'crunchy-pgo-secrets','kind':'ClusterSecretStore'}}}]))
-case('data store override', lambda x: x['spec'].update(data=[{'secretKey':'password','remoteRef':{'key':'radarr'},'sourceRef':{'storeRef':{'name':'crunchy-pgo-secrets','kind':'ClusterSecretStore'}}}]))
+case('dataFrom store override', lambda x: x['spec'].update(dataFrom=[{'extract':{'key':'radarr'},'sourceRef':{'storeRef':{'name':'database-postgres','kind':'ClusterSecretStore'}}}]))
+case('data store override', lambda x: x['spec'].update(data=[{'secretKey':'password','remoteRef':{'key':'radarr'},'sourceRef':{'storeRef':{'name':'database-postgres','kind':'ClusterSecretStore'}}}]))
 case('template Secret import', lambda x: x['spec']['target']['template'].update(templateFrom=[{'secret':{'name':'other-app','items':[{'key':'password'}]}}]))
 for name, obj in cases:
     r = dry(obj)
     record(name + ' rejected by admission', r.returncode != 0 and 'external-secret-contracts' in r.stderr and ('denied' in r.stderr or 'failed' in r.stderr))
 for ns, sa, yes, no in [
-    ('database','external-secrets-pg','postgres16-pguser-authentik','immich16-pguser-postgres'),
-    ('media-database','database-secret-reader','media16-pguser-radarr','crunchy-postgres-secret'),
-    ('immich','database-secret-reader','immich16-pguser-immich','immich16-pguser-postgres')]:
+    ('database','postgres-secret-reader','postgres-mealie','postgres-superuser'),
+    ('authentik','database-secret-reader','auth-app','auth-superuser'),
+    ('media-database','database-secret-reader','media-radarr','media-backup-secret'),
+    ('immich','database-secret-reader','immich-db-app','immich-db-superuser')]:
     identity = 'system:serviceaccount:' + ns + ':' + sa
     for secret, allowed in [(yes, True), (no, False)]:
         r = kube('auth','can-i','get','secret/'+secret,'-n',ns,'--as='+identity)

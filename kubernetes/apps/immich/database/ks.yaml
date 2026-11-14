@@ -17,8 +17,6 @@ spec:
   dependsOn:
     - name: immich-isolation
       namespace: immich
-    - name: crunchy-pgo
-      namespace: database
     - name: barman-cloud
       namespace: database
     - name: onepassword

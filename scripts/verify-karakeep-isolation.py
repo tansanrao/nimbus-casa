@@ -95,7 +95,7 @@ def service(name, ns):
     return get('service', name, ns)['spec']['clusterIP']
 
 
-pg = kube('get', 'pods', '-n', 'database', '-l', 'postgres-operator.crunchydata.com/cluster=postgres16,postgres-operator.crunchydata.com/role=master', '-o', 'json')
+pg = kube('get', 'pods', '-n', 'database', '-l', 'cnpg.io/cluster=postgres,cnpg.io/instanceRole=primary', '-o', 'json')
 pg.check_returncode()
 db_ip = json.loads(pg.stdout)['items'][0]['status']['podIP']
 targets = [('Karakeep app', service('karakeep', 'karakeep'), 3000),

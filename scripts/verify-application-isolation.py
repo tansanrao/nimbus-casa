@@ -26,7 +26,12 @@ def check(name, ok):
         raise AssertionError(name)
 
 image = get('deployment', 'mealie', '-n', 'mealie')['spec']['template']['spec']['containers'][0]['image']
-pg = get('pods', '-n', 'database', '-l', 'postgres-operator.crunchydata.com/cluster=postgres16,postgres-operator.crunchydata.com/role=master')['items'][0]['status']['podIP']
+def primary(ns, cluster):
+    return get('pods', '-n', ns, '-l', f'cnpg.io/cluster={cluster},cnpg.io/instanceRole=primary')['items'][0]['status']['podIP']
+
+# authentik has its own cluster; mealie and miniflux share the plain postgres cluster.
+auth_db = primary('authentik', 'auth')
+shared_db = primary('database', 'postgres')
 
 def svc(ns, name):
     return get('service', name, '-n', ns)['spec']['clusterIP']
@@ -70,9 +75,11 @@ def probe(app):
             continue
         spec = p['spec']
         worker = app == 'authentik' and p['metadata']['labels'].get('app.kubernetes.io/component') == 'worker'
-        if not worker:
+        # CloudNativePG instances need the API; their Role covers only their own cluster.
+        database = 'cnpg.io/cluster' in p['metadata']['labels']
+        if not worker and not database:
             check(app + '/' + p['metadata']['name'] + ' has no API token', spec.get('automountServiceAccountToken') is False and not any(s.get('serviceAccountToken') for v in spec.get('volumes', []) for s in v.get('projected', {}).get('sources', [])))
-    targets = [(pg,5432,app != 'karakeep')] + [(h,p,True) for h,p in extras[app]]
+    targets = [(auth_db,5432,app == 'authentik'), (shared_db,5432,app in ('mealie','miniflux'))] + [(h,p,True) for h,p in extras[app]]
     targets += [(api,443,False), ('10.10.40.40',6443,False), ('10.10.40.10',2049,False), (immich,2283,False), (sonarr,8989,False)]
     targets += [(app_ips[a],ports[a],False) for a in APPS if a != app]
     labels = {'app.kubernetes.io/name':app,'app.kubernetes.io/controller':'karakeep' if app == 'karakeep' else 'main'}

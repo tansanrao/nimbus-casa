@@ -292,9 +292,6 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            k8s:postgres-operator.crunchydata.com/cluster: postgres16
-            k8s:io.kubernetes.pod.namespace: database
-        - matchLabels:
             k8s:cnpg.io/cluster: media
             k8s:io.kubernetes.pod.namespace: media-database
       toPorts:

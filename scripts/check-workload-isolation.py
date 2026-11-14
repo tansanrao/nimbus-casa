@@ -108,11 +108,12 @@ for ns in ('default', 'media', 'network'):
 
 immich = one(APPS / 'immich/immich/app/helmrelease.yaml')['spec']['values']
 assert 'envFrom' not in immich['controllers']['machine-learning']['containers']['app']
-assert 'immich16-pguser-postgres' not in (APPS / 'immich/immich/app/externalsecret.yaml').read_text()
-for ns in ('immich', 'media-database'):
-    cluster = one(APPS / ns / ('database' if ns == 'immich' else 'postgres') / 'app/cluster.yaml')
-    assert cluster['spec']['service']['type'] == 'ClusterIP'
-    assert cluster['spec']['backups']['pgbackrest']['global']['repo1-path'].startswith('/isolation/')
+assert 'superuser' not in (APPS / 'immich/immich/app/externalsecret.yaml').read_text()
+for path in ('immich/database/app/immich-db.yaml', 'media-database/postgres/app/media.yaml'):
+    spec = one(APPS / path)['spec']
+    assert not spec.get('enableSuperuserAccess')
+    assert 'LoadBalancer' not in json.dumps(spec.get('managed', {}).get('services', {}))
+    assert any(p['name'] == 'barman-cloud.cloudnative-pg.io' and p.get('isWALArchiver') for p in spec['plugins'])
 for app in ('jellyfin', 'kavita'):
     text = (APPS / 'media-services' / app / 'app/helmrelease.yaml').read_text()
     assert 'readOnly: true' in text and 'media-services-nfs-pvc' in text

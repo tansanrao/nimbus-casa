@@ -8,14 +8,21 @@ HelmReleases are active. Legacy Kustomizations remain suspended with `prune: fal
 and `deletionPolicy: Orphan`; legacy applications are stopped and their PVCs and
 source databases are retained. Do not resume these legacy holds indiscriminately.
 
+On 2026-11-14 every Crunchy cluster named below (`database/postgres16`,
+`database/immich16`, `media-database/media16`, `immich/immich16`) was replaced
+by CloudNativePG and deleted: Immich uses `immich/immich-db`, the Arr apps and
+Jellystat use `media-database/media`, authentik uses `authentik/auth`, and
+mealie and miniflux use `database/postgres`. Crunchy names in the procedure
+below are historical.
+
 ## Boundaries
 
 | Namespace | Contents | Permitted connections |
 | --- | --- | --- |
-| `immich` | Immich server, ML, dedicated PostgreSQL, dedicated Dragonfly | Ingress gateway to server; server to its database/cache/ML; restricted OAuth/geocoding/model downloads; database backups/operator/API |
+| `immich` | Immich server, ML, dedicated `immich-db` PostgreSQL, dedicated Dragonfly | Ingress gateway to server; server to its database/cache/ML; restricted OAuth/geocoding/model downloads; database backups/operator/API |
 | `media` | Radarr, Sonarr, Sonarr Anime, Prowlarr, Kapowarr, qBittorrent, SABnzbd, Recyclarr | Internet through Gluetun only; explicit application peers and media DB; internal ingress gateway; mounted media library |
 | `media-vpn` | Gluetun/pod gateway, admission webhook, split DNS | Pinned Mullvad relay on UDP 51820 (three permitted relay IPs); local DNS and VXLAN clients |
-| `media-database` | Dedicated `media16` PostgreSQL | Arr clients, database operator/API/replication, backup endpoints |
+| `media-database` | Dedicated `media` PostgreSQL | Arr and Jellystat clients, database operator/API, backup endpoint |
 | `media-services` | Jellyfin, Seerr, Kavita, Jellystat | Public HTTP(S) metadata services; explicit Arr/Jellyfin/database dependencies; read-only media library for Jellyfin/Kavita |
 
 Every target namespace has default-deny ingress and egress. Application policies

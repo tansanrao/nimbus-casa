@@ -106,9 +106,6 @@ spec:
               type: 8
     - toEndpoints:
         - matchLabels:
-            k8s:postgres-operator.crunchydata.com/cluster: media16
-            k8s:io.kubernetes.pod.namespace: media-database
-        - matchLabels:
             k8s:cnpg.io/cluster: media
             k8s:io.kubernetes.pod.namespace: media-database
       toPorts:
@@ -251,9 +248,6 @@ spec:
               type: 8
     - toEndpoints:
         - matchLabels:
-            k8s:postgres-operator.crunchydata.com/cluster: media16
-            k8s:io.kubernetes.pod.namespace: media-database
-        - matchLabels:
             k8s:cnpg.io/cluster: media
             k8s:io.kubernetes.pod.namespace: media-database
       toPorts:
@@ -395,9 +389,6 @@ spec:
             - family: IPv4
               type: 8
     - toEndpoints:
-        - matchLabels:
-            k8s:postgres-operator.crunchydata.com/cluster: media16
-            k8s:io.kubernetes.pod.namespace: media-database
         - matchLabels:
             k8s:cnpg.io/cluster: media
             k8s:io.kubernetes.pod.namespace: media-database
@@ -543,9 +534,6 @@ spec:
             - family: IPv4
               type: 8
     - toEndpoints:
-        - matchLabels:
-            k8s:postgres-operator.crunchydata.com/cluster: media16
-            k8s:io.kubernetes.pod.namespace: media-database
         - matchLabels:
             k8s:cnpg.io/cluster: media
             k8s:io.kubernetes.pod.namespace: media-database

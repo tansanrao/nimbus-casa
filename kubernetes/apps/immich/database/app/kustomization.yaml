@@ -2,11 +2,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./cluster.yaml
-  - ./externalsecret.yaml
-  - ./secretstore.yaml
-  - ./init-sql.yaml
   - ./immich-db.yaml
   - ./networkpolicy.yaml
+  - ./secretstore.yaml
 components:
   - ../../../../components/cnpg

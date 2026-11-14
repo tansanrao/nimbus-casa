@@ -30,6 +30,7 @@ Last updated: 2026-04-23
 - Some services are exposed through Cloudflare Tunnel.
 - Jellyfin currently works through HAProxy on the Hetzner VPS over Tailscale to Envoy Gateway.
 - Concern: the Tailscale path can expose too much of the home network to the VPS.
+- PostgreSQL runs in Kubernetes on CloudNativePG (since 2026-11-14): `authentik/auth`, `media-database/media`, `immich/immich-db`, `database/postgres` and `database/paradedb`, with Barman Cloud base backups and WAL archiving to Garage.
 
 ## Architecture Decisions
 
@@ -281,7 +282,7 @@ Backup policy:
   - repo2: Cloudflare R2, less frequent offsite.
 - WAL archiving and frequent incremental/differential backup cadence go only to Garage.
 - R2 keeps the lower-frequency offsite retention copy.
-- Preserve the spirit of the current Crunchy `pgbackrest` config while moving ownership into Ansible-managed host config.
+- Keep the Garage-first backup design of the in-cluster CloudNativePG clusters while moving ownership into Ansible-managed host config.
 
 Valkey:
 
@@ -297,10 +298,10 @@ Migration:
 1. Build DB VM with OpenTofu + cloud-init.
 2. Configure Postgres 18 and Valkey with Ansible.
 3. Create databases/users matching current Kubernetes secrets.
-4. Dump/restore from Crunchy Postgres 16 to Postgres 18 per app.
+4. Dump/restore from the CloudNativePG clusters to the VM's Postgres 18 per app.
 5. Update ExternalSecrets/application env vars to point to DB VM.
 6. Cut apps over one by one.
-7. Keep Crunchy cluster read-only/paused until rollback window expires.
+7. Keep the CloudNativePG clusters stopped (hibernated) until the rollback window expires.
 
 ## Proxmox IaC Plan
 
@@ -449,5 +450,5 @@ These are not architecture blockers, but they are needed before writing the firs
 - Public exposure through Hetzner means the VPS is now a high-value host and needs tight firewalling, automatic patching, minimal services, and clear backups.
 - TLS passthrough makes the VPS simpler but reduces edge-layer visibility into HTTP health/routing.
 - TLS termination on the VPS improves edge observability/control but duplicates certificate and route configuration.
-- Moving Postgres from Crunchy to a VM removes operator-managed conveniences; Ansible must cover users, backups, upgrades, metrics, and restore runbooks.
+- Moving Postgres from CloudNativePG to a VM removes operator-managed conveniences; Ansible must cover users, backups, upgrades, metrics, and restore runbooks.
 - Terraform/OpenTofu state can leak sensitive data if secrets are placed there; keep secrets out of resource definitions where possible.

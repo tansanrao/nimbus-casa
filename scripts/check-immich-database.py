@@ -17,14 +17,14 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--live', action='store_true')
 p.add_argument('--renovate-log', type=Path)
 a = p.parse_args()
-path = ROOT / 'kubernetes/apps/immich/database/app/cluster.yaml'
+path = ROOT / 'kubernetes/apps/immich/database/app/immich-db.yaml'
 def run(*cmd):
     return subprocess.check_output(cmd, text=True)
 cluster = json.loads(run('yq', '-o=json', '.', str(path)))
-image = cluster['spec']['image']
-m = re.fullmatch(r'ghcr.io/aaronspruit/crunchy-postgres-vectorchord:ubi9-(18\.\d+)-\d+-(\d+\.\d+\.\d+)@(sha256:[a-f0-9]{64})', image)
+image = cluster['spec']['imageName']
+m = re.fullmatch(r'ghcr.io/tensorchord/cloudnative-vectorchord:(18\.\d+)-(\d+\.\d+\.\d+)@(sha256:[a-f0-9]{64})', image)
 assert m, 'Expected reviewed publisher, PostgreSQL 18, composite release tag and digest'
-assert cluster['spec']['postgresVersion'] == 18
+assert 'vchord.so' in cluster['spec']['postgresql']['shared_preload_libraries']
 print('PASS pinned PostgreSQL 18 image')
 if a.renovate_log:
     text = a.renovate_log.read_text()
@@ -38,15 +38,15 @@ if a.renovate_log:
     print('PASS Renovate extracts release and digest and resolves the registry')
 if a.live:
     def get(kind, *args):return json.loads(run('kubectl', 'get', kind, *args, '-n', 'immich', '-o', 'json'))
-    assert get('postgrescluster', 'immich16')['spec']['image'] == image
-    pods = get('pods', '-l', 'postgres-operator.crunchydata.com/cluster=immich16,postgres-operator.crunchydata.com/role=master')['items']
+    assert get('cluster.postgresql.cnpg.io', 'immich-db')['spec']['imageName'] == image
+    pods = get('pods', '-l', 'cnpg.io/cluster=immich-db,cnpg.io/instanceRole=primary')['items']
     assert len(pods) == 1
     pod = pods[0]
-    db = next(c for c in pod['spec']['containers'] if c['name'] == 'database')
-    status = next(c for c in pod['status']['containerStatuses'] if c['name'] == 'database')
+    db = next(c for c in pod['spec']['containers'] if c['name'] == 'postgres')
+    status = next(c for c in pod['status']['containerStatuses'] if c['name'] == 'postgres')
     assert db['image'] == image and status['ready'] and status['imageID'].endswith('@'+m[3])
     print('PASS running database matches the pinned digest')
-    sql = "SELECT current_setting('server_version'); SELECT extversion FROM pg_extension WHERE extname='vchord'; SELECT bool_and(indisvalid AND indisready) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid WHERE c.relname IN ('face_index','clip_index'); SELECT count(*) FROM pg_class WHERE relname IN ('face_index','clip_index');"
-    lines = run('kubectl','exec', '-n','immich',pod['metadata']['name'],'-c','database','--','psql','-U','postgres','-d','immich','-XAt','-v','ON_ERROR_STOP=1','-c',sql).splitlines()
+    sql = "SELECT split_part(current_setting('server_version'), ' ', 1); SELECT extversion FROM pg_extension WHERE extname='vchord'; SELECT bool_and(indisvalid AND indisready) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid WHERE c.relname IN ('face_index','clip_index'); SELECT count(*) FROM pg_class WHERE relname IN ('face_index','clip_index');"
+    lines = run('kubectl','exec', '-n','immich',pod['metadata']['name'],'-c','postgres','--','psql','-d','immich','-XAt','-v','ON_ERROR_STOP=1','-c',sql).splitlines()
     assert lines == [m[1],m[2],'t','2'], lines
     print('PASS PostgreSQL/VectorChord versions and both valid search indexes')

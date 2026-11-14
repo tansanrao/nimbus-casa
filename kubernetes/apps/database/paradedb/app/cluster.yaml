@@ -24,7 +24,7 @@ spec:
       max_wal_size: 2GB
   bootstrap:
     initdb:
-      # Same collation as the Crunchy databases; also inherited by Database resources.
+      # Collation the data was created with; Database resources inherit it.
       localeCollate: en_US.UTF-8
       localeCType: en_US.UTF-8
       dataChecksums: true

@@ -6,7 +6,6 @@ components:
   - ../../components/sops
 resources:
   - ./namespace.yaml
-  - ./crunchy-postgres/ks.yaml
   - ./cloudnative-pg/ks.yaml
   - ./postgres/ks.yaml
   - ./paradedb/ks.yaml

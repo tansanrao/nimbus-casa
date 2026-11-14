@@ -30,31 +30,37 @@
   },
   packageRules: [
     {
-      description: "Pin Crunchy PostgreSQL 18 patches and builds; require review",
-      matchPackageNames: ["registry.developers.crunchydata.com/crunchydata/crunchy-postgres"],
+      description: "Pin CloudNativePG PostgreSQL 18 images; require review",
+      matchPackageNames: ["ghcr.io/cloudnative-pg/postgresql"],
       pinDigests: true,
       automerge: false,
       schedule: ["at any time"],
-      versioning: "regex:^(?<compatibility>ubi9-18)\\.(?<major>\\d+)-(?<minor>\\d+)$",
-      allowedVersions: "/^ubi9-18\\.\\d+-\\d+$/",
-      prBodyNotes: ["Major PostgreSQL upgrades require an explicit PGUpgrade migration and restore rehearsal; never change the image major automatically."],
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)-(?<compatibility>standard-trixie)$",
+      allowedVersions: "/^18\\.\\d+-standard-trixie$/",
+      prBodyNotes: ["PostgreSQL major stays 18. A major upgrade is an explicit image change that CloudNativePG runs offline with pg_upgrade; take a fresh base backup afterwards."],
     },
     {
-      "description": "Review all Immich database image updates, including rebuilds and VectorChord changes",
-      "matchPackageNames": [
-        "ghcr.io/aaronspruit/crunchy-postgres-vectorchord"
-      ],
-      "pinDigests": true,
-      "schedule": [
-        "at any time"
-      ],
-      "automerge": false,
-      "prPriority": 20,
-      "versioning": "regex:^(?<compatibility>ubi9-18)\\.(?<major>\\d+)-(?<minor>\\d+)-(?<patch>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
-      "allowedVersions": "/^ubi9-18\\.\\d+-\\d+-(?:0|1)\\.\\d+\\.\\d+$/",
-      "prBodyNotes": [
-        "PostgreSQL major stays 18. Composite ordering is PostgreSQL patch, Crunchy build, then VectorChord major/minor/patch. Rehearse restore, ALTER EXTENSION, and vector-index rebuilds before merging; do not assume the Renovate update type describes extension compatibility."
-      ]
+      description: "Review all Immich database image updates, including VectorChord changes",
+      matchPackageNames: ["ghcr.io/tensorchord/cloudnative-vectorchord"],
+      pinDigests: true,
+      automerge: false,
+      schedule: ["at any time"],
+      prPriority: 20,
+      // Tags are <pg major>.<pg minor>-<vchord version>, e.g. 18.6-1.1.1.
+      versioning: "regex:^(?<compatibility>18)\\.(?<major>\\d+)-(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$",
+      allowedVersions: "/^18\\.\\d+-\\d+\\.\\d+\\.\\d+$/",
+      prBodyNotes: ["PostgreSQL major stays 18. Ordering is PostgreSQL minor, then VectorChord major/minor/patch. A VectorChord change needs ALTER EXTENSION and may need vector index rebuilds; check Immich's supported range before merging."],
+    },
+    {
+      description: "Review ParadeDB image updates",
+      matchPackageNames: ["docker.io/paradedb/paradedb"],
+      pinDigests: true,
+      automerge: false,
+      schedule: ["at any time"],
+      // Tags are <pg major>-v<pg_search version>, e.g. 18-v0.26.6.
+      versioning: "regex:^(?<compatibility>18)-v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+      allowedVersions: "/^18-v\\d+\\.\\d+\\.\\d+$/",
+      prBodyNotes: ["After merging, run ALTER EXTENSION pg_search UPDATE in every database that uses it."],
     },
     {
       description: "Pin official Seerr releases and require review of updates",
@@ -251,6 +257,13 @@
       matchStrings: [
         "renovate-image: depName=(?<depName>[^\\s]+)\\n\\s+tag: (?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})",
       ],
+      datasourceTemplate: "docker",
+    },
+    {
+      description: "Track CloudNativePG Cluster images",
+      customType: "regex",
+      managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml$/"],
+      matchStrings: ["imageName: (?<depName>[^:\\s]+):(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})"],
       datasourceTemplate: "docker",
     },
     {

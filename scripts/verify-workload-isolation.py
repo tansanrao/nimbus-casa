@@ -75,7 +75,7 @@ def public(stage, allowed):
 
 def local(stage):
     tcp('Arr to downloader', 'qbittorrent.media.svc.cluster.local.', 8080, True, stage, radarr)
-    tcp('Arr to database', 'media16-primary.media-database.svc.cluster.local.', 5432, True, stage, radarr)
+    tcp('Arr to database', 'media-rw.media-database.svc.cluster.local.', 5432, True, stage, radarr)
     tcp('Arr to indexer', 'prowlarr.media.svc.cluster.local.', 80, True, stage, radarr)
     r = execute(qb, 'sh', '-c', 'test -r /mediastore && test -w /mediastore && stat /mediastore >/dev/null')
     record(stage + ': mounted NFS accessible', r.returncode == 0)
@@ -87,7 +87,7 @@ public('baseline', True)
 local('baseline')
 immich_server = get('service', 'immich-server', 'immich')['spec']['clusterIP']
 immich_cache = get('service', 'immich-cache', 'immich')['spec']['clusterIP']
-r = kubectl('get', 'pods', '-n', 'immich', '-l', 'postgres-operator.crunchydata.com/role=master', '-o', 'json')
+r = kubectl('get', 'pods', '-n', 'immich', '-l', 'cnpg.io/cluster=immich-db,cnpg.io/instanceRole=primary', '-o', 'json')
 r.check_returncode()
 immich_db = json.loads(r.stdout)['items'][0]['status']['podIP']
 for name, target, port in [('Immich server', immich_server, 2283), ('Immich cache', immich_cache, 6379),

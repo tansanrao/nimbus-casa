@@ -33,8 +33,8 @@ exclude_reason() {
       ;;
   esac
 
-  if [[ "$namespace" == "database" && "$name" =~ ^(immich16-postgres-.*-pgdata|postgres16-postgres-.*-pgdata)$ ]]; then
-    printf '%s\n' "Protected by pgBackRest and WAL archiving to S3"
+  if kubectl get pvc -n "$namespace" "$name" -o jsonpath='{.metadata.labels.cnpg\.io/cluster}' 2>/dev/null | grep -q .; then
+    printf '%s\n' "CloudNativePG volume; protected by Barman Cloud base backups and WAL archiving to Garage"
     return 0
   fi
 

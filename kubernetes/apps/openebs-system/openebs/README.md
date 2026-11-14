@@ -88,7 +88,7 @@ This repo has three backup classes for persistent data:
 
 - `VolSync + OpenEBS LVM`: application PVCs that live on `openebs-lvm` and are backed up with restic via VolSync.
 - `NFS-backed storage`: workloads like Immich uploads and the media shared store that are backed up at the NAS/storage layer, not through VolSync.
-- `Database-native backups`: PostgreSQL clusters that are backed up with `pgBackRest` and WAL archiving to S3.
+- `Database-native backups`: CloudNativePG clusters that are backed up by the Barman Cloud plugin (daily base backups and continuous WAL archiving to Garage).
 
 ### VolSync-protected PVCs
 
@@ -111,8 +111,7 @@ These PVCs are not gaps in the VolSync/OpenEBS design:
 
 - `default/immich-nfs-pvc`: backed up through the Immich NFS storage path.
 - `media/mediastore-nfs-pvc`: backed up through the media NFS storage path.
-- `database/immich16-postgres-*-pgdata`: protected by `pgBackRest` and WAL-to-S3.
-- `database/postgres16-postgres-*-pgdata`: protected by `pgBackRest` and WAL-to-S3.
+- CloudNativePG volumes (`<cluster>-<n>`, labelled `cnpg.io/cluster`): `authentik/auth-1`, `database/postgres-1`, `database/paradedb-1`, `immich/immich-db-1` and `media-database/media-1`, protected by Barman Cloud base backups and WAL archiving to Garage.
 - `media/jellystat`: the deployed chart is currently stateless and only uses `emptyDir`, so it should not carry the shared VolSync component.
 
 ## Restore runbook
