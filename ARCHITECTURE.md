@@ -61,7 +61,7 @@ On the home network, UniFi resolves `external.nimbus.casa` directly to `10.10.40
 
 WireGuard peers allow only each other's `/32` (`10.200.0.1` and `10.200.0.2`). nftables on both hosts is the enforcement boundary; HAProxy only routes.
 
-Cloudflare Tunnel was removed in April 2026. Its manifests remain in `kubernetes/apps/network/cloudflare-tunnel/` but are not deployed. `nexus-kb` is the exception: a separate Cloudflare tunnel on that host forwards `app.nexus-kb.com` (see [ansible/README.md](ansible/README.md)).
+Cloudflare Tunnel was removed from the cluster in April 2026. `nexus-kb` is the exception: a separate Cloudflare tunnel on that host forwards `app.nexus-kb.com` (see [ansible/README.md](ansible/README.md)).
 
 ## Kubernetes
 
