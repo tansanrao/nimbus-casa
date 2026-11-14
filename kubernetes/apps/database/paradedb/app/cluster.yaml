@@ -26,7 +26,7 @@ spec:
     initdb:
       dataChecksums: true
       postInitApplicationSQL:
-        - CREATE EXTENSION IF NOT EXISTS pg_search;
+        - CREATE EXTENSION IF NOT EXISTS pg_search CASCADE;
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
