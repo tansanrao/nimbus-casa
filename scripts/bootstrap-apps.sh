@@ -58,7 +58,7 @@ function apply_sops_secrets() {
     log debug "Applying secrets"
 
     local -r secrets=(
-        "${ROOT_DIR}/bootstrap/github-deploy-key.sops.yaml"
+        "${ROOT_DIR}/bootstrap/onepassword-secret.sops.yaml"
         "${ROOT_DIR}/bootstrap/sops-age.sops.yaml"
         "${ROOT_DIR}/kubernetes/components/sops/cluster-secrets.sops.yaml"
     )
@@ -69,14 +69,18 @@ function apply_sops_secrets() {
             continue
         fi
 
+        # Metadata is not encrypted; secrets without a namespace go to flux-system
+        local namespace
+        namespace=$(yq '.metadata.namespace // "flux-system"' "${secret}")
+
         # Check if the secret resources are up-to-date
-        if sops exec-file "${secret}" "kubectl --namespace flux-system diff --filename {}" &>/dev/null; then
+        if sops exec-file "${secret}" "kubectl --namespace ${namespace} diff --filename {}" &>/dev/null; then
             log info "Secret resource is up-to-date" "resource=$(basename "${secret}" ".sops.yaml")"
             continue
         fi
 
         # Apply secret resources
-        if sops exec-file "${secret}" "kubectl --namespace flux-system apply --server-side --filename {}" &>/dev/null; then
+        if sops exec-file "${secret}" "kubectl --namespace ${namespace} apply --server-side --filename {}" &>/dev/null; then
             log info "Secret resource applied successfully" "resource=$(basename "${secret}" ".sops.yaml")"
         else
             log error "Failed to apply secret resource" "resource=$(basename "${secret}" ".sops.yaml")"
