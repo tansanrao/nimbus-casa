@@ -1,92 +1,57 @@
-# Nimbus Casa Infrastructure
+# Nimbus Casa
 
-Infrastructure-as-code for Nimbus Casa.
+Infrastructure as code for the Nimbus Casa homelab: a single-node Talos Kubernetes cluster managed by Flux, plus the VMs and the Hetzner VPS around it. [ARCHITECTURE.md](ARCHITECTURE.md) describes the hosts, network, ingress path and databases.
 
-The target architecture is documented in [ARCHITECTURE.md](./ARCHITECTURE.md). In short: a Hetzner VPS public edge, WireGuard backhaul, HAProxy routing, Flux-managed Kubernetes, and Ansible-managed host configuration.
+## Layout
 
-## Repository Layout
+| Path | Contents |
+| --- | --- |
+| `kubernetes/` | Flux apps, shared components and cluster settings |
+| `talos/` | talhelper configuration and patches for `k8s0` |
+| `bootstrap/` | One-time cluster bootstrap resources |
+| `opentofu/proxmox/` | VMs created on Proxmox (`connector0`, `nexus-kb`) |
+| `ansible/` | Configuration for the VPS, `connector0` and `nexus-kb` |
+| `scripts/` | Static checks and live verification scripts |
+| `docs/` | Runbooks and isolation notes |
+| `.taskfiles/` | Taskfile modules for `bootstrap:` and `talos:` |
 
-- `ansible/`: host configuration for infrastructure machines. The first target is the Hetzner VPS edge, `gw0.kiad.tansanrao.net`.
-- `kubernetes/`: Flux-managed Kubernetes apps, components, and cluster reconciliation state.
-- `talos/`: Talos Linux machine configuration for the Kubernetes node.
-- `bootstrap/`: one-time bootstrap resources for cluster setup.
-- `.taskfiles/`: Taskfile modules for repeatable local operations.
+## Setup
 
-## Tooling
-
-Local tools are managed with [mise](https://mise.jdx.dev/).
+Tools are pinned in `.mise.toml`:
 
 ```sh
 mise trust
 mise install
 ```
 
-Secrets are managed with [SOPS](https://github.com/getsops/sops) and age. The expected local age key path is `age.key`
+SOPS decrypts secrets with the age key at `age.key`. The Taskfile sets `KUBECONFIG`, `SOPS_AGE_KEY_FILE` and `TALOSCONFIG` from the repository root.
 
-## Ansible
-
-The VPS edge configuration lives under `ansible/`.
+## Common tasks
 
 ```sh
-task ansible:inventory
-task ansible:syntax
-task ansible:check
-task ansible:apply
-```
-
-Encrypted VPS variables live in:
-
-```sh
-ansible/group_vars/vps.sops.yml
-```
-
-Before applying the VPS playbook, replace the placeholder WireGuard keys:
-
-```sh
-sops ansible/group_vars/vps.sops.yml
-```
-
-Install WireGuard tools locally, then generate keys with `wg`:
-
-```sh
-wg genkey | tee /tmp/gw0-wg.key | wg pubkey > /tmp/gw0-wg.pub
-```
-
-All Ansible-managed infrastructure hosts should run UTC unless a host has an explicit documented exception.
-
-## Kubernetes
-
-Flux is the source of truth for Kubernetes workloads and cluster apps.
-
-Useful checks:
-
-```sh
-flux check
-flux get sources git -A
-flux get ks -A
-flux get hr -A
-```
-
-Force Flux to reconcile from Git:
-
-```sh
-task reconcile
-```
-
-## Talos
-
-Talos tasks are kept under the `talos:` namespace.
-
-```sh
+task reconcile                 # Flux pulls the latest commit
 task talos:generate-config
 task talos:apply-node IP=? MODE=?
 task talos:upgrade-node IP=?
 task talos:upgrade-k8s
+task opentofu:plan             # also: fmt, validate, apply
+task ansible:check             # also: inventory, syntax, apply
 ```
 
-## Notes
+Checks that need no cluster access:
 
-- Cloudflare remains DNS-only in the target architecture.
-- Public ingress should move through the Hetzner VPS edge rather than Cloudflare Tunnel.
-- `kubernetes/` contains cluster desired state; `ansible/` contains host desired state.
-- Keep secrets out of Terraform/OpenTofu state and unencrypted YAML.
+```sh
+python3 scripts/check-workload-isolation.py
+python3 scripts/check-postgres.py
+```
+
+Run `scripts/check-postgres.py --live` and the `scripts/verify-*.py` scripts against the live cluster.
+
+## Docs
+
+- [Workload isolation](docs/workload-isolation.md)
+- [Karakeep browser isolation](docs/karakeep-isolation.md)
+- [OpenEBS LVM and VolSync](kubernetes/apps/openebs-system/openebs/README.md)
+- [Intel GPU](kubernetes/apps/kube-system/intel-gpu-plugin/README.md)
+- [Proxmox and OpenTofu](opentofu/proxmox/README.md)
+- [Ansible hosts](ansible/README.md)

@@ -1,15 +1,8 @@
-# Talos Patching
+# Talos patches
 
-This directory contains Kustomization patches that are added to the talhelper configuration file.
+`talconfig.yaml` applies these patches when `task talos:generate-config` runs. A new file here takes effect only after it is listed in `talconfig.yaml`.
 
-<https://www.talos.dev/v1.7/talos-guides/configuration/patching/>
+- `global/`: every node. Kernel modules for LVM thin snapshots, the `openebs-lvm` raw volume, containerd, kubelet, DNS, sysctls and NTP settings.
+- `controller/`: control plane nodes. Allows scheduling on the control plane, disables the built-in CoreDNS and kube-proxy (Cilium and the Flux-managed CoreDNS replace them) and exposes metrics listeners.
 
-## Patch Directories
-
-Under this `patches` directory, there are several sub-directories that can contain patches that are added to the talhelper configuration file.
-Each directory is optional and therefore might not created by default.
-
-- `global/`: patches that are applied to both the controller and worker configurations
-- `controller/`: patches that are applied to the controller configurations
-- `worker/`: patches that are applied to the worker configurations
-- `${node-hostname}/`: patches that are applied to the node with the specified name
+See the [Talos configuration patching guide](https://www.talos.dev/latest/talos-guides/configuration/patching/).

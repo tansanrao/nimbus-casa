@@ -1,203 +1,64 @@
-# OpenEBS LVM Bootstrap
+# OpenEBS LVM and VolSync
 
-This cluster uses a single Talos raw volume backed by the non-system NVMe and exposed as `/dev/disk/by-partlabel/r-openebs-lvm`.
-The Talos machine config in this repo also loads the `dm_snapshot` and `dm_thin_pool` kernel modules at boot so OpenEBS LVM can support snapshot-based VolSync backup and restore on thin-provisioned volumes.
+Talos exposes the node's second NVMe as a raw volume at `/dev/disk/by-partlabel/r-openebs-lvm`. It holds the `openebs-vg` volume group and its thin pool. The Talos config loads `dm_snapshot` and `dm_thin_pool` so OpenEBS can take thin snapshots.
 
-## Storage classes
+- StorageClass `openebs-lvm`: thin-provisioned. All application and database PVCs use it.
+- VolumeSnapshotClass `openebs-lvm-snap`: used by VolSync.
+- `openebs-hostpath`: VolSync cache PVCs, which need no snapshots.
 
-- `openebs-lvm` is the thin-provisioned class used for all OpenEBS LVM-backed workloads in this repo.
-- `openebs-lvm-snap` remains the `VolumeSnapshotClass` used by VolSync when `copyMethod: Snapshot` is enabled.
+## Backups
 
-## One-time bootstrap
+| Data | Backed up by |
+| --- | --- |
+| App PVCs: `karakeep/karakeep`, `karakeep/meilisearch-karakeep`, `mealie/mealie`, `media-services/{jellyfin,kavita,seerr}`, `media/{kapowarr,qbittorrent,radarr,recyclarr,sabnzbd,sonarr,sonarr-anime}` | VolSync restic, hourly from a snapshot. Keeps 24 hourly and 7 daily. |
+| CloudNativePG volumes (`<cluster>-1`, label `cnpg.io/cluster`) | Barman Cloud to Garage. See [ARCHITECTURE.md](../../../../ARCHITECTURE.md#kubernetes). |
+| NFS PVCs (`nfs-immich`, `nfs-mediastore`) | The NAS |
+| `observability/*` (Prometheus, Alertmanager, Grafana) | Nothing |
 
-1. Verify Talos created the raw volume:
+`media/jellyfin` and `media/kavita` are the pre-isolation copies, kept with the suspended legacy Kustomizations. Their VolSync sources stopped on 2026-10-31.
+
+Mealie, Karakeep and Meilisearch kept their original PVs when they moved namespaces. Their Kustomizations pin `volumeName`; remove that patch only to restore onto a new PV. They have no restore-once ReplicationDestination, so nothing overwrites them on startup.
+
+`scripts/audit-volsync-openebs.sh` lists protected, excluded and unprotected PVCs, sync status, thin pool free space and Released PVs. Prometheus alerts when the VolSync metrics endpoint disappears, a volume is out of sync, or a source has never completed. Nothing alerts on thin pool usage; check `LVMNode` capacity and extend the pool before it fills.
+
+## Restoring a PVC
+
+A restore overwrites the live PVC in place.
+
+1. Check that the latest backup succeeded: `kubectl get replicationsources -A`.
+2. Stop every writer: scale the workload to zero or suspend its HelmRelease.
+3. Trigger the restore with a new token. VolSync only starts a restore when the token changes.
 
    ```sh
-   talosctl get volumestatus r-openebs-lvm -n 10.10.40.40
-   talosctl read /dev/disk/by-partlabel/r-openebs-lvm -n 10.10.40.40 >/dev/null
+   kubectl -n <namespace> patch replicationdestination <app>-dst --type merge \
+     -p '{"spec":{"trigger":{"manual":"restore-YYYYMMDDHHMMSS"}}}'
+   kubectl -n <namespace> get replicationdestination <app>-dst -w
    ```
 
-2. Verify the `dm_snapshot` and `dm_thin_pool` kernel modules are loaded on the host:
+4. Start the workload and check the app.
+5. Look for leftovers: `kubectl get pv | grep Released`, `kubectl get volumesnapshots -A` and `kubectl get lvmsnapshots.local.openebs.io -A`.
+
+## Bootstrapping the volume group
+
+This is only needed on a new node or disk.
+
+1. Check that Talos created the raw volume and loaded the modules. If either module is missing, apply the Talos config and reboot.
 
    ```sh
-   talosctl read /proc/modules -n 10.10.40.40 | grep dm_snapshot
-   talosctl read /proc/modules -n 10.10.40.40 | grep dm_thin_pool
+   talosctl -n 10.10.40.40 get volumestatus r-openebs-lvm
+   talosctl -n 10.10.40.40 read /proc/modules | grep -E 'dm_snapshot|dm_thin_pool'
    ```
 
-   If either command is empty, regenerate and apply the Talos config from this repo and reboot the node before continuing.
-
-3. Start a privileged node debug shell on `k8s0` and install the LVM userspace tools in the debug container:
+2. Talos has no LVM tools, so create the volume group from a debug pod. LVM only scans the container's `/dev`, so bind the host's `/dev` over it first.
 
    ```sh
    kubectl debug node/k8s0 -it --image=debian:12-slim --profile=sysadmin -- sh
-   apt-get update
-   apt-get install -y lvm2 util-linux
+   apt-get update && apt-get install -y lvm2 util-linux
    mount --rbind /host/dev /dev
-   mkdir -p /run/udev
-   mount --rbind /host/run/udev /run/udev || true
-   ls -l /dev/disk/by-partlabel/r-openebs-lvm
-   ```
-
-   `kubectl debug node` mounts the host root at `/host`, but LVM only scans the container's `/dev` by default. Running `pvcreate` directly against `/host/dev/...` fails with `No device found`. Entering the host mount namespace with `nsenter` also fails because Talos does not provide `ls`, `pvcreate`, or the other LVM userspace tools on the host rootfs. Rebinding the host device tree into the container keeps the Debian tools available while exposing the real host block devices at `/dev`.
-
-4. Create the physical volume and volume group from inside the debug shell:
-
-   ```sh
+   mkdir -p /run/udev && mount --rbind /host/run/udev /run/udev || true
    pvcreate /dev/disk/by-partlabel/r-openebs-lvm
    vgcreate openebs-vg /dev/disk/by-partlabel/r-openebs-lvm
-   vgs
-   pvs
    ```
 
-5. Exit the debug shell and remove the temporary debugger pod:
-
-   ```sh
-   exit
-   kubectl get pods -A | grep node-debugger-k8s0
-   kubectl delete pod -n default <node-debugger-pod-name>
-   ```
-
-6. Verify OpenEBS can see the volume group and provision storage:
-
-   ```sh
-   kubectl -n openebs-system get pods
-   kubectl get sc openebs-lvm
-   kubectl get volumesnapshotclass openebs-lvm-snap
-   ```
-
-Once `openebs-vg` exists, the durable workloads in this repo can bind their PVCs on `openebs-lvm`.
-
-## VolSync backup and restore flow
-
-VolSync in this repo defaults to `copyMethod: Snapshot` for backups. Restores target the live app PVC directly with VolSync's existing-claim restore path. The expected flow is:
-
-1. The app PVC is provisioned on `openebs-lvm`.
-2. `ReplicationSource` creates a CSI snapshot using `openebs-lvm-snap`.
-3. VolSync mounts the snapshot-backed temporary PVC and pushes data to restic.
-4. To restore, scale the consuming app down or suspend its Helm release.
-5. `ReplicationDestination` restores the latest data into the existing live PVC on `openebs-lvm`.
-6. Wait for the restore to complete, then scale the app back up.
-
-Keep the VolSync cache PVCs on `openebs-hostpath`; they do not need LVM snapshots.
-
-Because restores are now in-place, they overwrite newer filesystem contents on the target PVC. Do not restore while the application is still writing to the volume.
-
-## Backup coverage
-
-This repo has three backup classes for persistent data:
-
-- `VolSync + OpenEBS LVM`: application PVCs that live on `openebs-lvm` and are backed up with restic via VolSync.
-- `NFS-backed storage`: workloads like Immich uploads and the media shared store that are backed up at the NAS/storage layer, not through VolSync.
-- `Database-native backups`: CloudNativePG clusters that are backed up by the Barman Cloud plugin (daily base backups and continuous WAL archiving to Garage).
-
-### VolSync-protected PVCs
-
-The shared VolSync component is intended for application PVCs on `openebs-lvm`, including:
-
-- `karakeep/karakeep`
-- `mealie/mealie`
-- `karakeep/meilisearch-karakeep`
-- `media-services/seerr`
-- `media/qbittorrent`
-- `media/radarr`
-- `media/recyclarr`
-- `media/sabnzbd`
-- `media/sonarr`
-- `media/sonarr-anime`
-
-### Intentionally excluded from VolSync
-
-These PVCs are not gaps in the VolSync/OpenEBS design:
-
-- `default/immich-nfs-pvc`: backed up through the Immich NFS storage path.
-- `media/mediastore-nfs-pvc`: backed up through the media NFS storage path.
-- CloudNativePG volumes (`<cluster>-<n>`, labelled `cnpg.io/cluster`): `authentik/auth-1`, `database/postgres-1`, `database/paradedb-1`, `immich/immich-db-1` and `media-database/media-1`, protected by Barman Cloud base backups and WAL archiving to Garage.
-- `media/jellystat`: the deployed chart is currently stateless and only uses `emptyDir`, so it should not carry the shared VolSync component.
-
-## Restore runbook
-
-Use this flow for any app PVC that is protected by VolSync on `openebs-lvm`:
-
-1. Confirm the latest backup completed successfully:
-
-   ```sh
-   kubectl get replicationsources.volsync.backube -A
-   kubectl get replicationdestinations.volsync.backube -A
-   ```
-
-2. Stop all writers to the target PVC. Scale the workload down or suspend its Flux `HelmRelease` before restoring.
-
-3. Pick a new manual trigger token and patch the `ReplicationDestination`:
-
-   ```sh
-   kubectl -n <namespace> patch replicationdestination <app>-dst \
-     --type merge \
-     -p '{"spec":{"trigger":{"manual":"restore-YYYYMMDDHHMMSS"}}}'
-   ```
-
-   Always use a new token. VolSync only starts a new restore when `spec.trigger.manual` changes.
-
-4. Watch the restore until it finishes:
-
-   ```sh
-   kubectl -n <namespace> get replicationdestination <app>-dst -w
-   kubectl -n <namespace> describe replicationdestination <app>-dst
-   ```
-
-5. Validate the restored data before bringing the workload back:
-
-   ```sh
-   kubectl -n <namespace> get pvc <app>
-   kubectl -n <namespace> get pods
-   ```
-
-6. Start the workload again and verify application health.
-
-7. After the restore, inspect for lingering artifacts:
-
-   ```sh
-   kubectl get pv | grep Released
-   kubectl get volumesnapshots.snapshot.storage.k8s.io -A
-   kubectl get lvmsnapshots.local.openebs.io -A
-   ```
-
-## Audit and monitoring
-
-Use the repo audit helper to review OpenEBS/VolSync coverage and current cluster health:
-
-```sh
-./scripts/audit-volsync-openebs.sh
-```
-
-The audit is expected to verify:
-
-- every `openebs-lvm` application PVC is VolSync-protected, intentionally excluded, or a true gap
-- every VolSync-protected workload has completed at least one successful sync
-- thin-pool free space remains healthy on `openebs-vg`
-- stale `Released` PVs and stuck snapshots/syncs are visible for cleanup
-
-Prometheus should alert on:
-
-- the VolSync metrics endpoint disappearing
-- any VolSync volume reporting out-of-sync
-- any VolSync source that has never completed a backup
-
-Thin-pool monitoring is still partly operational rather than fully automated here. Review `LVMNode` capacity regularly and extend the thin pool before it fills.
-
-## Cutover note
-
-This repo now assumes a fresh thin-only bootstrap. The single `openebs-lvm` StorageClass is thin-provisioned, and the old thick-provisioned class definition has been removed from the repo.
-
-## Thin-pool monitoring note
-
-OpenEBS 4.4 adds Local PV LVM snapshot restore support, but thin-pool accounting still has limitations. Monitor thin-pool usage on `openebs-vg` and extend capacity before the pool fills.
-
-## Application namespace migration
-
-Authentik, Karakeep, Mealie, and Miniflux now have dedicated namespaces with restricted Pod Security and default-deny networking. SMTP remains in `default`. Karakeep’s search service is in `karakeep`; its browser remains separately isolated in `karakeep-browser`. Shared PostgreSQL and Dragonfly remain in `database`. Karakeep uses its local SQLite database and no longer receives the unused PostgreSQL credential.
-
-Mealie, Karakeep, and Meilisearch retained their original OpenEBS PVs and volume handles. The application kustomizations explicitly preserve these bindings. Remove a `volumeName` patch only for an intentional restore onto a replacement PV. Retained pre-cutover snapshots are `default/mealie-namespace-cutover`, `default/karakeep-namespace-cutover`, and `database/meilisearch-karakeep-namespace-cutover`. They are recovery checkpoints, not substitutes for off-node backups. VolSync continues using the existing repositories; automatic restore-once destinations are omitted to avoid overwriting migrated volumes.
-
-Authentik’s existing outpost configuration in PostgreSQL now targets `authentik`. Its LDAP deployment disables service-account token mounting, and its Service requests `10.10.40.72` through `lbipam.cilium.io/ips`. Preserve these outpost settings when restoring Authentik. Only the worker retains namespace-scoped outpost-management permissions.
-
-Run `python scripts/verify-application-isolation.py`, `python scripts/verify-karakeep-isolation.py`, and `python scripts/verify-secret-isolation.py` after changes to these boundaries. Run the first two sequentially because the application-label probes intentionally share policy selectors.
+3. Exit and delete the `node-debugger-k8s0-*` pod in `default`.
+4. Check that `kubectl -n openebs-system get pods` is healthy and that `kubectl get sc openebs-lvm` lists the class.
