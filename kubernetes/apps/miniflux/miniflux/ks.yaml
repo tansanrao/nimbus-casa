@@ -7,7 +7,7 @@ spec:
   dependsOn:
     - name: onepassword
       namespace: external-secrets
-    - name: crunchy-pgo-clusters
+    - name: postgres
       namespace: database
     - name: miniflux-isolation
       namespace: miniflux

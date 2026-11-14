@@ -13,7 +13,7 @@ spec:
       namespace: volsync-system
     - name: onepassword
       namespace: external-secrets
-    - name: crunchy-pgo-clusters
+    - name: postgres
       namespace: database
     - name: mealie-isolation
       namespace: mealie

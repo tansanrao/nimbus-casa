@@ -65,7 +65,7 @@ data:
         "store": "immich-postgres",
         "target": "immich-db-secret",
         "keys": [
-          "immich16-pguser-immich"
+          "immich-db-app"
         ]
       },
       {
@@ -135,10 +135,10 @@ data:
         "namespace": "media-services",
         "name": "jellystat-db-secret",
         "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
+        "store": "media-postgres",
         "target": "jellystat-db-secret",
         "keys": [
-          "postgres16-pguser-jellystat"
+          "media-jellystat"
         ]
       },
       {
@@ -190,7 +190,7 @@ data:
         "store": "media-postgres",
         "target": "prowlarr-db-secret",
         "keys": [
-          "media16-pguser-prowlarr"
+          "media-prowlarr"
         ]
       },
       {
@@ -221,7 +221,7 @@ data:
         "store": "media-postgres",
         "target": "radarr-db-secret",
         "keys": [
-          "media16-pguser-radarr"
+          "media-radarr"
         ]
       },
       {
@@ -297,7 +297,7 @@ data:
         "store": "media-postgres",
         "target": "sonarr-anime-db-secret",
         "keys": [
-          "media16-pguser-sonarr-anime"
+          "media-sonarr-anime"
         ]
       },
       {
@@ -329,7 +329,7 @@ data:
         "store": "media-postgres",
         "target": "sonarr-db-secret",
         "keys": [
-          "media16-pguser-sonarr"
+          "media-sonarr"
         ]
       },
       {
@@ -377,11 +377,11 @@ data:
       {
         "namespace": "authentik",
         "name": "authentik-db-secret",
-        "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
+        "storeKind": "SecretStore",
+        "store": "authentik-postgres",
         "target": "authentik-db-secret",
         "keys": [
-          "postgres16-pguser-authentik"
+          "auth-app"
         ]
       },
       {
@@ -429,10 +429,10 @@ data:
         "namespace": "mealie",
         "name": "mealie-db-secret",
         "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
+        "store": "database-postgres",
         "target": "mealie-db-secret",
         "keys": [
-          "postgres16-pguser-mealie"
+          "postgres-mealie"
         ]
       },
       {
@@ -460,10 +460,10 @@ data:
         "namespace": "miniflux",
         "name": "miniflux-db-secret",
         "storeKind": "ClusterSecretStore",
-        "store": "crunchy-pgo-secrets",
+        "store": "database-postgres",
         "target": "miniflux-db-secret",
         "keys": [
-          "postgres16-pguser-miniflux"
+          "postgres-miniflux"
         ]
       },
       {

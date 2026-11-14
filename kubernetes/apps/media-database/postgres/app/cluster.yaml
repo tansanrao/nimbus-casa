@@ -4,6 +4,8 @@ kind: PostgresCluster
 metadata:
   name: media16
 spec:
+  # Retired: data moved to CloudNativePG on 2026-11-14. Kept stopped for rollback.
+  shutdown: true
   databaseInitSQL:
     name: application-database-grants
     key: init.sql

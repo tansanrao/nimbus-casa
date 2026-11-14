@@ -9,8 +9,8 @@ spec:
       namespace: external-secrets
     - name: dragonfly-cluster
       namespace: database
-    - name: crunchy-pgo-clusters
-      namespace: database
+    - name: authentik-postgres
+      namespace: authentik
     - name: authentik-isolation
       namespace: authentik
     - name: external-secrets-access

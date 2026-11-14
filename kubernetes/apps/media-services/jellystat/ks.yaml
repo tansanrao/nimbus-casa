@@ -10,8 +10,8 @@ spec:
   dependsOn:
     - name: onepassword
       namespace: external-secrets
-    - name: crunchy-pgo-clusters
-      namespace: database
+    - name: media-database-postgres
+      namespace: media-database
     - name: media-services-shared
       namespace: media-services
     - name: media-services-isolation
