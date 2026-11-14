@@ -1,0 +1,10 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: postgres-miniflux
+spec:
+  cluster:
+    name: postgres
+  name: miniflux
+  owner: miniflux

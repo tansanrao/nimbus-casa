@@ -18,6 +18,26 @@ data:
         ]
       },
       {
+        "namespace": "database",
+        "name": "postgres-backup",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "postgres-backup-secret",
+        "keys": [
+          "garage"
+        ]
+      },
+      {
+        "namespace": "database",
+        "name": "paradedb-backup",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "paradedb-backup-secret",
+        "keys": [
+          "garage"
+        ]
+      },
+      {
         "namespace": "default",
         "name": "smtp-relay-secret",
         "storeKind": "ClusterSecretStore",
@@ -59,6 +79,16 @@ data:
         ]
       },
       {
+        "namespace": "immich",
+        "name": "immich-db-backup",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "immich-db-backup-secret",
+        "keys": [
+          "garage"
+        ]
+      },
+      {
         "namespace": "media-database",
         "name": "crunchy-postgres-secret",
         "storeKind": "ClusterSecretStore",
@@ -66,6 +96,16 @@ data:
         "target": "crunchy-postgres-secret",
         "keys": [
           "crunchy-postgres",
+          "garage"
+        ]
+      },
+      {
+        "namespace": "media-database",
+        "name": "media-backup",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "media-backup-secret",
+        "keys": [
           "garage"
         ]
       },
@@ -352,6 +392,16 @@ data:
         "target": "authentik-secret",
         "keys": [
           "authentik"
+        ]
+      },
+      {
+        "namespace": "authentik",
+        "name": "auth-backup",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "auth-backup-secret",
+        "keys": [
+          "garage"
         ]
       },
       {

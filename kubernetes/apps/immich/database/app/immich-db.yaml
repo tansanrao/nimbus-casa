@@ -1,0 +1,43 @@
+---
+# Dedicated to Immich. CloudNativePG generates the "immich-db-app" secret.
+# Not named "immich": the cluster's ServiceAccount would collide with the app's.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-db
+spec:
+  instances: 1
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.6-1.1.1@sha256:c7672bc011351a587cc292a94aac7eeebb593ed2e120077bd9c9944c9467db93
+  primaryUpdateStrategy: unsupervised
+  storage:
+    storageClass: openebs-lvm
+    size: 30Gi
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+    parameters:
+      max_wal_size: 2GB
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+      dataChecksums: true
+      # Created by the superuser so the immich role needs no extra privileges.
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vchord CASCADE;
+        - CREATE EXTENSION IF NOT EXISTS cube;
+        - CREATE EXTENSION IF NOT EXISTS earthdistance;
+        - CREATE EXTENSION IF NOT EXISTS pg_trgm;
+        - CREATE EXTENSION IF NOT EXISTS unaccent;
+        - CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: immich-db
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 4Gi

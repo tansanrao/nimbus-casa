@@ -50,6 +50,9 @@ spec:
         - matchLabels:
             k8s:postgres-operator.crunchydata.com/cluster: immich16
             k8s:io.kubernetes.pod.namespace: immich
+        - matchLabels:
+            k8s:cnpg.io/cluster: immich-db
+            k8s:io.kubernetes.pod.namespace: immich
       toPorts:
         - ports:
             - port: "5432"

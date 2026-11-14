@@ -187,6 +187,9 @@ spec:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: database
             k8s:postgres-operator.crunchydata.com/cluster: postgres16
+        - matchLabels:
+            k8s:cnpg.io/cluster: auth
+            k8s:io.kubernetes.pod.namespace: authentik
       toPorts:
         - ports:
             - port: "5432"

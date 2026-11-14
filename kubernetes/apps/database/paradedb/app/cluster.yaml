@@ -1,0 +1,40 @@
+---
+# Shared cluster for applications that use ParadeDB's pg_search.
+# initdb creates an empty "app" database (owner "app", secret "paradedb-app").
+# To add an application: add a role secret, a managed role, a Database with
+# the pg_search extension, and a policy that lets its pods reach 5432.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: paradedb
+spec:
+  instances: 1
+  imageName: docker.io/paradedb/paradedb:18-v0.26.6@sha256:4df3bcf9f19b32821446967f7874d1a40bee8b9550184cc0d70e93f51ee8af36
+  # The ParadeDB image is based on the Docker Official postgres image.
+  postgresUID: 999
+  postgresGID: 999
+  primaryUpdateStrategy: unsupervised
+  storage:
+    storageClass: openebs-lvm
+    size: 20Gi
+  postgresql:
+    shared_preload_libraries:
+      - pg_search
+    parameters:
+      max_wal_size: 2GB
+  bootstrap:
+    initdb:
+      dataChecksums: true
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_search;
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: paradedb
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 2Gi

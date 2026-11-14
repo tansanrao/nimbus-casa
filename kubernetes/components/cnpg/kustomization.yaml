@@ -1,0 +1,12 @@
+---
+# Backups and metrics for one CloudNativePG cluster. Set CNPG_CLUSTER in the
+# Flux Kustomization's postBuild.substitute; the cluster name must be unique
+# across namespaces because it is also the backup path in the bucket.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ./externalsecret.yaml
+  - ./objectstore.yaml
+  - ./scheduledbackup.yaml
+  - ./podmonitor.yaml
+  - ./networkpolicy.yaml

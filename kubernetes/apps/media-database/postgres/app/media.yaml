@@ -1,0 +1,62 @@
+---
+# Media applications: Radarr, Sonarr, Sonarr Anime, Prowlarr and Jellystat.
+# To add an application: add a role secret, a managed role and a Database.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: media
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-minimal-trixie@sha256:b98ae0b74a12f20ccff32219be0e33fdd35c7e2e8e73c8bff9173f1128e167d1
+  primaryUpdateStrategy: unsupervised
+  storage:
+    storageClass: openebs-lvm
+    size: 20Gi
+  postgresql:
+    parameters:
+      max_wal_size: 2GB
+  bootstrap:
+    initdb:
+      database: radarr_main
+      owner: radarr
+      secret:
+        name: media-radarr
+      dataChecksums: true
+  managed:
+    roles:
+      - name: radarr
+        ensure: present
+        login: true
+        passwordSecret:
+          name: media-radarr
+      - name: sonarr
+        ensure: present
+        login: true
+        passwordSecret:
+          name: media-sonarr
+      - name: sonarr-anime
+        ensure: present
+        login: true
+        passwordSecret:
+          name: media-sonarr-anime
+      - name: prowlarr
+        ensure: present
+        login: true
+        passwordSecret:
+          name: media-prowlarr
+      - name: jellystat
+        ensure: present
+        login: true
+        passwordSecret:
+          name: media-jellystat
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: media
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 2Gi

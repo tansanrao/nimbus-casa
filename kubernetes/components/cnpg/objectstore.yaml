@@ -1,0 +1,29 @@
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: "${CNPG_CLUSTER}"
+spec:
+  # Recovery window: keep every backup and WAL segment needed to restore to
+  # any point in the last 14 days.
+  retentionPolicy: 14d
+  configuration:
+    # Barman appends the cluster name: s3://crunchy-pgo/cnpg/<cluster>/
+    destinationPath: s3://crunchy-pgo/cnpg
+    endpointURL: https://s3.kbcb.tansanrao.net
+    s3Credentials:
+      accessKeyId:
+        name: "${CNPG_CLUSTER}-backup-secret"
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: "${CNPG_CLUSTER}-backup-secret"
+        key: ACCESS_SECRET_KEY
+      region:
+        name: "${CNPG_CLUSTER}-backup-secret"
+        key: REGION
+    wal:
+      compression: zstd
+      maxParallel: 2
+    data:
+      compression: zstd
+      jobs: 2

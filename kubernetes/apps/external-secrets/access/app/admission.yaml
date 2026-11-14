@@ -29,6 +29,22 @@ spec:
             "keys": "crunchy-postgres|garage"
           },
           {
+            "namespace": "database",
+            "name": "postgres-backup",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "postgres-backup-secret",
+            "keys": "garage"
+          },
+          {
+            "namespace": "database",
+            "name": "paradedb-backup",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "paradedb-backup-secret",
+            "keys": "garage"
+          },
+          {
             "namespace": "default",
             "name": "smtp-relay-secret",
             "storeKind": "ClusterSecretStore",
@@ -61,12 +77,28 @@ spec:
             "keys": "immich"
           },
           {
+            "namespace": "immich",
+            "name": "immich-db-backup",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "immich-db-backup-secret",
+            "keys": "garage"
+          },
+          {
             "namespace": "media-database",
             "name": "crunchy-postgres-secret",
             "storeKind": "ClusterSecretStore",
             "store": "onepassword",
             "target": "crunchy-postgres-secret",
             "keys": "crunchy-postgres|garage"
+          },
+          {
+            "namespace": "media-database",
+            "name": "media-backup",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "media-backup-secret",
+            "keys": "garage"
           },
           {
             "namespace": "media-services",
@@ -283,6 +315,14 @@ spec:
             "store": "onepassword",
             "target": "authentik-secret",
             "keys": "authentik"
+          },
+          {
+            "namespace": "authentik",
+            "name": "auth-backup",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "auth-backup-secret",
+            "keys": "garage"
           },
           {
             "namespace": "karakeep",

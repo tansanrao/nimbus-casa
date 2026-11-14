@@ -1,0 +1,30 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: media-clients
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: media
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: radarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: sonarr-anime
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prowlarr
+            k8s:io.kubernetes.pod.namespace: media
+        - matchLabels:
+            k8s:app.kubernetes.io/name: jellystat
+            k8s:io.kubernetes.pod.namespace: media-services
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

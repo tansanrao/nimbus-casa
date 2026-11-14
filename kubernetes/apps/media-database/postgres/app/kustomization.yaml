@@ -6,3 +6,13 @@ resources:
   - ./externalsecret.yaml
   - ./secretstore.yaml
   - ./init-sql.yaml
+  - ./media-radarr.sops.yaml
+  - ./media-sonarr.sops.yaml
+  - ./media-sonarr-anime.sops.yaml
+  - ./media-prowlarr.sops.yaml
+  - ./media-jellystat.sops.yaml
+  - ./media.yaml
+  - ./databases.yaml
+  - ./networkpolicy.yaml
+components:
+  - ../../../../components/cnpg

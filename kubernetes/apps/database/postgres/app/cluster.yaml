@@ -1,0 +1,49 @@
+---
+# Shared cluster for applications that need plain PostgreSQL.
+# To add an application: add a role secret, a managed role and a Database.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.7-minimal-trixie@sha256:b98ae0b74a12f20ccff32219be0e33fdd35c7e2e8e73c8bff9173f1128e167d1
+  primaryUpdateStrategy: unsupervised
+  storage:
+    storageClass: openebs-lvm
+    size: 20Gi
+  postgresql:
+    parameters:
+      max_wal_size: 2GB
+  bootstrap:
+    initdb:
+      database: mealie
+      owner: mealie
+      secret:
+        name: postgres-mealie
+      dataChecksums: true
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  managed:
+    roles:
+      - name: mealie
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-mealie
+      - name: miniflux
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-miniflux
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: postgres
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 2Gi

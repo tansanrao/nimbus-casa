@@ -1,0 +1,19 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-clients
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: immich-db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: immich
+            k8s:app.kubernetes.io/controller: server
+            k8s:io.kubernetes.pod.namespace: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

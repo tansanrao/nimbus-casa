@@ -1,0 +1,40 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: media-sonarr-main
+spec:
+  cluster:
+    name: media
+  name: sonarr_main
+  owner: sonarr
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: media-sonarr-anime-main
+spec:
+  cluster:
+    name: media
+  name: sonarr_anime_main
+  owner: sonarr-anime
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: media-prowlarr-main
+spec:
+  cluster:
+    name: media
+  name: prowlarr_main
+  owner: prowlarr
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: media-jellystat
+spec:
+  cluster:
+    name: media
+  name: jellystat
+  owner: jellystat

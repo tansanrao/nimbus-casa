@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: media-sonarr-anime
+  labels:
+    cnpg.io/reload: "true"
+type: kubernetes.io/basic-auth
+stringData:
+  username: ENC[AES256_GCM,data:EFzmzNzcf4E6qKjq,iv:E/EhzxVy+E0wUkbmwtJ4SdR9/aSOO1W0C/LFgcqwv5o=,tag:9WhcM3UCiOpV/DK/mCNrHQ==,type:str]
+  password: ENC[AES256_GCM,data:kh5HUXOrOBErFpjyuDvRJkNnc+frh8iD7vLvSGkBocU8tlmvvBldNA==,iv:4XLVyHeRGhoO7pZcmKWVZdp+BU7mvDllQrq8Ai9ahkI=,tag:pTCQklnBJsGaQOnX+R+HaA==,type:str]
+  host: ENC[AES256_GCM,data:rwSw+HAqQ2Z2kiFl9P8p597P317USzLZ60VyqyBCNdMGOT+Tj4GOVPE=,iv:PvMmRapFUFfQICR2ppzmOCuE8PXfx9gmb6fC3WI0XEE=,tag:yGNWN2GhGDsDXBwbof9Obg==,type:str]
+  port: ENC[AES256_GCM,data:7dKISg==,iv:zM/urvjva6od9tpfr5mO6JhB7/vH2V0biZVExsInpfY=,tag:bhRec3/egxMVj1XSJCPe3g==,type:str]
+  dbname: ENC[AES256_GCM,data:u1rcFJ8AD0pR4EdLNTnmmn0=,iv:G+xQ53hvQgOooE0PPppFn7wt1OLeYF4StebgX6i1/fU=,tag:8z3xnuigyLne7pWy1kKbdQ==,type:str]
+  uri: ENC[AES256_GCM,data:84yD1TNUm+So5eGoihmL+qo+KpINKxrxGsEiy8jOvoi0LCAk365+EWauiUFuTPUXyDKzewlhnY6NsZ8ZCefYL/46jUeTazx7HFK8oJHmFkaUG39+2k63HpIefqkc1QdbDT5nJjO/0Wpi/UO/hV2fFSkDpG5I/rryhtlN/YZ9avwINIA=,iv:Hr+S0hLZi88yJ6XQFb0kSy7vvfTh8GLnh8mvxY+TOQc=,tag:BPhe+Shheeqc54FHb/R88w==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBSY2pnZ3dQaUllUG5BcEc1
+        T3JpZUp4Y2YxUHM5MzJPaDFmYktPU0pZWmpFCkdEczZrY3k4RVJJUGdOUXEyZG41
+        cHZqRDluWEk5WkpQUWMrT1lmNHFDOFkKLS0tIGhsYUx3RCsxMVBoRHIwRWZmNmM4
+        VW5aNW1GMDZEWGswejhRaTJGdmZTOU0KaI4FnEq6AdQB/Bt1fKO5rlZs55mjoYhh
+        WMHPiWKf82rWOSP+x+jRH/4NcUBgDgZwmz4k7XdJ6gzAaqhezZcTvw==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-14T16:54:25Z"
+  mac: ENC[AES256_GCM,data:M3+cwu6UuYEo5dABCCGRQnOLCS8Asg5ThsqdMDzG2yrFp8FMnJD49k1UUQcK16nPMKHseeKbrR3WgXsb4t+GNGPXnocmIdHPe9ytzeBh/EvsiSDs615j1ehmcZ38JocmlWappUgFewxoEZJFT5CDn6/2F+J35TEB+vcbI+vefpg=,iv:lMx29RLLnMo7XBA9JT0WHE+iAfsqzHBXPWzjo78EyXs=,tag:2rrVPJ2WpJScBO6t+4yIpw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

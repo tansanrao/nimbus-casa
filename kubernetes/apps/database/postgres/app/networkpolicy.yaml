@@ -1,0 +1,21 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgres-clients
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: postgres
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: mealie
+            k8s:io.kubernetes.pod.namespace: mealie
+        - matchLabels:
+            k8s:app.kubernetes.io/name: miniflux
+            k8s:io.kubernetes.pod.namespace: miniflux
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

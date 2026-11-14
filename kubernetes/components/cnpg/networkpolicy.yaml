@@ -1,0 +1,55 @@
+---
+# Operator, metrics and backup paths shared by every CloudNativePG cluster.
+# Client access on 5432 is granted by a separate policy next to the cluster.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: "${CNPG_CLUSTER}-postgres-platform"
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: "${CNPG_CLUSTER}"
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: cloudnative-pg
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:app.kubernetes.io/name: prometheus
+            k8s:io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchName: kubernetes.default.svc.cluster.local
+              - matchName: s3.kbcb.tansanrao.net
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+    - toFQDNs:
+        - matchName: s3.kbcb.tansanrao.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

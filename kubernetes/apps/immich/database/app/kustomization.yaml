@@ -6,3 +6,7 @@ resources:
   - ./externalsecret.yaml
   - ./secretstore.yaml
   - ./init-sql.yaml
+  - ./immich-db.yaml
+  - ./networkpolicy.yaml
+components:
+  - ../../../../components/cnpg
