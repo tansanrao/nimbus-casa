@@ -25,9 +25,9 @@ runners:
         automount_service_account_token = false
         poll_timeout = 600
         cpu_request = "1"
-        cpu_limit = "4"
+        cpu_limit = "8"
         memory_request = "2Gi"
-        memory_limit = "4Gi"
+        memory_limit = "8Gi"
         cpu_request_overwrite_max_allowed = "8"
         cpu_limit_overwrite_max_allowed = "8"
         memory_request_overwrite_max_allowed = "12Gi"
@@ -38,6 +38,14 @@ runners:
         service_cpu_request = "250m"
         service_memory_request = "256Mi"
         service_memory_limit = "2Gi"
+        # Rootless BuildKit in the build container: rootlesskit needs unshare
+        # and mount (blocked by the runtime seccomp profile) and the setuid
+        # newuidmap. Containers stay unprivileged with default capabilities.
+        # The node has no AppArmor, so there is no profile to relax.
+        [runners.kubernetes.build_container_security_context]
+          allow_privilege_escalation = true
+          [runners.kubernetes.build_container_security_context.seccomp_profile]
+            type = "Unconfined"
         [[runners.kubernetes.host_aliases]]
           ip = "10.10.40.24"
           hostnames = ["code.twicecooked.software", "registry.twicecooked.software"]

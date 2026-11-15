@@ -49,6 +49,10 @@ patches:
           maxPods: 110
           imageGCHighThresholdPercent: 70
           imageGCLowThresholdPercent: 50
+      # Talos ships 0, which blocks rootless BuildKit (rootlesskit needs an
+      # unprivileged user namespace). Same value as Talos' user-namespace docs.
+      sysctls:
+        user.max_user_namespaces: "11255"
 
 controlPlane:
   patches:

@@ -1,10 +1,14 @@
 ---
 # The runner manager and every job pod run here. Job pods get no service
 # account token, so a job cannot use the Kubernetes API.
+#
+# Pod Security is "privileged" only because baseline rejects the Unconfined
+# seccomp profile that rootless BuildKit needs. The runner config is the real
+# guard: privileged = false, and jobs cannot override security contexts.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: ci-jobs
   labels:
-    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/warn: restricted
