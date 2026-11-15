@@ -67,3 +67,27 @@
   notify:
     - Validate sshd configuration
     - Reload sshd
+
+# Only hosts that move OpenSSH off port 22 get this file. Its content matches
+# what cloud-init writes on those hosts, so the first run changes nothing.
+- name: Configure sshd listen port
+  ansible.builtin.copy:
+    dest: "{{ ssh_listen_drop_in }}"
+    content: |
+      Port {{ ssh_listen_port }}
+    owner: root
+    group: root
+    mode: "0644"
+  when: ssh_listen_port | default(22) | int != 22
+  notify:
+    - Validate sshd configuration
+    - Restart ssh socket
+
+- name: Remove sshd listen port override
+  ansible.builtin.file:
+    path: "{{ ssh_listen_drop_in }}"
+    state: absent
+  when: ssh_listen_port | default(22) | int == 22
+  notify:
+    - Validate sshd configuration
+    - Restart ssh socket

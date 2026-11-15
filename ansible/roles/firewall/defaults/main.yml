@@ -4,3 +4,6 @@ firewall_tcp_allow_ports: []
 firewall_udp_allow_ports: []
 firewall_tcp_allow_rules: []
 firewall_udp_allow_rules: []
+# Port rewrites on a local address: {destination, port, to_port}. Pair each with
+# a firewall_tcp_allow_rules entry for to_port with dnat_only: true.
+firewall_dnat_rules: []

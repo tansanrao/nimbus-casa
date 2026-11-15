@@ -2,8 +2,8 @@
 - name: Assert HAProxy role is valid
   ansible.builtin.assert:
     that:
-      - haproxy_role in ['edge', 'connector']
-    fail_msg: "haproxy_role must be either 'edge' or 'connector'."
+      - haproxy_role in ['edge', 'connector', 'forwards']
+    fail_msg: "haproxy_role must be 'edge', 'connector' or 'forwards' (haproxy_tcp_forwards only)."
 
 - name: Install HAProxy
   ansible.builtin.apt:

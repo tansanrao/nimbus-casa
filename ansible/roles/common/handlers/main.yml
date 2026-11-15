@@ -7,3 +7,11 @@
   ansible.builtin.service:
     name: ssh
     state: reloaded
+
+# Ubuntu 24.04 activates sshd from ssh.socket, whose ports a generator reads
+# from sshd_config on daemon-reload. Open sessions survive the restart.
+- name: Restart ssh socket
+  ansible.builtin.systemd_service:
+    name: ssh.socket
+    daemon_reload: true
+    state: restarted

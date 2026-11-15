@@ -2,3 +2,8 @@
 haproxy_config_path: /etc/haproxy/haproxy.cfg
 haproxy_maps_dir: /etc/haproxy/maps
 haproxy_role: edge
+
+# Plain TCP forwards rendered on any host, in addition to the role's own frontends.
+# Each item: name, bind, backend, and optionally accept_proxy, send_proxy,
+# timeout (client, server and tunnel) and frontend_lines (raw frontend directives).
+haproxy_tcp_forwards: []

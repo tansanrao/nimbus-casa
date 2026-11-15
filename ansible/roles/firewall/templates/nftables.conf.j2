@@ -20,7 +20,7 @@ table inet filter {
     udp dport {{ port }} accept
 {% endfor %}
 {% for rule in firewall_tcp_allow_rules %}
-    {% if rule.iifname is defined %}iifname "{{ rule.iifname }}" {% endif %}{% if rule.source is defined %}ip saddr {{ rule.source }} {% endif %}tcp dport {{ rule.port }} accept
+    {% if rule.iifname is defined %}iifname "{{ rule.iifname }}" {% endif %}{% if rule.source is defined %}ip saddr {{ rule.source }} {% endif %}{% if rule.destination is defined %}ip daddr {{ rule.destination }} {% endif %}{% if rule.dnat_only | default(false) %}ct status dnat {% endif %}tcp dport {{ rule.port }} accept
 {% endfor %}
 {% for rule in firewall_udp_allow_rules %}
     {% if rule.iifname is defined %}iifname "{{ rule.iifname }}" {% endif %}{% if rule.source is defined %}ip saddr {{ rule.source }} {% endif %}udp dport {{ rule.port }} accept
@@ -35,3 +35,23 @@ table inet filter {
     type filter hook output priority 0; policy accept;
   }
 }
+{% if firewall_dnat_rules %}
+
+# Rewrites the destination port only. Locally originated connections get the
+# same treatment so checks from this host follow the client path.
+table ip nat {
+  chain prerouting {
+    type nat hook prerouting priority dstnat; policy accept;
+{% for rule in firewall_dnat_rules %}
+    ip daddr {{ rule.destination }} tcp dport {{ rule.port }} dnat to {{ rule.destination }}:{{ rule.to_port }}
+{% endfor %}
+  }
+
+  chain output {
+    type nat hook output priority -100; policy accept;
+{% for rule in firewall_dnat_rules %}
+    ip daddr {{ rule.destination }} tcp dport {{ rule.port }} dnat to {{ rule.destination }}:{{ rule.to_port }}
+{% endfor %}
+  }
+}
+{% endif %}

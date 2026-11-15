@@ -59,6 +59,30 @@ backend be_envoy_external_tls
   server envoy_external {{ haproxy_envoy_external_backend }} check send-proxy-v2 check-send-proxy
 
 {% endif %}
+{% for forward in haproxy_tcp_forwards %}
+frontend fe_{{ forward.name }}
+  bind {{ forward.bind }}{% if forward.accept_proxy | default(false) %} accept-proxy{% endif %}
+
+  mode tcp
+  option tcplog
+{% if forward.timeout is defined %}
+  timeout client {{ forward.timeout }}
+{% endif %}
+{% for line in forward.frontend_lines | default([]) %}
+  {{ line }}
+{% endfor %}
+  default_backend be_{{ forward.name }}
+
+backend be_{{ forward.name }}
+  mode tcp
+{% if forward.timeout is defined %}
+  timeout server {{ forward.timeout }}
+  timeout tunnel {{ forward.timeout }}
+{% endif %}
+  server {{ forward.name }} {{ forward.backend }} check{% if forward.send_proxy | default(false) %} send-proxy-v2 check-send-proxy{% endif %}
+
+
+{% endfor %}
 
 listen local_health
   bind {{ haproxy_health_bind }}

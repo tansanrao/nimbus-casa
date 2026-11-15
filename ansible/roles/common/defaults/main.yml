@@ -14,3 +14,4 @@ common_extra_apt_packages: []
 common_extra_services: []
 
 ssh_hardening_drop_in: /etc/ssh/sshd_config.d/90-ansible-hardening.conf
+ssh_listen_drop_in: /etc/ssh/sshd_config.d/91-ansible-listen.conf
