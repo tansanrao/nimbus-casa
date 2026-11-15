@@ -1,0 +1,18 @@
+---
+# links_migrator owns the database (and so the public schema). The Links
+# migration Job applies the remaining grants from the project's
+# deploy/postgres-init/20-links.sql as that role before each migration.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: paradedb-links
+spec:
+  cluster:
+    name: paradedb
+  name: links
+  owner: links_migrator
+  extensions:
+    - name: vector
+      ensure: present
+    - name: pg_search
+      ensure: present

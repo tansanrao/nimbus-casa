@@ -1,0 +1,31 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: paradedb-clients
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:cnpg.io/cluster: paradedb
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: api
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: capture-worker
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: email-worker
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: migrate
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

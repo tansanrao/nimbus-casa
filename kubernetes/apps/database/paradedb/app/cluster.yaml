@@ -30,6 +30,19 @@ spec:
       dataChecksums: true
       postInitApplicationSQL:
         - CREATE EXTENSION IF NOT EXISTS pg_search CASCADE;
+  managed:
+    roles:
+      # Links: migrations own the schema; the API and workers only use the data.
+      - name: links_migrator
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paradedb-links-migrator
+      - name: links_app
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paradedb-links-app
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
