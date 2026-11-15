@@ -2,7 +2,7 @@
 
 Nimbus Casa is a single-host homelab. Public traffic enters through a Hetzner VPS and reaches Kubernetes over a WireGuard tunnel to a home connector VM. Cloudflare only serves DNS.
 
-Last updated: 2026-11-14
+Last updated: 2026-11-15
 
 ## Hosts
 
@@ -13,6 +13,8 @@ Last updated: 2026-11-14
 | `k8s0` | `10.10.40.40` | Single-node Talos Kubernetes cluster | `talos/`, `kubernetes/` |
 | `connector0` | `10.10.40.21` | WireGuard and HAProxy endpoint for the VPS | `opentofu/`, `ansible/` |
 | `nexus-kb` | `10.10.40.23` | Ubuntu 24.04 host for the Nexus application | `opentofu/`, `ansible/` |
+| `gitlab0` | `10.10.40.24` | GitLab EE (Omnibus) on Ubuntu 24.04: `code.twicecooked.software` and `registry.twicecooked.software` | `opentofu/`, `ansible/` |
+| `runner0` | `10.10.40.25` | Single-node Talos cluster running gitlab-runner. Untrusted CI jobs | `opentofu/`, `talos-runner/` |
 | `gw0.kiad.tansanrao.net` | Hetzner | Public edge: HAProxy, WireGuard, Gatus | `ansible/` |
 
 There is one Proxmox host, so it is the largest single point of failure.
@@ -29,7 +31,7 @@ There is one Proxmox host, so it is the largest single point of failure.
 HOMELAB allocation:
 
 - `10.10.40.1`: UniFi gateway.
-- `10.10.40.21`–`10.10.40.39`: static VM addresses.
+- `10.10.40.21`–`10.10.40.39`: static VM addresses. In use: `connector0` `.21`, `nexus-kb` `.23`, `gitlab0` `.24`, `runner0` `.25`.
 - `10.10.40.41`–`10.10.40.99`: Kubernetes node, Cilium LoadBalancer and service addresses. In use: SMTP relay `10.10.40.55`, Envoy internal `10.10.40.61`, Envoy external `10.10.40.62`, Dragonfly `10.10.40.71` and the authentik LDAP outpost `10.10.40.72`.
 - `10.10.40.100`–`10.10.40.250`: DHCP.
 
@@ -61,6 +63,17 @@ On the home network, UniFi resolves `external.nimbus.casa` directly to `10.10.40
 
 WireGuard peers allow only each other's `/32` (`10.200.0.1` and `10.200.0.2`). nftables on both hosts is the enforcement boundary; HAProxy only routes.
 
+### GitLab
+
+GitLab has its own Hetzner Floating IP, `5.161.18.14`, so git SSH can use port 22 while gw0's sshd keeps the primary address. Its public A records are managed by hand, outside external-dns.
+
+1. nftables on gw0 rewrites `5.161.18.14` ports 22, 80 and 443 to 10022, 10080 and 10443. HAProxy forwards those as TCP with PROXY v2 to the same ports on `10.200.0.2`.
+2. connector0 accepts them only from `10.200.0.1` on `wg0` and forwards them, still with the client's PROXY header, to the same ports on `10.10.40.24`.
+3. On gitlab0, HAProxy owns every client-facing port. The 100xx ports accept PROXY only from connector0 (nftables). Ports 22, 80 and 443 take direct LAN, HOMELAB and runner0 connections, which cannot send a header. Both sets forward with PROXY v2 to Omnibus nginx (`127.0.0.1:80/443`) and `gitlab-sshd` (`127.0.0.1:2222`), which require it. GitLab therefore logs real client addresses on every path.
+4. nginx terminates TLS with one Let's Encrypt certificate for both hostnames, issued over HTTP-01 through the same path. Admin OpenSSH on gitlab0 is on port 2022.
+
+runner0 is limited by the Proxmox VM firewall, outside the VM: it may reach `10.10.40.24:443`, gateway DNS and the public internet, and nothing else private. Only it has a VM-level firewall; the datacenter firewall is on with ACCEPT policies and the node firewall is off. runner0 has no Flux and never holds the repository's age key; `task runner:deploy` installs gitlab-runner from a workstation.
+
 Cloudflare Tunnel was removed from the cluster in April 2026. `nexus-kb` is the exception: a separate Cloudflare tunnel on that host forwards `app.nexus-kb.com` (see [ansible/README.md](ansible/README.md)).
 
 ## Kubernetes
@@ -89,8 +102,9 @@ Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karake
 ## Configuration layers
 
 - Flux (`kubernetes/`) owns everything in the cluster.
-- OpenTofu (`opentofu/proxmox/`) creates the `connector0` and `nexus-kb` VMs. The VPS was created by hand.
-- Ansible (`ansible/`) configures the VPS, `connector0` and `nexus-kb`.
+- OpenTofu (`opentofu/proxmox/`) creates the `connector0`, `nexus-kb`, `gitlab0` and `runner0` VMs and runner0's Proxmox firewall. The VPS was created by hand.
+- Ansible (`ansible/`) configures the VPS, `connector0`, `nexus-kb` and `gitlab0`.
+- talhelper (`talos-runner/`) configures `runner0`; its helmfile deploys gitlab-runner.
 
 Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`, `group_vars/*.sops.yml` in `ansible/`. Kubernetes apps also read secrets from 1Password through External Secrets. Keep secrets out of OpenTofu state.
 

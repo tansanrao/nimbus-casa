@@ -8,9 +8,10 @@ Infrastructure as code for the Nimbus Casa homelab: a single-node Talos Kubernet
 | --- | --- |
 | `kubernetes/` | Flux apps, shared components and cluster settings |
 | `talos/` | talhelper configuration and patches for `k8s0` |
+| `talos-runner/` | talhelper configuration for `runner0` and its gitlab-runner helmfile |
 | `bootstrap/` | One-time cluster bootstrap resources |
-| `opentofu/proxmox/` | VMs created on Proxmox (`connector0`, `nexus-kb`) |
-| `ansible/` | Configuration for the VPS, `connector0` and `nexus-kb` |
+| `opentofu/proxmox/` | VMs created on Proxmox (`connector0`, `nexus-kb`, `gitlab0`, `runner0`) |
+| `ansible/` | Configuration for the VPS, `connector0`, `nexus-kb` and `gitlab0` |
 | `scripts/` | Static checks and live verification scripts |
 | `docs/` | Runbooks and isolation notes |
 | `.taskfiles/` | Taskfile modules for `bootstrap:` and `talos:` |
