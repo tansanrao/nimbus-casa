@@ -76,3 +76,4 @@ override.tf.json
 !*.tfvars.example
 
 !/ansible/group_vars/nexus_kb.yml
+!/ansible/group_vars/gitlab.yml

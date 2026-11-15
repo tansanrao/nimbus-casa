@@ -1,0 +1,32 @@
+---
+gitlab_hostname: code.example.com
+gitlab_registry_hostname: registry.example.com
+gitlab_version: ""
+gitlab_package: gitlab-ee
+
+# Off until public DNS for both hostnames points at the Floating IP. While off,
+# the role installs a self-signed certificate so nginx can start.
+gitlab_letsencrypt_enabled: false
+gitlab_letsencrypt_contact_emails: []
+
+gitlab_data_device: /dev/disk/by-id/scsi-SQEMU_QEMU_HARDDISK_gitlab-data
+gitlab_data_mount: /var/opt/gitlab
+gitlab_swap_file: /swapfile
+gitlab_swap_size_mb: 4096
+
+gitlab_puma_workers: 4
+gitlab_sidekiq_concurrency: 20
+
+# Sources that never get banned for failed git HTTP logins. Real client
+# addresses arrive through PROXY, so every other client is limited on its own.
+gitlab_rack_attack_allowlist: ["127.0.0.1"]
+gitlab_monitoring_allowlist: ["127.0.0.0/8", "::1/128"]
+
+gitlab_email_from: ""
+gitlab_email_display_name: GitLab
+gitlab_email_reply_to: ""
+gitlab_smtp_address: ""
+gitlab_smtp_port: 25
+gitlab_smtp_starttls: false
+# Used only when gitlab_smtp_password (from SOPS) is defined.
+gitlab_smtp_user_name: ""

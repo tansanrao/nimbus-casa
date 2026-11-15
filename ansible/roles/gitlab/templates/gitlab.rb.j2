@@ -1,0 +1,104 @@
+# Managed by Ansible (roles/gitlab). Local edits are overwritten.
+# Every listener below is on 127.0.0.1 and requires PROXY v2. The local HAProxy
+# owns the ports clients reach and adds the header (see group_vars/gitlab.yml).
+
+external_url 'https://{{ gitlab_hostname }}'
+registry_external_url 'https://{{ gitlab_registry_hostname }}'
+
+letsencrypt['enable'] = {{ gitlab_letsencrypt_enabled | ternary('true', 'false') }}
+letsencrypt['contact_emails'] = {{ gitlab_letsencrypt_contact_emails | to_json }}
+letsencrypt['auto_renew'] = true
+
+gitlab_rails['nginx']['listen_addresses'] = ['127.0.0.1']
+gitlab_rails['nginx']['proxy_protocol'] = true
+gitlab_rails['nginx']['real_ip_trusted_addresses'] = ['127.0.0.1/32']
+gitlab_rails['nginx']['redirect_http_to_https'] = true
+
+registry['nginx']['listen_addresses'] = ['127.0.0.1']
+registry['nginx']['proxy_protocol'] = true
+registry['nginx']['real_ip_trusted_addresses'] = ['127.0.0.1/32']
+
+gitlab_sshd['enable'] = true
+gitlab_sshd['listen_address'] = '127.0.0.1:2222'
+gitlab_sshd['proxy_protocol'] = true
+gitlab_sshd['proxy_policy'] = 'require'
+gitlab_rails['gitlab_shell_ssh_port'] = 22
+
+puma['worker_processes'] = {{ gitlab_puma_workers }}
+sidekiq['concurrency'] = {{ gitlab_sidekiq_concurrency }}
+
+# Keep the exporters; the bundled Prometheus and Alertmanager are not used.
+prometheus['enable'] = false
+alertmanager['enable'] = false
+gitlab_rails['monitoring_whitelist'] = {{ gitlab_monitoring_allowlist | to_json }}
+
+gitlab_rails['rack_attack_git_basic_auth'] = {
+  'enabled' => true,
+  'ip_whitelist' => {{ gitlab_rack_attack_allowlist | to_json }},
+  'maxretry' => 30,
+  'findtime' => 60,
+  'bantime' => 3600
+}
+
+gitlab_rails['store_initial_root_password'] = false
+gitlab_rails['backup_keep_time'] = 172800
+{% if gitlab_garage is defined %}
+
+gitlab_rails['backup_upload_connection'] = {
+  'provider' => 'AWS',
+  'region' => 'garage',
+  'endpoint' => '{{ gitlab_garage.endpoint }}',
+  'path_style' => true,
+  'aws_access_key_id' => '{{ gitlab_garage.access_key }}',
+  'aws_secret_access_key' => '{{ gitlab_garage.secret_key }}'
+}
+gitlab_rails['backup_upload_remote_directory'] = 'gitlab-backups'
+
+# runner0 and public clients cannot reach Garage, so GitLab and the registry
+# proxy every download instead of redirecting to presigned URLs.
+gitlab_rails['object_store']['enabled'] = true
+gitlab_rails['object_store']['proxy_download'] = true
+gitlab_rails['object_store']['connection'] = {
+  'provider' => 'AWS',
+  'region' => 'garage',
+  'endpoint' => '{{ gitlab_garage.endpoint }}',
+  'path_style' => true,
+  'aws_access_key_id' => '{{ gitlab_garage.access_key }}',
+  'aws_secret_access_key' => '{{ gitlab_garage.secret_key }}'
+}
+{% for object in ['artifacts', 'external_diffs', 'lfs', 'uploads', 'packages', 'dependency_proxy', 'terraform_state', 'ci_secure_files'] %}
+gitlab_rails['object_store']['objects']['{{ object }}']['bucket'] = 'gitlab-{{ object | replace('_', '-') }}'
+{% endfor %}
+
+registry['storage'] = {
+  's3_v2' => {
+    'accesskey' => '{{ gitlab_garage.access_key }}',
+    'secretkey' => '{{ gitlab_garage.secret_key }}',
+    'bucket' => 'gitlab-registry',
+    'region' => 'garage',
+    'regionendpoint' => '{{ gitlab_garage.endpoint }}',
+    'pathstyle' => true
+  },
+  'redirect' => { 'disable' => true }
+}
+{% endif %}
+{% if gitlab_smtp_address %}
+
+gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = '{{ gitlab_smtp_address }}'
+gitlab_rails['smtp_port'] = {{ gitlab_smtp_port }}
+gitlab_rails['smtp_domain'] = '{{ gitlab_hostname }}'
+gitlab_rails['smtp_tls'] = false
+gitlab_rails['smtp_enable_starttls_auto'] = {{ gitlab_smtp_starttls | ternary('true', 'false') }}
+{% if gitlab_smtp_starttls %}
+gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+{% endif %}
+{% if gitlab_smtp_password is defined %}
+gitlab_rails['smtp_authentication'] = 'plain'
+gitlab_rails['smtp_user_name'] = '{{ gitlab_smtp_user_name }}'
+gitlab_rails['smtp_password'] = '{{ gitlab_smtp_password }}'
+{% endif %}
+gitlab_rails['gitlab_email_from'] = '{{ gitlab_email_from }}'
+gitlab_rails['gitlab_email_display_name'] = '{{ gitlab_email_display_name }}'
+gitlab_rails['gitlab_email_reply_to'] = '{{ gitlab_email_reply_to | default(gitlab_email_from, true) }}'
+{% endif %}

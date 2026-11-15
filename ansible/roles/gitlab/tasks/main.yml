@@ -1,0 +1,265 @@
+---
+- name: Validate GitLab settings
+  ansible.builtin.assert:
+    that:
+      - gitlab_version is match('^[0-9]+\.[0-9]+\.[0-9]+-(ee|ce)\.[0-9]+$')
+      - gitlab_root_password | length >= 16
+    fail_msg: "Pin gitlab_version (such as 19.5.5-ee.0) and set a root password of at least 16 characters in SOPS."
+  no_log: true
+
+# Data disk: repositories, PostgreSQL, Redis and local backups.
+- name: Read the GitLab data disk filesystem
+  ansible.builtin.command: "blkid -o value -s TYPE {{ gitlab_data_device }}"
+  register: gitlab_data_fs
+  changed_when: false
+  failed_when: gitlab_data_fs.rc not in [0, 2]
+
+- name: Create the GitLab data filesystem
+  ansible.builtin.command: "mkfs.ext4 -L gitlab-data {{ gitlab_data_device }}"
+  when: gitlab_data_fs.stdout == ""
+  changed_when: true
+
+- name: Mount the GitLab data disk at boot
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '\s{{ gitlab_data_mount }}\s'
+    line: "LABEL=gitlab-data {{ gitlab_data_mount }} ext4 defaults,noatime,nofail 0 2"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create the GitLab data mount point
+  ansible.builtin.file:
+    path: "{{ gitlab_data_mount }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check whether the GitLab data disk is mounted
+  ansible.builtin.command: "findmnt -n {{ gitlab_data_mount }}"
+  register: gitlab_data_mounted
+  changed_when: false
+  failed_when: false
+
+- name: Mount the GitLab data disk
+  ansible.builtin.command: "mount {{ gitlab_data_mount }}"
+  when: gitlab_data_mounted.rc != 0
+  changed_when: true
+
+# GitLab's install docs recommend some swap even with enough RAM.
+- name: Create the swap file
+  ansible.builtin.command: "fallocate -l {{ gitlab_swap_size_mb }}M {{ gitlab_swap_file }}"
+  args:
+    creates: "{{ gitlab_swap_file }}"
+  register: gitlab_swap_created
+
+- name: Restrict the swap file
+  ansible.builtin.file:
+    path: "{{ gitlab_swap_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Format the swap file
+  ansible.builtin.command: "mkswap {{ gitlab_swap_file }}"
+  when: gitlab_swap_created is changed
+  changed_when: true
+
+- name: Enable the swap file at boot
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^{{ gitlab_swap_file }}\s'
+    line: "{{ gitlab_swap_file }} none swap sw 0 0"
+
+- name: Check active swap
+  ansible.builtin.command: swapon --show=NAME --noheadings
+  register: gitlab_swap_active
+  changed_when: false
+
+- name: Enable the swap file
+  ansible.builtin.command: "swapon {{ gitlab_swap_file }}"
+  when: gitlab_swap_file not in gitlab_swap_active.stdout_lines
+  changed_when: true
+
+- name: Prefer page cache over swap
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/60-gitlab.conf
+    content: "vm.swappiness = 10\n"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sysctl
+
+# Configuration and secrets go in place before the package, because its
+# postinst runs the first reconfigure.
+- name: Create GitLab configuration directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: /etc/gitlab, mode: "0775" }
+    - { path: /etc/gitlab/ssl, mode: "0755" }
+
+- name: Restore gitlab-secrets.json from SOPS
+  ansible.builtin.copy:
+    dest: /etc/gitlab/gitlab-secrets.json
+    content: "{{ gitlab_secrets_json }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: gitlab_secrets_json is defined
+  no_log: true
+  notify: Reconfigure GitLab
+
+- name: Configure GitLab
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: "{{ gitlab_garage is defined or gitlab_smtp_password is defined }}"
+  notify: Reconfigure GitLab
+
+# Lets nginx start before public DNS exists. Let's Encrypt replaces these once
+# gitlab_letsencrypt_enabled is true.
+- name: Create placeholder TLS certificates
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - req
+      - -x509
+      - -newkey
+      - ec
+      - -pkeyopt
+      - ec_paramgen_curve:prime256v1
+      - -nodes
+      - -days
+      - "30"
+      - -subj
+      - "/CN={{ item }}"
+      - -addext
+      - "subjectAltName=DNS:{{ item }}"
+      - -keyout
+      - "/etc/gitlab/ssl/{{ item }}.key"
+      - -out
+      - "/etc/gitlab/ssl/{{ item }}.crt"
+    creates: "/etc/gitlab/ssl/{{ item }}.crt"
+  loop:
+    - "{{ gitlab_hostname }}"
+    - "{{ gitlab_registry_hostname }}"
+  when: not gitlab_letsencrypt_enabled
+
+# A placeholder is self-signed: its issuer equals its subject. Removing it
+# makes the next reconfigure request a Let's Encrypt certificate right away.
+- name: Remove placeholder TLS certificates for Let's Encrypt
+  ansible.builtin.shell: |
+    set -eu
+    f=/etc/gitlab/ssl/{{ item }}.crt
+    [ -f "$f" ] || exit 0
+    issuer=$(openssl x509 -in "$f" -noout -issuer | sed 's/^issuer=//')
+    subject=$(openssl x509 -in "$f" -noout -subject | sed 's/^subject=//')
+    [ "$issuer" = "$subject" ] || exit 0
+    rm -f "$f" /etc/gitlab/ssl/{{ item }}.key
+    echo removed
+  args:
+    executable: /bin/bash
+  loop:
+    - "{{ gitlab_hostname }}"
+    - "{{ gitlab_registry_hostname }}"
+  register: gitlab_placeholder_removed
+  changed_when: "'removed' in gitlab_placeholder_removed.stdout"
+  when: gitlab_letsencrypt_enabled
+  notify: Reconfigure GitLab
+
+- name: Install the GitLab repository signing key
+  ansible.builtin.get_url:
+    url: "https://packages.gitlab.com/gitlab/{{ gitlab_package }}/gpgkey"
+    dest: /etc/apt/keyrings/gitlab.asc
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure the GitLab APT repository
+  ansible.builtin.template:
+    src: gitlab.sources.j2
+    dest: /etc/apt/sources.list.d/gitlab.sources
+    owner: root
+    group: root
+    mode: "0644"
+
+# Upgrades follow GitLab's required upgrade stops, so the package is held and
+# only this task moves it, when gitlab_version changes.
+- name: Install GitLab
+  ansible.builtin.apt:
+    name: "{{ gitlab_package }}={{ gitlab_version }}"
+    state: present
+    allow_change_held_packages: true
+    update_cache: true
+  environment:
+    GITLAB_ROOT_PASSWORD: "{{ gitlab_root_password }}"
+  no_log: true
+  register: gitlab_installed
+
+- name: Hold the GitLab package
+  ansible.builtin.dpkg_selections:
+    name: "{{ gitlab_package }}"
+    selection: hold
+
+- name: Apply GitLab configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Restore gitlab-sshd host keys from SOPS
+  ansible.builtin.copy:
+    dest: "/var/opt/gitlab/gitlab-sshd/{{ item.key }}"
+    content: "{{ item.value }}"
+    # Same ownership Omnibus uses when it generates the keys.
+    owner: "{{ 'root' if item.key.endswith('.pub') else 'git' }}"
+    group: "{{ 'root' if item.key.endswith('.pub') else 'git' }}"
+    mode: "{{ '0644' if item.key.endswith('.pub') else '0600' }}"
+  loop: "{{ gitlab_sshd_host_keys | default({}) | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  no_log: true
+  register: gitlab_sshd_keys
+
+- name: Restart gitlab-sshd for restored host keys
+  ansible.builtin.command: gitlab-ctl restart gitlab-sshd
+  when: gitlab_sshd_keys is changed
+  changed_when: true
+
+# Instance settings that live in the database rather than gitlab.rb.
+- name: Apply GitLab application settings
+  ansible.builtin.command:
+    argv:
+      - gitlab-rails
+      - runner
+      - |
+        s = ApplicationSetting.current
+        s.assign_attributes(
+          signup_enabled: false,
+          default_project_visibility: Gitlab::VisibilityLevel::PRIVATE,
+          default_group_visibility: Gitlab::VisibilityLevel::PRIVATE,
+          default_snippet_visibility: Gitlab::VisibilityLevel::PRIVATE,
+          usage_ping_enabled: false
+        )
+        if s.changed?
+          s.save!
+          puts "changed"
+        end
+  register: gitlab_app_settings
+  changed_when: "'changed' in gitlab_app_settings.stdout"
+
+- name: Schedule nightly backups
+  ansible.builtin.copy:
+    dest: /etc/cron.d/gitlab-backup
+    content: |
+      # Managed by Ansible. Runs before the 03:00 CloudNativePG base backups.
+      0 2 * * * root /opt/gitlab/bin/gitlab-backup create CRON=1
+    owner: root
+    group: root
+    mode: "0644"

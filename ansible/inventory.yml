@@ -16,3 +16,9 @@ all:
         nexus-kb:
           ansible_host: 10.10.40.23
           ansible_user: ubuntu
+    gitlab:
+      hosts:
+        gitlab0:
+          ansible_host: 10.10.40.24
+          ansible_port: 2022
+          ansible_user: ubuntu

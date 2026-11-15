@@ -1,0 +1,24 @@
+---
+# Hetzner's persistent configuration for Floating IPs on Ubuntu:
+# https://docs.hetzner.com/cloud/floating-ips/persistent-configuration/
+- name: Configure Floating IPs in netplan
+  ansible.builtin.template:
+    src: floating-ip.yaml.j2
+    dest: "{{ floating_ip_netplan_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: floating_ipv4_addresses | length > 0
+
+# Adding the address directly avoids `netplan apply`, which would briefly
+# reconfigure eth0 and the WireGuard tunnel. Netplan applies the file on boot.
+- name: Read addresses on the Floating IP interface
+  ansible.builtin.command: "ip -4 -o addr show dev {{ floating_ip_interface }}"
+  register: floating_ip_current
+  changed_when: false
+
+- name: Add missing Floating IPs to the running interface
+  ansible.builtin.command: "ip addr add {{ item }}/32 dev {{ floating_ip_interface }}"
+  loop: "{{ floating_ipv4_addresses }}"
+  when: (' ' ~ item ~ '/32') not in floating_ip_current.stdout
+  changed_when: true

@@ -1,0 +1,5 @@
+---
+floating_ip_interface: eth0
+floating_ip_netplan_path: /etc/netplan/60-floating-ip.yaml
+# IPv4 addresses without a prefix, such as ["5.161.18.14"].
+floating_ipv4_addresses: []

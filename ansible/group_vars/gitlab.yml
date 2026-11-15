@@ -1,0 +1,69 @@
+---
+system_hostname: gitlab0
+system_fqdn: gitlab0.kbcb.tansanrao.net
+system_timezone: UTC
+
+# Port 22 belongs to gitlab-sshd behind HAProxy. Keep in sync with
+# gitlab_ssh_port in OpenTofu and ansible_port in the inventory.
+ssh_listen_port: 2022
+
+common_extra_apt_packages:
+  - openssl
+  - qemu-guest-agent
+common_extra_services:
+  - qemu-guest-agent
+
+gitlab_ipv4: 10.10.40.24
+gitlab_connector_ipv4: 10.10.40.21
+gitlab_runner_ipv4: 10.10.40.25
+
+# Direct ports serve LAN, HOMELAB and runner0 and accept no PROXY header.
+# The 100xx ports accept PROXY from connector0 only, enforced by nftables.
+firewall_tcp_allow_rules:
+  - port: "{{ ssh_listen_port }}"
+  - port: 22
+  - port: 80
+  - port: 443
+  - { port: 10022, source: "{{ gitlab_connector_ipv4 }}" }
+  - { port: 10080, source: "{{ gitlab_connector_ipv4 }}" }
+  - { port: 10443, source: "{{ gitlab_connector_ipv4 }}" }
+firewall_udp_allow_rules: []
+
+haproxy_role: forwards
+haproxy_health_bind: 127.0.0.1:8404
+haproxy_connect_timeout: 5s
+haproxy_client_timeout: 60s
+haproxy_server_timeout: 60s
+haproxy_tcp_forwards:
+  - { name: direct_https, bind: "{{ gitlab_ipv4 }}:443", backend: 127.0.0.1:443, send_proxy: true, timeout: 1h }
+  - { name: direct_ssh, bind: "{{ gitlab_ipv4 }}:22", backend: 127.0.0.1:2222, send_proxy: true, timeout: 1h }
+  - { name: direct_http, bind: "{{ gitlab_ipv4 }}:80", backend: 127.0.0.1:80, send_proxy: true }
+  - { name: edge_https, bind: "{{ gitlab_ipv4 }}:10443", backend: 127.0.0.1:443, accept_proxy: true, send_proxy: true, timeout: 1h }
+  - { name: edge_ssh, bind: "{{ gitlab_ipv4 }}:10022", backend: 127.0.0.1:2222, accept_proxy: true, send_proxy: true, timeout: 1h }
+  - { name: edge_http, bind: "{{ gitlab_ipv4 }}:10080", backend: 127.0.0.1:80, accept_proxy: true, send_proxy: true }
+
+gitlab_hostname: code.twicecooked.software
+gitlab_registry_hostname: registry.twicecooked.software
+gitlab_version: 19.5.5-ee.0
+
+# HTTP-01 through 5.161.18.14:80. Needs both hostnames to resolve publicly to
+# the Floating IP.
+gitlab_letsencrypt_enabled: true
+gitlab_letsencrypt_contact_emails:
+  - email@tansanrao.com
+
+gitlab_rack_attack_allowlist:
+  - 127.0.0.1
+  - 10.10.10.0/24
+  - "{{ gitlab_runner_ipv4 }}"
+
+# Direct to Postmark, not the cluster relay, so mail keeps working while k8s0
+# is down. Postmark uses the server API token (SOPS smtp_password) as both
+# the SMTP username and password. The GitLab server's default transactional
+# stream carries everything.
+gitlab_smtp_address: smtp.postmarkapp.com
+gitlab_smtp_port: 587
+gitlab_smtp_starttls: true
+gitlab_smtp_user_name: "{{ gitlab_smtp_password }}"
+gitlab_email_from: noreply@twicecooked.software
+gitlab_email_display_name: GitLab

@@ -1,0 +1,8 @@
+---
+- name: Reconfigure GitLab
+  ansible.builtin.command: gitlab-ctl reconfigure
+  changed_when: true
+
+- name: Reload sysctl
+  ansible.builtin.command: sysctl --system
+  changed_when: true

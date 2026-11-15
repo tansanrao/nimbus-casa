@@ -19,6 +19,9 @@ firewall_tcp_allow_rules:
   - port: 443
     source: 10.200.0.1
     iifname: "{{ wireguard_interface }}"
+  - { port: 10022, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
+  - { port: 10080, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
+  - { port: 10443, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
 firewall_udp_allow_rules: []
 
 haproxy_role: connector
@@ -28,3 +31,24 @@ haproxy_envoy_external_backend: "10.10.40.62:443"
 haproxy_connect_timeout: 5s
 haproxy_client_timeout: 60s
 haproxy_server_timeout: 60s
+
+# GitLab traffic from the Floating IP on gw0. The PROXY header from gw0 is
+# passed on, so gitlab0 sees each client's real address.
+haproxy_tcp_forwards:
+  - name: gitlab_https
+    bind: 10.200.0.2:10443
+    backend: 10.10.40.24:10443
+    accept_proxy: true
+    send_proxy: true
+    timeout: 1h
+  - name: gitlab_ssh
+    bind: 10.200.0.2:10022
+    backend: 10.10.40.24:10022
+    accept_proxy: true
+    send_proxy: true
+    timeout: 1h
+  - name: gitlab_http
+    bind: 10.200.0.2:10080
+    backend: 10.10.40.24:10080
+    accept_proxy: true
+    send_proxy: true

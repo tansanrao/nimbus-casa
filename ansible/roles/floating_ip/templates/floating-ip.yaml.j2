@@ -1,0 +1,10 @@
+# Managed by Ansible.
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    {{ floating_ip_interface }}:
+      addresses:
+{% for address in floating_ipv4_addresses %}
+        - {{ address }}/32
+{% endfor %}
