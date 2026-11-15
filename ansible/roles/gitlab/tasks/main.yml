@@ -122,7 +122,7 @@
     owner: root
     group: root
     mode: "0600"
-  no_log: "{{ gitlab_garage is defined or gitlab_smtp_password is defined }}"
+  no_log: "{{ gitlab_garage is defined or gitlab_smtp_password is defined or gitlab_github_oauth is defined }}"
   notify: Reconfigure GitLab
 
 # Lets nginx start before public DNS exists. Let's Encrypt replaces these once
@@ -247,6 +247,9 @@
           default_snippet_visibility: Gitlab::VisibilityLevel::PRIVATE,
           usage_ping_enabled: false
         )
+        github_sign_in = {{ gitlab_github_sign_in_enabled | ternary('true', 'false') }}
+        sources = Array(s.disabled_oauth_sign_in_sources)
+        s.disabled_oauth_sign_in_sources = github_sign_in ? sources - ["github"] : sources | ["github"]
         if s.changed?
           s.save!
           puts "changed"

@@ -132,6 +132,7 @@
         - { key: garage, fact: gitlab_garage }
         - { key: smtp_username, fact: gitlab_smtp_user_name }
         - { key: smtp_password, fact: gitlab_smtp_password }
+        - { key: github_oauth, fact: gitlab_github_oauth }
       loop_control:
         label: "{{ item.key }}"
       when: item.key in gitlab_sops_secrets

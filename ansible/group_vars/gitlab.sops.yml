@@ -13,6 +13,9 @@ garage:
   secret_key: ENC[AES256_GCM,data:qQHL8vC8X8evjNqJfRte/pW9z/43HyyL29k3T2skiYpWNY96YyLPE4Wc1FsaDvFv82LaQgc7H1Mhny4OnzeePg==,iv:wYT4/BykR+hatrzw1Tb5nuzzt4nIKiqA0ykYRI/9jtI=,tag:ASeTB4IsoL/sBZCzfhi2YA==,type:str]
 smtp_username: ENC[AES256_GCM,data:k1gYrh1j4DwkdKYfmNfB1pBHHhdDRZaZg7JCU3DlZoL9YYkd,iv:a8SeUE14oDGtjDAopnExXH3sbLCnoPMR1tbj3v7OIMA=,tag:Gs4Eqo1QHfIUVx/e0wMODQ==,type:str]
 smtp_password: ENC[AES256_GCM,data:q6Zc2cTOStyG4GonClbwxsBBYRdw/3lKhz2iR2ji22nKTZsiTRJ/2BXHmjBwzljFnVpMcq01fNjVvscd3auCWw==,iv:lxiZJjrHISdZuZBQr2KoOk1SHxCLI6ozzGvqPweiHX0=,tag:Fv7zYNFzw/v6WkMDap0bXQ==,type:str]
+github_oauth:
+  app_id: ENC[AES256_GCM,data:+OYoNJ8MxLSOwGLp+krmoan1REQ=,iv:ZX/qs65ffTKt0HqBCiOPqAdJCZeeZlOkPlifR+KMYUs=,tag:O05AJK40gU+mH2SDChrG2g==,type:str]
+  app_secret: ENC[AES256_GCM,data:zNVmXEsLIdECwFAr0ESXzMfm8+FYvdCFYds6VLS2AqbmGQt+R3TvzA==,iv:/wmjwCWvSQUiBKRsecUsrvGs6CbKv+ln2niCvHzX/l8=,tag:emgkuzre52fYPZ2oIVbWCg==,type:str]
 sops:
   age:
     - enc: |
@@ -24,8 +27,8 @@ sops:
         q5QiEFZv437D02t2UKQSqVNa52ZlhhFiazahocxlzwX0bRJAZyZLJQ==
         -----END AGE ENCRYPTED FILE-----
       recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
-  lastmodified: "2026-11-15T17:54:12Z"
-  mac: ENC[AES256_GCM,data:t2XkTNI6MiE8uU8+hGnkddpRK0fbuvozQuB8+i4i7wfudpYuAuH1x0IlRXPIfGXy/rqr+mLkbNlGa8iMmgFieDBNBdA2l7OD4qfLcKz0MKWD1b1iVhzDRS+7cym+E9tx3S+eB0h741GTtYw7igsMXgYZhCCH6NkXTWgzxTjdbK8=,iv:ZRKrcmzpBDX5kRe8P5ZwVYsyKqZ7AAys2cJMzyawObk=,tag:vwbcRsVgRtmJaHD9x3oUUw==,type:str]
+  lastmodified: "2026-11-15T18:42:45Z"
+  mac: ENC[AES256_GCM,data:o3h+dooDgf+LQB32rRwNolIL9Qam3lwcPhT5fxdUSAN4EzCsqDsPkuO7R7mCw6/GF0KuYaAiFZFHeTKbpq5CaTcVDcx3x36oSv/9TpNCK5OT5viocpkZd47bY1y1pPT0xXvOAilKodfVyGNX0vAZE0KuEE2+VVbOj7cKcny08TE=,iv:ub8rLwT8/GV8L5zcHXavM2/z8aGRBzenQjf/ie8y7yQ=,tag:e3Gj9Oeap1KVGV/cq37VdA==,type:str]
   mac_only_encrypted: true
   unencrypted_suffix: _unencrypted
   version: 3.13.3

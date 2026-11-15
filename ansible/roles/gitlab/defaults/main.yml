@@ -22,6 +22,10 @@ gitlab_sidekiq_concurrency: 20
 gitlab_rack_attack_allowlist: ["127.0.0.1"]
 gitlab_monitoring_allowlist: ["127.0.0.0/8", "::1/128"]
 
+# Show "Sign in with GitHub" when the github_oauth SOPS secret is present.
+# Off keeps GitHub OAuth for the project importer only.
+gitlab_github_sign_in_enabled: false
+
 gitlab_email_from: ""
 gitlab_email_display_name: GitLab
 gitlab_email_reply_to: ""

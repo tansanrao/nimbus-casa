@@ -102,3 +102,20 @@ gitlab_rails['gitlab_email_from'] = '{{ gitlab_email_from }}'
 gitlab_rails['gitlab_email_display_name'] = '{{ gitlab_email_display_name }}'
 gitlab_rails['gitlab_email_reply_to'] = '{{ gitlab_email_reply_to | default(gitlab_email_from, true) }}'
 {% endif %}
+{% if gitlab_github_oauth is defined %}
+
+# GitHub OAuth app, used by the GitHub importer's "Authorize with GitHub"
+# button. GitHub never creates GitLab accounts, and whether it appears on the
+# sign-in page is set by gitlab_github_sign_in_enabled.
+gitlab_rails['omniauth_enabled'] = true
+gitlab_rails['omniauth_allow_single_sign_on'] = false
+gitlab_rails['omniauth_block_auto_created_users'] = true
+gitlab_rails['omniauth_providers'] = [
+  {
+    'name' => 'github',
+    'app_id' => '{{ gitlab_github_oauth.app_id }}',
+    'app_secret' => '{{ gitlab_github_oauth.app_secret }}',
+    'args' => { 'scope' => 'user:email' }
+  }
+]
+{% endif %}
