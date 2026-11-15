@@ -3,6 +3,7 @@
 Talos exposes the node's second NVMe as a raw volume at `/dev/disk/by-partlabel/r-openebs-lvm`. It holds the `openebs-vg` volume group and its thin pool. The Talos config loads `dm_snapshot` and `dm_thin_pool` so OpenEBS can take thin snapshots.
 
 - StorageClass `openebs-lvm`: thin-provisioned. All application and database PVCs use it.
+- StorageClass `openebs-lvm-shared`: the same, but several pods on the node can mount one volume. Links' artifact volume uses it, because its API and capture worker both mount it.
 - VolumeSnapshotClass `openebs-lvm-snap`: used by VolSync.
 - `openebs-hostpath`: VolSync cache PVCs, which need no snapshots.
 

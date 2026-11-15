@@ -25,6 +25,8 @@ spec:
     substitute:
       APP: links
       VOLSYNC_CAPACITY: 20Gi
+      # The API and capture worker both mount the artifact volume.
+      VOLSYNC_STORAGECLASS: openebs-lvm-shared
       VOLSYNC_PUID: "10001"
       VOLSYNC_PGID: "10001"
     substituteFrom:

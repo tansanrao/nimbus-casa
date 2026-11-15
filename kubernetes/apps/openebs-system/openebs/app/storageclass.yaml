@@ -18,3 +18,27 @@ allowedTopologies:
       - key: kubernetes.io/hostname
         values:
           - k8s0
+---
+# Same volumes, but one volume may be mounted by several pods on the node.
+# Without shared, LVM LocalPV refuses a second mount.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: openebs-lvm-shared
+  labels:
+    app.kubernetes.io/name: openebs-lvm-shared
+provisioner: local.csi.openebs.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  storage: lvm
+  volgroup: openebs-vg
+  fsType: ext4
+  thinProvision: "yes"
+  shared: "yes"
+allowedTopologies:
+  - matchLabelExpressions:
+      - key: kubernetes.io/hostname
+        values:
+          - k8s0

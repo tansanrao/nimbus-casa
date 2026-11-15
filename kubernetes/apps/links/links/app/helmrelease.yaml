@@ -93,7 +93,9 @@ spec:
             env:
               <<: &appEnv
                 VAPOR_ENV: production
-                DATA_DIRECTORY: /data
+                # The backend chmods this directory, so it must create it itself;
+                # the volume root belongs to root (fsGroup only sets the group).
+                DATA_DIRECTORY: /data/links
                 PUBLIC_URL: https://links.${SECRET_DOMAIN}
                 CAPTURE_URL: http://links-capture.links.svc.cluster.local:8080
                 LOG_LEVEL: info
@@ -302,8 +304,8 @@ spec:
             port: 8080
 
     persistence:
-      # Artifacts. Both the API and the capture worker mount it; one node, so
-      # ReadWriteOnce works for both.
+      # Artifacts. The API and the capture worker both mount it, which the
+      # openebs-lvm-shared class allows on the one node.
       data:
         existingClaim: links
         advancedMounts:
