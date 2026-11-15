@@ -1,0 +1,350 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: frontend
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: frontend
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: api
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# The API signs in through authentik and sends mail; both workers and the
+# migration Job only need the database (and capture, for the capture worker).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: api
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: frontend
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: capture
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: default
+            k8s:app.kubernetes.io/name: smtp-relay
+      toPorts:
+        - ports:
+            - port: "25"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
+          serverNames:
+            - auth.${SECRET_DOMAIN}
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: capture-worker
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: capture-worker
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: capture
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: email-worker
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: email-worker
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: default
+            k8s:app.kubernetes.io/name: smtp-relay
+      toPorts:
+        - ports:
+            - port: "25"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: migrate
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: migrate
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# Chromium runs here with its sandbox off. It holds no secrets or data and may
+# only reach public IPv4 on 80 and 443, never PostgreSQL, other pods or the LAN.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: capture
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: links
+      k8s:app.kubernetes.io/controller: capture
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: api
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: links
+            k8s:app.kubernetes.io/name: links
+            k8s:app.kubernetes.io/controller: capture-worker
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.0.0.0/24
+            - 192.0.2.0/24
+            - 192.168.0.0/16
+            - 198.18.0.0/15
+            - 198.51.100.0/24
+            - 203.0.113.0/24
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backup-movers
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:isolation.nimbus.casa/role: backup
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: s3.kbcb.tansanrao.net
+    - toFQDNs:
+        - matchPattern: s3.kbcb.tansanrao.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

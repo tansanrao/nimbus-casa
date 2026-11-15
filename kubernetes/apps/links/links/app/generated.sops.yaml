@@ -1,0 +1,77 @@
+# Generated; the role passwords match kubernetes/apps/database/paradedb/app/links.sops.yaml.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: links-database
+type: Opaque
+stringData:
+  #ENC[AES256_GCM,data:9dKYK2OOBsMDzu2WsuICjcO0PlpTuUUxk+AZbqBl3O3bt0bV4wkxkBxIRJSFbL6VzZ/BRc/7Y6ud3HK+eKTIoosJO28rnUm0n8J/EA==,iv:o4ENz7AfUiEMWR9sPOIH+sJWGQKfOyTyAfv9HC3KF5I=,tag:kedbq4LZWIQOn4x+vPSnRQ==,type:comment]
+  #ENC[AES256_GCM,data:yOG/W9ZRV/KwlO+qLbxJHk9z5Jc5vqD8CUFW0fyqmDSzLOwSdnxVkSphilKkcN3O4x3MrpwM43Lo,iv:cbBTYzvPRE8ub1S9Apus7otbea57YHWyrU6Uje6f+yg=,tag:v7QZ0vcalIP/NOsiXYV38Q==,type:comment]
+  DATABASE_URL: ENC[AES256_GCM,data:PNopIQNrG/sxzB6COAcSRTjBDtV2KCPUE5iNvtMiOLQWUClXIsoM3jCuwyJGecK68VTCEz+fbroV1vEignjESUq8qe5tpmWFk3GPIbaa5wIQXZBJNTS1IZgMVTUMfDrTL+bDKoZt8GnN/kYWKDN53w/ZcJWqC9y8m5OTS1A8wbZ6Ro4btrqOVxrKefYCHUAhqV9AkDM0PA==,iv:5ceKczhBNqLuh/DbZ5wjvmfarmj4iIAMnZnjcaYybBo=,tag:6lbaRL/VM+Nb+2dGvJWgQQ==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzcmNvWHJmc3ZqaUptOGVO
+        YXg1Rm40eU5PRzE3Nys4aG9GSVJtMXVPekUwCjJlbjZ4RE9HMVFEckh0S2tQRjF2
+        WmZxbUJKQmo4akxJbG5DRUxXUGJUOXcKLS0tIHRiaVdaWjNaOTMya1Y3ajJ4d1BS
+        bk1FMnNoRFNoNXNwMnZUT1ZTK3JFb28K5N6O2aGLDBiHRUv01d6I7JoSQssfE+O8
+        6KJF6I69DMqejvBnVPrHGwx+H/HhE/Gy2kSKS/PFhFdoDR/2+D3z6A==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-15T23:03:23Z"
+  mac: ENC[AES256_GCM,data:qvOvmIKRwPFKd+hA6kTyLJVNA3iFJgt+K+bQ2uuEM2IAch05/Fp6+JFtYCc7xx7efsHc1MAn34ne8ZMJ9LGQC8NtIouXRI+ZDBIbjexb8NxBLafn5UrEabjB4BOVc+umgMnzYbOC2hhYauuJjJcrzPQhRHnhjlqAgWA9VczO1v4=,iv:wQJ8YsptR5xnuyYzBI8c3UNmfrrWVm7vTXz1NNJ1qfU=,tag:L5w6AP76Y7DHkkd0B+rncg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: links-migration
+type: Opaque
+stringData:
+  DATABASE_URL: ENC[AES256_GCM,data:lRFX5kox4lu7ej3JrW2JcrLnJVeQRr+dmIBx/5zSuovaEuoGGYTfbNYOMKXIjQV3b2jdA2tXpFQBSL0Xp32S2Xbwefaq9F9TdLDouMQYHM0rYV/9YSicCqPjYzI5FuGZjZXgFmoBgaJBgT12Sk/JCE0wJ0sygt3zAl0utblgHMqopId+ZphNaBxDpTrOjGg3lEcMiyTeTAXxxu+O,iv:j/YjumzuuVjDu04hTY7+qHjizKjp9bYdMFaRAnuK1xQ=,tag:Aap/8puTC6mEgvE/WdtPgg==,type:str]
+  PGPASSWORD: ENC[AES256_GCM,data:kHDYu/L8t0vE2qeLRnXZgSAnKLFV6VL469Pm3cMHdXugnXY3usN3A3DahLsONIEh/sHy4muLiWrrG4MFF68TEw==,iv:HE6ogKrx8ju76f43IlmWmCIuXWkDxbjRQPOZi4Cfdio=,tag:qo/6c1FfsLW4iaWet9WO+A==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzcmNvWHJmc3ZqaUptOGVO
+        YXg1Rm40eU5PRzE3Nys4aG9GSVJtMXVPekUwCjJlbjZ4RE9HMVFEckh0S2tQRjF2
+        WmZxbUJKQmo4akxJbG5DRUxXUGJUOXcKLS0tIHRiaVdaWjNaOTMya1Y3ajJ4d1BS
+        bk1FMnNoRFNoNXNwMnZUT1ZTK3JFb28K5N6O2aGLDBiHRUv01d6I7JoSQssfE+O8
+        6KJF6I69DMqejvBnVPrHGwx+H/HhE/Gy2kSKS/PFhFdoDR/2+D3z6A==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-15T23:03:23Z"
+  mac: ENC[AES256_GCM,data:qvOvmIKRwPFKd+hA6kTyLJVNA3iFJgt+K+bQ2uuEM2IAch05/Fp6+JFtYCc7xx7efsHc1MAn34ne8ZMJ9LGQC8NtIouXRI+ZDBIbjexb8NxBLafn5UrEabjB4BOVc+umgMnzYbOC2hhYauuJjJcrzPQhRHnhjlqAgWA9VczO1v4=,iv:wQJ8YsptR5xnuyYzBI8c3UNmfrrWVm7vTXz1NNJ1qfU=,tag:L5w6AP76Y7DHkkd0B+rncg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: links-capture
+type: Opaque
+stringData:
+  #ENC[AES256_GCM,data:/chh9CSLk2YKHFwetXFsu+V1UzU048R3rotdn5dmdD3QEdcD4EFvu3zHFQbDD3qUWTt9xLBMJhSnlUyv9YOu1CytY1py4k13lg==,iv:jMc4ZuZECwwuV02W3Lvl4JcamYiPX2It1uuOn1O2wBw=,tag:s2RlEYagzUIxUXmsYviJ8Q==,type:comment]
+  #ENC[AES256_GCM,data:ow6GRgtRqBWN7fTbpprk6pjrzGj19Q==,iv:sC4oOj4Avmkjqd3UGkZe3ABH3ehnVMFbke7KuGbj8Mc=,tag:1UqpUuWUGqnDRN+2lJ8RIQ==,type:comment]
+  CAPTURE_DENIED_ADDRESSES: ENC[AES256_GCM,data:nl24wBxBJuTUtNIMf1mMsOWIzAmBjfj1bX55nlUgzYZasxOjKqhLRw==,iv:4J+ckq85oRiBgoM0MKfnusdrwIMEPN3j8FRAXtWLEAM=,tag:87oIzaJCdoyj7RRc7jA2cw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAzcmNvWHJmc3ZqaUptOGVO
+        YXg1Rm40eU5PRzE3Nys4aG9GSVJtMXVPekUwCjJlbjZ4RE9HMVFEckh0S2tQRjF2
+        WmZxbUJKQmo4akxJbG5DRUxXUGJUOXcKLS0tIHRiaVdaWjNaOTMya1Y3ajJ4d1BS
+        bk1FMnNoRFNoNXNwMnZUT1ZTK3JFb28K5N6O2aGLDBiHRUv01d6I7JoSQssfE+O8
+        6KJF6I69DMqejvBnVPrHGwx+H/HhE/Gy2kSKS/PFhFdoDR/2+D3z6A==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-15T23:03:23Z"
+  mac: ENC[AES256_GCM,data:qvOvmIKRwPFKd+hA6kTyLJVNA3iFJgt+K+bQ2uuEM2IAch05/Fp6+JFtYCc7xx7efsHc1MAn34ne8ZMJ9LGQC8NtIouXRI+ZDBIbjexb8NxBLafn5UrEabjB4BOVc+umgMnzYbOC2hhYauuJjJcrzPQhRHnhjlqAgWA9VczO1v4=,iv:wQJ8YsptR5xnuyYzBI8c3UNmfrrWVm7vTXz1NNJ1qfU=,tag:L5w6AP76Y7DHkkd0B+rncg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

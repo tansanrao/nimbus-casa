@@ -219,3 +219,5 @@ spec:
               protocol: TCP
           serverNames:
             - auth.${SECRET_DOMAIN}
+            # OIDC back-channel logout to Links.
+            - links.${SECRET_DOMAIN}

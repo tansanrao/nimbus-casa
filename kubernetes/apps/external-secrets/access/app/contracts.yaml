@@ -393,6 +393,17 @@ data:
         ]
       },
       {
+        "namespace": "links",
+        "name": "links-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "links-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
         "namespace": "mealie",
         "name": "mealie-db-secret",
         "storeKind": "ClusterSecretStore",

@@ -14,6 +14,7 @@ Applications are split into namespaces with default-deny Cilium policies on ingr
 | `authentik` | authentik, LDAP outpost, CloudNativePG `auth` | Restricted Pod Security |
 | `karakeep`, `karakeep-browser` | Karakeep, Meilisearch, headless Chrome | See [karakeep-isolation.md](karakeep-isolation.md) |
 | `mealie`, `miniflux` | One app each | Restricted Pod Security; database in `database/postgres` |
+| `links` | Links frontend, API, capture and email workers, migration Job, headless Chromium capture | Gateway to frontend to API; API and workers to `database/paradedb`; API and capture worker to capture; capture to public IPv4 on 80 and 443 only; API and email worker to the SMTP relay |
 | `database` | CloudNativePG `postgres` and `paradedb`, shared Dragonfly, operators | Per-cluster client policies |
 
 Every CloudNativePG cluster also gets a policy from `kubernetes/components/cnpg`. It allows the operator, metrics scraping from `observability`, DNS, the API server and Garage (`s3.kbcb.tansanrao.net`). Port 5432 is opened by a separate policy next to each cluster.
@@ -22,7 +23,7 @@ Immich ML has no application or database secret and cannot reach the database or
 
 Pods reach NFS through volumes the node CSI driver mounts, so no pod needs network access to the NAS.
 
-Apps that sign in through authentik (in `immich`, `media-services`, `karakeep`, `mealie` and `miniflux`) reach it through Envoy external's backend port 10443, with the authentication hostname as TLS SNI, not through a LAN-wide exception.
+Apps that sign in through authentik (in `immich`, `media-services`, `karakeep`, `mealie`, `miniflux` and `links`) reach it through Envoy external's backend port 10443, with the authentication hostname as TLS SNI, not through a LAN-wide exception. authentik reaches Links the same way, with SNI `links.${SECRET_DOMAIN}`, for back-channel logout.
 
 ## Media VPN
 

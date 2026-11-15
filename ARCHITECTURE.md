@@ -93,7 +93,7 @@ Databases run in Kubernetes, managed by operators:
 | `media-database/media` | Radarr, Sonarr, Sonarr Anime, Prowlarr, Jellystat |
 | `immich/immich-db` | Immich (VectorChord image) |
 | `database/postgres` | Mealie, Miniflux |
-| `database/paradedb` | Empty `app` database with `pg_search`, for upcoming apps |
+| `database/paradedb` | Links (with `pg_search` and `vector`); an empty `app` database for upcoming apps |
 
 All clusters run PostgreSQL 18 with one instance. The Barman Cloud plugin archives WAL continuously and takes a base backup daily at 03:00 to `s3://crunchy-pgo/cnpg/<cluster>/` on Garage, kept for 14 days. Off-site copies come from replicating Garage as a whole, which is not set up yet. `scripts/check-postgres.py --live` checks cluster health, WAL archiving and backup age.
 

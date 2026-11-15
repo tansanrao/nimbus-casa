@@ -39,6 +39,11 @@ endpoints:
     url: https://karakeep.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
+  - name: links/links
+    group: public-services
+    url: https://links.${SECRET_DOMAIN}/api/hello
+    interval: 1m
+    conditions: *app_http_conditions
   - name: mealie/mealie
     group: public-services
     url: https://mealie.${SECRET_DOMAIN}

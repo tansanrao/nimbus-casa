@@ -1,0 +1,370 @@
+---
+# Links: https://code.twicecooked.software/twicecooked-software/links
+# Each controller is one service from the project's compose.yaml, with the same
+# image, command, limits and hardening. The README's "Production on Kubernetes"
+# section lists what the cluster has to provide.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: links
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: links
+  values:
+    global:
+      # Use the namespace's default ServiceAccount. A chart-created one would not
+      # exist yet when the pre-install migration hook runs.
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      imagePullSecrets:
+        - name: links-registry
+      securityContext: &backendPodSecurity
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    controllers:
+      frontend:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            # nginx-unprivileged
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: registry.twicecooked.software/twicecooked-software/links/frontend
+              tag: 0.2.0@sha256:280b5ca0005dc359f2c88ec632f544791150d25a64b912730a1091d4b03decc4
+            env:
+              # nginx does not apply search domains, so this must be fully qualified.
+              API_PROXY_TARGET: http://links-api.links.svc.cluster.local:8080
+              # Envoy pods; only the gateways can reach the frontend.
+              TRUSTED_PROXY_CIDRS: 10.42.0.0/16
+            probes:
+              liveness: &frontendProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *frontendProbe
+            securityContext: &containerSecurity
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+
+      api:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          terminationGracePeriodSeconds: 75
+        containers:
+          app:
+            image: &backendImage
+              repository: registry.twicecooked.software/twicecooked-software/links/backend
+              tag: 0.2.0@sha256:b874a08158c3e28ac9601fcf765a229db3778f4caf86269bee02680ab67aabda
+            args: [serve, --hostname, 0.0.0.0, --port, "8080"]
+            env:
+              <<: &appEnv
+                VAPOR_ENV: production
+                DATA_DIRECTORY: /data
+                PUBLIC_URL: https://links.${SECRET_DOMAIN}
+                CAPTURE_URL: http://links-capture.links.svc.cluster.local:8080
+                LOG_LEVEL: info
+                NIO_SINGLETON_GROUP_LOOP_COUNT: "2"
+                NIO_SINGLETON_BLOCKING_POOL_THREAD_COUNT: "2"
+                SMTP_HOST: smtp-relay.default.svc.cluster.local
+                SMTP_PORT: "25"
+                SMTP_TLS: none
+                EMAIL_FROM: noreply@${SECRET_DOMAIN}
+              OIDC_NAME: authentik
+              OIDC_AUTO_PROVISION: "false"
+              OIDC_REQUIRED: "false"
+              OIDC_TOKEN_AUTH_METHOD: client_secret_post
+            envFrom:
+              - secretRef:
+                  name: links-database
+              # OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET; only the API
+              # gets them. All three empty turns SSO off.
+              - secretRef:
+                  name: links-oidc
+            probes:
+              liveness: &apiProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/hello
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *apiProbe
+            securityContext: *containerSecurity
+            resources: &backendResources
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 768Mi
+
+      # Exactly one capture worker per artifact volume.
+      capture-worker:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          terminationGracePeriodSeconds: 75
+        containers:
+          app:
+            image: *backendImage
+            args: [capture-worker]
+            env:
+              <<: *appEnv
+              CAPTURE_ENABLED: "1"
+            envFrom:
+              - secretRef:
+                  name: links-database
+            probes: &noProbes
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            securityContext: *containerSecurity
+            resources: *backendResources
+
+      email-worker:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          terminationGracePeriodSeconds: 75
+        containers:
+          app:
+            image: *backendImage
+            args: [queues, --queue, email]
+            env:
+              <<: *appEnv
+              DATA_DIRECTORY: /tmp/links
+            envFrom:
+              - secretRef:
+                  name: links-database
+            probes: *noProbes
+            securityContext: *containerSecurity
+            resources: *backendResources
+
+      capture:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsUser: 10002
+            runAsGroup: 10002
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: registry.twicecooked.software/twicecooked-software/links/capture
+              tag: 0.2.0@sha256:2d2b0756f70e3b82259043e565f0c6ee47a79c2d13378037d28e6f34518d6908
+            envFrom:
+              # CAPTURE_DENIED_ADDRESSES: public ingress and NAT addresses.
+              - secretRef:
+                  name: links-capture
+            probes:
+              liveness: &captureProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *captureProbe
+            securityContext: *containerSecurity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 256Mi
+              limits:
+                memory: 2Gi
+
+      # Production never migrates on startup. This Job runs before every install
+      # and upgrade with the links_migrator credentials, which no other pod has.
+      migrate:
+        type: job
+        annotations:
+          helm.sh/hook: pre-install,pre-upgrade
+          helm.sh/hook-weight: "0"
+          helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        job:
+          backoffLimit: 0
+          activeDeadlineSeconds: 600
+        initContainers:
+          # Grants from deploy/postgres-init/20-links.sql. links_migrator owns the
+          # database, so it can apply them itself; every statement is idempotent.
+          grants:
+            image:
+              repository: ghcr.io/cloudnative-pg/postgresql
+              tag: 18.7-standard-trixie@sha256:23719505c7cc417b043ffd9998b44ab8d57fec1d92f0bf11b231a1754a5962f2
+            command: [psql]
+            args:
+              - --no-psqlrc
+              - --set=ON_ERROR_STOP=1
+              - --command=REVOKE ALL ON DATABASE links FROM PUBLIC
+              - --command=GRANT CONNECT ON DATABASE links TO links_app
+              - --command=REVOKE ALL ON SCHEMA public FROM PUBLIC
+              - --command=GRANT USAGE ON SCHEMA public TO links_app
+              - --command=ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO links_app
+              - --command=ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO links_app
+            env:
+              HOME: /tmp
+              PGHOST: paradedb-rw.database.svc.cluster.local
+              PGPORT: "5432"
+              PGDATABASE: links
+              PGUSER: links_migrator
+              PGSSLMODE: require
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: links-migration
+                    key: PGPASSWORD
+            securityContext: *containerSecurity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+        containers:
+          app:
+            image: *backendImage
+            args: [migrate, --yes]
+            env:
+              <<: *appEnv
+              DATA_DIRECTORY: /tmp/links
+            envFrom:
+              # DATABASE_URL for links_migrator.
+              - secretRef:
+                  name: links-migration
+            probes: *noProbes
+            securityContext: *containerSecurity
+            resources: *backendResources
+
+    service:
+      frontend:
+        controller: frontend
+        primary: true
+        ports:
+          http:
+            port: 8080
+      api:
+        controller: api
+        ports:
+          http:
+            port: 8080
+      capture:
+        controller: capture
+        ports:
+          http:
+            port: 8080
+
+    persistence:
+      # Artifacts. Both the API and the capture worker mount it; one node, so
+      # ReadWriteOnce works for both.
+      data:
+        existingClaim: links
+        advancedMounts:
+          api:
+            app:
+              - path: /data
+          capture-worker:
+            app:
+              - path: /data
+      tmp:
+        type: emptyDir
+        sizeLimit: 256Mi
+        advancedMounts:
+          frontend:
+            app:
+              - path: /tmp
+          api:
+            app:
+              - path: /tmp
+          capture-worker:
+            app:
+              - path: /tmp
+          email-worker:
+            app:
+              - path: /tmp
+          migrate:
+            grants:
+              - path: /tmp
+            app:
+              - path: /tmp
+      capture-tmp:
+        type: emptyDir
+        sizeLimit: 768Mi
+        advancedMounts:
+          capture:
+            app:
+              - path: /tmp
+      capture-shm:
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 256Mi
+        advancedMounts:
+          capture:
+            app:
+              - path: /dev/shm
+
+    route:
+      main:
+        hostnames:
+          - links.${SECRET_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: frontend
+                port: 8080
+            filters:
+              - type: ResponseHeaderModifier
+                responseHeaderModifier:
+                  set:
+                    - name: Strict-Transport-Security
+                      value: max-age=31536000
