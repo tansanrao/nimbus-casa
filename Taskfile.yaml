@@ -114,6 +114,21 @@ tasks:
       - test -d {{.OPENTOFU_PROXMOX_DIR}}
       - which tofu
 
+  runner:deploy:
+    desc: Deploy gitlab-runner to the runner0 Talos cluster
+    dir: '{{.ROOT_DIR}}/talos-runner/gitlab-runner'
+    # Pass the kubeconfig as a flag: mise's [env] sets KUBECONFIG to k8s0's
+    # for every shimmed tool, which would override a task-level env.
+    vars:
+      RUNNER_KUBECONFIG: '{{.ROOT_DIR}}/talos-runner/kubeconfig'
+    cmds:
+      - kubectl --kubeconfig {{.RUNNER_KUBECONFIG}} --context admin@gitlab-runner apply -f namespace.yaml
+      - sops -d runner-token.sops.yaml | kubectl --kubeconfig {{.RUNNER_KUBECONFIG}} --context admin@gitlab-runner apply -f -
+      - helmfile --kubeconfig {{.RUNNER_KUBECONFIG}} sync
+    preconditions:
+      - test -f {{.ROOT_DIR}}/talos-runner/kubeconfig
+      - which helmfile kubectl sops
+
   reconcile:
     desc: Force Flux to pull in changes from your Git repository
     cmd: flux --namespace flux-system reconcile kustomization flux-system --with-source

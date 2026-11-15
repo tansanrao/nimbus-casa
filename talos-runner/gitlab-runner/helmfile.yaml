@@ -1,0 +1,19 @@
+---
+# Deployed from a workstation with `task runner:deploy`. runner0 has no Flux,
+# so the repository's age key never enters this untrusted cluster.
+repositories:
+  - name: gitlab
+    url: https://charts.gitlab.io
+
+helmDefaults:
+  kubeContext: admin@gitlab-runner
+  wait: true
+  timeout: 600
+
+releases:
+  - name: gitlab-runner
+    namespace: ci-jobs
+    chart: gitlab/gitlab-runner
+    version: 0.94.3
+    values:
+      - values.yaml

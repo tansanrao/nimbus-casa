@@ -1,0 +1,43 @@
+---
+gitlabUrl: https://code.twicecooked.software/
+concurrent: 8
+checkInterval: 3
+logFormat: json
+
+rbac:
+  create: true
+
+# Pin GitLab to its HOMELAB address so runner traffic never hairpins through
+# Hetzner, whatever DNS returns. The VM firewall only allows 10.10.40.24:443.
+hostAliases:
+  - ip: 10.10.40.24
+    hostnames: [code.twicecooked.software, registry.twicecooked.software]
+
+runners:
+  secret: gitlab-runner-token
+  config: |
+    [[runners]]
+      [runners.kubernetes]
+        namespace = "ci-jobs"
+        image = "alpine:3.22"
+        privileged = false
+        allow_privilege_escalation = false
+        automount_service_account_token = false
+        poll_timeout = 600
+        cpu_request = "1"
+        cpu_limit = "4"
+        memory_request = "2Gi"
+        memory_limit = "4Gi"
+        cpu_request_overwrite_max_allowed = "8"
+        cpu_limit_overwrite_max_allowed = "8"
+        memory_request_overwrite_max_allowed = "12Gi"
+        memory_limit_overwrite_max_allowed = "12Gi"
+        helper_cpu_request = "100m"
+        helper_memory_request = "128Mi"
+        helper_memory_limit = "512Mi"
+        service_cpu_request = "250m"
+        service_memory_request = "256Mi"
+        service_memory_limit = "2Gi"
+        [[runners.kubernetes.host_aliases]]
+          ip = "10.10.40.24"
+          hostnames = ["code.twicecooked.software", "registry.twicecooked.software"]

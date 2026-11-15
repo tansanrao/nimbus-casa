@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-runner-token
+  namespace: ci-jobs
+type: Opaque
+stringData:
+  runner-token: ENC[AES256_GCM,data:GY+QM4NaGRJPWzleKMWVsNim4o8GrUGk9TOXuicuvIiC32r5qK0kGXQLI/xExEG0X4BzRnOR+Hs=,iv:UJFALxM2XNO5YNPKKsLNIXuohwOvHMnqDpdu8FZxC+I=,tag:uhYtC/Rx3oMVQUQ2C4Ruew==,type:str]
+  runner-registration-token: ""
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBNYitaZXlKbkI1aXNiTG5q
+        cENGZGJ0R3lXZmNXVTJuT05XSnh4cUloVFRVCkNRZkwvelNzK1Y0M2g5em1jY1Bk
+        R1dpYy9EMkUrZzZzRjFsMmJhNDZJZUkKLS0tIFBVVC9uZ21NdnVyTkhUOXdsYkdy
+        bFEzZlZTaVRDOG5Gc2twREs5MGxxTmcKek9n0Lzx++2lRMd4okRU0cpqI6dGMmIa
+        CnsxMlS+3rnZcys8zMnlId9aVpWhdi0V7Nb3zEnG2yDoFEGH72ju0Q==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-15T16:20:40Z"
+  mac: ENC[AES256_GCM,data:u6daKb+C3/46pjYUB6+kSoma863wbGHL3p/LVmIiwr1+l0hZLbEWjWULnn052OG5mTa5ED06GG48deVR0poA5Fvo9CTDA9LwdUxw3V10SM9k2fO3U8eLiyH1FpsVd5ZA9F2mlX7fe7pKrvdiMZbStYSTkiUM2VvWxyJUqijWPww=,iv:LvJz/xlm9W2hkPEGxIl0s46bFKbqpxCyrBldrkvuWHM=,tag:GcDDzyJGEPsxfS3DzbDGxA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

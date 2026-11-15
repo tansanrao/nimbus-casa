@@ -1,0 +1,57 @@
+---
+# runner0: single-node Talos cluster for GitLab CI jobs. Everything inside it
+# is untrusted. Its network limits live in the Proxmox VM firewall
+# (opentofu/proxmox/runner.tf), not here, so a job that escapes cannot lift them.
+clusterName: gitlab-runner
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://10.10.40.25:6443
+additionalApiServerCertSans: &sans
+  - "127.0.0.1"
+  - "10.10.40.25"
+additionalMachineCertSans: *sans
+
+# Default Flannel CNI and kube-proxy. Pod traffic never leaves the VM except
+# through the node address, which the VM firewall filters.
+nodes:
+  - hostname: "runner0"
+    ipAddress: "10.10.40.25"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    # Schematic: siderolabs/qemu-guest-agent. Keep runner_talos_schematic_id in sync.
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: true
+    nameservers:
+      - 10.10.40.1
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "02:ca:5a:40:00:25"
+        dhcp: false
+        addresses:
+          - "10.10.40.25/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.10.40.1"
+        mtu: 1500
+
+patches:
+  - |-
+    machine:
+      time:
+        servers:
+          - 162.159.200.1
+          - 162.159.200.123
+      kubelet:
+        extraConfig:
+          maxPods: 110
+          imageGCHighThresholdPercent: 70
+          imageGCLowThresholdPercent: 50
+
+controlPlane:
+  patches:
+    - |-
+      cluster:
+        allowSchedulingOnControlPlanes: true
