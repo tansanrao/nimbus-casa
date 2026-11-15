@@ -57,13 +57,10 @@ gitlab_rack_attack_allowlist:
   - 10.10.10.0/24
   - "{{ gitlab_runner_ipv4 }}"
 
-# Direct to Postmark, not the cluster relay, so mail keeps working while k8s0
-# is down. Postmark uses the server API token (SOPS smtp_password) as both
-# the SMTP username and password. The GitLab server's default transactional
-# stream carries everything.
-gitlab_smtp_address: smtp.postmarkapp.com
+# Direct to Helo, not the cluster relay, so mail keeps working while k8s0 is
+# down. The SMTP username and password come from SOPS.
+gitlab_smtp_address: smtp.helohq.com
 gitlab_smtp_port: 587
 gitlab_smtp_starttls: true
-gitlab_smtp_user_name: "{{ gitlab_smtp_password }}"
 gitlab_email_from: noreply@twicecooked.software
 gitlab_email_display_name: GitLab

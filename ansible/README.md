@@ -84,7 +84,7 @@ Secrets in `group_vars/gitlab.sops.yml`:
 - `root_password`: the initial root password. Changing it later does not change the account.
 - `gitlab_secrets_json`: `/etc/gitlab/gitlab-secrets.json`. A backup cannot be restored without it.
 - `sshd_host_keys`: the `gitlab-sshd` host keys, so a rebuild keeps the same fingerprints.
-- `smtp_password` (optional): the Postmark server API token for the GitLab server. When present, GitLab sends mail through `smtp.postmarkapp.com:587` with STARTTLS as `noreply@twicecooked.software`.
+- `smtp_username` and `smtp_password` (optional): Helo SMTP credentials. When present, GitLab sends mail through `smtp.helohq.com:587` with STARTTLS as `noreply@twicecooked.software`.
 - `garage` (optional): `{endpoint, access_key, secret_key}`. When present, the role uploads backups to `gitlab-backups` and moves the registry, artifacts, LFS, uploads, packages and Dependency Proxy to `gitlab-*` buckets on Garage, with every download proxied through GitLab.
 
 The Garage key is named `gitlab0`. It has read and write, but not owner, on the ten `gitlab-*` buckets and cannot create buckets. Garage has no prefix policies, so a new bucket needs its own grant. It was created with the Garage admin API on `http://10.10.40.10:30190` (`/v2/CreateKey`, `/v2/CreateBucket`, `/v2/AllowBucketKey`). To rotate it, create a new key with the same grants, update `garage` in SOPS, rerun the play, then delete the old key.
