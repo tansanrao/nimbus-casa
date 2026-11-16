@@ -241,16 +241,23 @@ spec:
             image:
               repository: ghcr.io/cloudnative-pg/postgresql
               tag: 18.7-standard-trixie@sha256:23719505c7cc417b043ffd9998b44ab8d57fec1d92f0bf11b231a1754a5962f2
-            command: [psql]
+            command: [sh, -c]
             args:
-              - --no-psqlrc
-              - --set=ON_ERROR_STOP=1
-              - --command=REVOKE ALL ON DATABASE links FROM PUBLIC
-              - --command=GRANT CONNECT ON DATABASE links TO links_app
-              - --command=REVOKE ALL ON SCHEMA public FROM PUBLIC
-              - --command=GRANT USAGE ON SCHEMA public TO links_app
-              - --command=ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO links_app
-              - --command=ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO links_app
+              - |
+                # On a fresh install CloudNativePG may not have created the role
+                # and database yet. Retry until it has; the Job's deadline ends
+                # the wait if it never does, and psql's error stays in the log.
+                until psql --no-psqlrc --command='SELECT 1' >/dev/null; do
+                  echo 'Waiting for the links database' >&2
+                  sleep 5
+                done
+                exec psql --no-psqlrc --set=ON_ERROR_STOP=1 \
+                  --command='REVOKE ALL ON DATABASE links FROM PUBLIC' \
+                  --command='GRANT CONNECT ON DATABASE links TO links_app' \
+                  --command='REVOKE ALL ON SCHEMA public FROM PUBLIC' \
+                  --command='GRANT USAGE ON SCHEMA public TO links_app' \
+                  --command='ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO links_app' \
+                  --command='ALTER DEFAULT PRIVILEGES FOR ROLE links_migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO links_app'
             env:
               HOME: /tmp
               PGHOST: paradedb-rw.database.svc.cluster.local
