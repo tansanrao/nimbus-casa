@@ -47,7 +47,7 @@ spec:
           app:
             image:
               repository: registry.twicecooked.software/twicecooked-software/links/frontend
-              tag: 0.7.0@sha256:8fd7c5aa32e79667c5563f8d44869cdf6d86b907f16159d39fa09cc91c422608
+              tag: 0.10.0@sha256:0e6c6966148020387a125a7647ec47492b3a11aabf9f36fc05a64b53e31ea978
             env:
               # nginx does not apply search domains, so this must be fully qualified.
               API_PROXY_TARGET: http://links-api.links.svc.cluster.local:8080
@@ -88,7 +88,7 @@ spec:
           app:
             image: &backendImage
               repository: registry.twicecooked.software/twicecooked-software/links/backend
-              tag: 0.7.0@sha256:da40a91a7fb7cc280d5b9a2982c74d582a4815e4a190621d362626cdcb684e88
+              tag: 0.10.0@sha256:6836cfe3d3b4f25e0f390e52f9e1d91990af821487bbfaad4a14ea240fa638b5
             args: [serve, --hostname, 0.0.0.0, --port, "8080"]
             env:
               <<: &appEnv
@@ -200,7 +200,7 @@ spec:
           app:
             image:
               repository: registry.twicecooked.software/twicecooked-software/links/capture
-              tag: 0.7.0@sha256:b822e0e2aa76d8e3481140d81f37dce698f4f7dd75c217b99f463fa0d83e6791
+              tag: 0.10.0@sha256:daf769d98c2bf4f4d04f98b8159f9328584f6c4d0dd3aeea0588818a450d4745
             envFrom:
               # CAPTURE_DENIED_ADDRESSES: public ingress and NAT addresses.
               - secretRef:
