@@ -106,7 +106,9 @@ spec:
                 SMTP_TLS: none
                 EMAIL_FROM: noreply@${SECRET_DOMAIN}
               OIDC_NAME: authentik
-              OIDC_AUTO_PROVISION: "false"
+              # authentik limits the Links application to the Nimbus Users group;
+              # a member's first sign-in creates a regular Links account.
+              OIDC_AUTO_PROVISION: "true"
               OIDC_REQUIRED: "false"
               OIDC_TOKEN_AUTH_METHOD: client_secret_post
             envFrom:
