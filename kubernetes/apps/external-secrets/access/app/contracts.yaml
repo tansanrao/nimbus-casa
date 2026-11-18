@@ -465,6 +465,17 @@ data:
         ]
       },
       {
+        "namespace": "papers",
+        "name": "papers-volsync",
+        "storeKind": "ClusterSecretStore",
+        "store": "onepassword",
+        "target": "papers-volsync-secret",
+        "keys": [
+          "garage",
+          "volsync-garage-template"
+        ]
+      },
+      {
         "namespace": "karakeep",
         "name": "meilisearch-karakeep",
         "storeKind": "ClusterSecretStore",

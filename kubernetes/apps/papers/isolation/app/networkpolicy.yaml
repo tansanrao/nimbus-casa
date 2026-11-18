@@ -1,0 +1,301 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: frontend
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: frontend
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: backend
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# The backend signs in through authentik and formats citations through cite.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backend
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: backend
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: frontend
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: cite
+      toPorts:
+        - ports:
+            - port: "8790"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            k8s:gateway.envoyproxy.io/owning-gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
+          serverNames:
+            - auth.${SECRET_DOMAIN}
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# Metadata lookups, Zotero import and Find Full Text reach arbitrary public
+# sites, so the worker may reach public IPv4 on 80 and 443, never the LAN.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: worker
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: worker
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: pdftext
+      toPorts:
+        - ports:
+            - port: "8791"
+              protocol: TCP
+    - toCIDRSet:
+        - cidr: 0.0.0.0/0
+          except:
+            - 0.0.0.0/8
+            - 10.0.0.0/8
+            - 100.64.0.0/10
+            - 127.0.0.0/8
+            - 169.254.0.0/16
+            - 172.16.0.0/12
+            - 192.0.0.0/24
+            - 192.0.2.0/24
+            - 192.168.0.0/16
+            - 198.18.0.0/15
+            - 198.51.100.0/24
+            - 203.0.113.0/24
+            - 224.0.0.0/4
+            - 240.0.0.0/4
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# cite and pdftext format and parse what they are sent and reach nothing;
+# pdftext reads untrusted PDFs.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cite
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: cite
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: backend
+      toPorts:
+        - ports:
+            - port: "8790"
+              protocol: TCP
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pdftext
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: pdftext
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: worker
+      toPorts:
+        - ports:
+            - port: "8791"
+              protocol: TCP
+  egress: []
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: migrate
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:app.kubernetes.io/name: papers
+      k8s:app.kubernetes.io/controller: migrate
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: '*'
+    - toEndpoints:
+        - matchLabels:
+            k8s:cnpg.io/cluster: paradedb
+            k8s:io.kubernetes.pod.namespace: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: backup-movers
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:isolation.nimbus.casa/role: backup
+  ingress: []
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:k8s-app: kube-dns
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: s3.kbcb.tansanrao.net
+    - toFQDNs:
+        - matchPattern: s3.kbcb.tansanrao.net
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+

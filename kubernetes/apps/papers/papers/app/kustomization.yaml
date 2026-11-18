@@ -1,0 +1,22 @@
+---
+# App secrets are SOPS-encrypted here; VolSync's restic secret still comes from
+# 1Password through the shared component's ExternalSecret.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./secret.sops.yaml
+  - ./generated.sops.yaml
+  - ./ocirepository.yaml
+  - ./helmrelease.yaml
+  - ../../../../components/volsync
+patches:
+  - target:
+      group: volsync.backube
+    patch: |-
+      - op: add
+        path: /spec/restic/moverSecurityContext/runAsNonRoot
+        value: true
+      - op: add
+        path: /spec/restic/moverSecurityContext/seccompProfile
+        value:
+          type: RuntimeDefault

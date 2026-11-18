@@ -1,0 +1,398 @@
+---
+# Papers: https://code.twicecooked.software/twicecooked-software/papers
+# Each controller is one service from the project's compose.yaml, with the same
+# image, command, limits and hardening. docs/self-hosting.md lists what the
+# server needs; the database is the shared database/paradedb cluster.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: papers
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: papers
+  values:
+    global:
+      # Use the namespace's default ServiceAccount. A chart-created one would not
+      # exist yet when the pre-install migration hook runs.
+      createDefaultServiceAccount: false
+    defaultPodOptions:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      imagePullSecrets:
+        - name: papers-registry
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+    controllers:
+      frontend:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            # nginx-unprivileged
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: registry.twicecooked.software/twicecooked-software/papers/frontend
+              tag: 0.2.0@sha256:5da30301d58964254db2e64a4054a0fc0a0d026a333c78bcdbb31254fed70023
+            env:
+              # nginx does not apply search domains, so this must be fully qualified.
+              API_PROXY_TARGET: http://papers-backend.papers.svc.cluster.local:8080
+              # Envoy pods; only the gateways can reach the frontend.
+              TRUSTED_PROXY_CIDRS: 10.42.0.0/16
+            probes:
+              liveness: &frontendProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *frontendProbe
+            securityContext: &containerSecurity
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+
+      backend:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          terminationGracePeriodSeconds: 75
+        containers:
+          app:
+            image: &backendImage
+              repository: registry.twicecooked.software/twicecooked-software/papers/backend
+              tag: 0.2.0@sha256:a8dc6689aed8138641831ba847240dadc5204fde45517a490af3bf2550283585
+            args: [serve, --hostname, 0.0.0.0, --port, "8080"]
+            env:
+              <<: &appEnv
+                VAPOR_ENV: production
+                LOG_LEVEL: info
+                PUBLIC_URL: https://papers.${SECRET_DOMAIN}
+                LOOKUP_CONTACT_EMAIL: noreply@${SECRET_DOMAIN}
+                FILES_DIRECTORY: /data/files
+                FILE_SIZE_LIMIT_MIB: "1024"
+                FILE_QUOTA_GIB: "25"
+                NIO_SINGLETON_GROUP_LOOP_COUNT: "2"
+                NIO_SINGLETON_BLOCKING_POOL_THREAD_COUNT: "2"
+              CITE_URL: http://papers-cite.papers.svc.cluster.local:8790
+              OIDC_NAME: authentik
+              # authentik limits the Papers application to the Nimbus Users group;
+              # a member's first sign-in creates a regular Papers account.
+              OIDC_AUTO_PROVISION: "true"
+              OIDC_REQUIRED: "false"
+              OIDC_TOKEN_AUTH_METHOD: client_secret_post
+            envFrom:
+              # DATABASE_URL for papers_app.
+              - secretRef:
+                  name: papers-database
+              # CREDENTIALS_KEY, which seals stored Zotero API keys.
+              - secretRef:
+                  name: papers-app
+              # OIDC_ISSUER, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET; only the API
+              # gets them. All three empty turns SSO off.
+              - secretRef:
+                  name: papers-oidc
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  # /api/health is 503 until every migration has run, which
+                  # should not restart the pod.
+                  tcpSocket:
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/health
+                    port: 8080
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+            securityContext: *containerSecurity
+            resources: &backendResources
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 768Mi
+
+      # Metadata lookups, Zotero import, PDF indexing and Find Full Text.
+      worker:
+        strategy: Recreate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          terminationGracePeriodSeconds: 75
+        containers:
+          app:
+            image: *backendImage
+            args: [queues, --queue, jobs]
+            env:
+              <<: *appEnv
+              PDFTEXT_URL: http://papers-pdftext.papers.svc.cluster.local:8791
+            envFrom:
+              - secretRef:
+                  name: papers-database
+              - secretRef:
+                  name: papers-app
+            probes: &noProbes
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            securityContext: *containerSecurity
+            resources: *backendResources
+
+      # Formats citations for the backend; reaches nothing.
+      cite:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext: &nodePodSecurity
+            # The node user of the node:22 images.
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+        containers:
+          app:
+            image:
+              repository: registry.twicecooked.software/twicecooked-software/papers/cite
+              tag: 0.2.0@sha256:b864c52bf3587a830e00e11984fc305341642610ae9978d739182549cf61e619
+            probes:
+              liveness: &citeProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8790
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *citeProbe
+            securityContext: *containerSecurity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi
+
+      # Extracts text from untrusted PDFs for the worker; reaches nothing.
+      pdftext:
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext: *nodePodSecurity
+        containers:
+          app:
+            image:
+              repository: registry.twicecooked.software/twicecooked-software/papers/pdftext
+              tag: 0.2.0@sha256:1781a14764e19f4375d8f16b92c9f037c4a1ff87f0d9e95b7041932d823f07b4
+            probes:
+              liveness: &pdftextProbe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8791
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 5
+              readiness: *pdftextProbe
+            securityContext: *containerSecurity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 1280Mi
+
+      # Production never migrates on startup. This Job runs before every install
+      # and upgrade with the papers_migrator credentials, which no other pod has.
+      migrate:
+        type: job
+        annotations:
+          helm.sh/hook: pre-install,pre-upgrade
+          helm.sh/hook-weight: "0"
+          helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+        job:
+          backoffLimit: 0
+          activeDeadlineSeconds: 600
+        initContainers:
+          # Grants from deploy/postgres-init/20-papers.sql. papers_migrator owns
+          # the database, so it can apply them itself; every statement is
+          # idempotent.
+          grants:
+            image:
+              repository: ghcr.io/cloudnative-pg/postgresql
+              tag: 18.7-standard-trixie@sha256:23719505c7cc417b043ffd9998b44ab8d57fec1d92f0bf11b231a1754a5962f2
+            command: [sh, -c]
+            args:
+              - |
+                # On a fresh install CloudNativePG may not have created the role
+                # and database yet. Retry until it has; the Job's deadline ends
+                # the wait if it never does, and psql's error stays in the log.
+                until psql --no-psqlrc --command='SELECT 1' >/dev/null; do
+                  echo 'Waiting for the papers database' >&2
+                  sleep 5
+                done
+                exec psql --no-psqlrc --set=ON_ERROR_STOP=1 \
+                  --command='REVOKE ALL ON DATABASE papers FROM PUBLIC' \
+                  --command='GRANT CONNECT ON DATABASE papers TO papers_app' \
+                  --command='REVOKE ALL ON SCHEMA public FROM PUBLIC' \
+                  --command='GRANT USAGE ON SCHEMA public TO papers_app' \
+                  --command='ALTER DEFAULT PRIVILEGES FOR ROLE papers_migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO papers_app' \
+                  --command='ALTER DEFAULT PRIVILEGES FOR ROLE papers_migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO papers_app'
+            env:
+              HOME: /tmp
+              PGHOST: paradedb-rw.database.svc.cluster.local
+              PGPORT: "5432"
+              PGDATABASE: papers
+              PGUSER: papers_migrator
+              PGSSLMODE: require
+              PGPASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: papers-migration
+                    key: PGPASSWORD
+            securityContext: *containerSecurity
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+        containers:
+          app:
+            image: *backendImage
+            args: [migrate, --yes]
+            env:
+              <<: *appEnv
+              FILES_DIRECTORY: /tmp/files
+            envFrom:
+              # DATABASE_URL for papers_migrator.
+              - secretRef:
+                  name: papers-migration
+            probes: *noProbes
+            securityContext: *containerSecurity
+            resources: *backendResources
+
+    service:
+      frontend:
+        controller: frontend
+        primary: true
+        ports:
+          http:
+            port: 8080
+      backend:
+        controller: backend
+        ports:
+          http:
+            port: 8080
+      cite:
+        controller: cite
+        ports:
+          http:
+            port: 8790
+      pdftext:
+        controller: pdftext
+        ports:
+          http:
+            port: 8791
+
+    persistence:
+      # PDFs, note images and ink. The backend and worker both mount it, which
+      # the openebs-lvm-shared class allows on the one node.
+      data:
+        existingClaim: papers
+        advancedMounts:
+          backend:
+            app:
+              - path: /data
+          worker:
+            app:
+              - path: /data
+      tmp:
+        type: emptyDir
+        sizeLimit: 256Mi
+        advancedMounts:
+          frontend:
+            app:
+              - path: /tmp
+          backend:
+            app:
+              - path: /tmp
+          worker:
+            app:
+              - path: /tmp
+          cite:
+            app:
+              - path: /tmp
+          pdftext:
+            app:
+              - path: /tmp
+          migrate:
+            grants:
+              - path: /tmp
+            app:
+              - path: /tmp
+
+    route:
+      main:
+        hostnames:
+          - papers.${SECRET_DOMAIN}
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: frontend
+                port: 8080
+            filters:
+              - type: ResponseHeaderModifier
+                responseHeaderModifier:
+                  set:
+                    - name: Strict-Transport-Security
+                      value: max-age=31536000
