@@ -97,6 +97,13 @@ resource "proxmox_virtual_environment_vm" "nexus_kb" {
   started         = true
 
   lifecycle {
+    # Cloud-init and the image only seed the first boot. Changing either would
+    # force a rebuild, so later edits only update the snippets for future VMs.
+    ignore_changes = [
+      disk[0].import_from,
+      initialization[0].user_data_file_id,
+    ]
+
     precondition {
       condition     = can(regex("^(8|9)\\.", data.proxmox_version.current.release))
       error_message = "This configuration is intentionally limited to Proxmox VE 8.x or 9.x."
