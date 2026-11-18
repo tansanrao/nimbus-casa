@@ -8,11 +8,13 @@ haproxy_role: edge
 # timeout (client, server and tunnel) and frontend_lines (raw frontend directives).
 haproxy_tcp_forwards: []
 
-# Edge only: terminates TLS for one hostname and forwards heartbeat pushes to
+# Edge only: terminates TLS for hostname and forwards heartbeat pushes to
 # Gatus. Keys: hostname, bind (loopback), certificate (chain and key in one
-# file) and backend (Gatus address). Empty disables it.
+# file, valid for every hostname here) and backend (Gatus address). Optional
+# ui_hostname also gets the read-only UI. Empty disables it.
 haproxy_gatus_push: {}
 
-# Edge only: sends Let's Encrypt HTTP-01 challenges for one hostname on port 80
-# to certbot instead of redirecting them to HTTPS. Keys: hostname, backend.
+# Edge only: sends Let's Encrypt HTTP-01 challenges for these hostnames on
+# port 80 to certbot instead of redirecting them to HTTPS. Keys: hostnames
+# (list), backend.
 haproxy_acme_http01: {}

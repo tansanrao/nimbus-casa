@@ -21,7 +21,7 @@ frontend fe_http
   mode http
   option httplog
 {% if haproxy_acme_http01 %}
-  acl acme_host hdr(host) -i {{ haproxy_acme_http01.hostname }}
+  acl acme_host hdr(host) -i {{ haproxy_acme_http01.hostnames | join(' ') }}
   acl acme_challenge path_beg /.well-known/acme-challenge/
   http-request redirect scheme https code 301 unless acme_host acme_challenge
   use_backend be_acme_http01 if acme_host acme_challenge
@@ -30,7 +30,7 @@ frontend fe_http
 {% endif %}
 {% if haproxy_acme_http01 %}
 
-# Let's Encrypt HTTP-01 challenges for this host, answered by certbot's
+# Let's Encrypt HTTP-01 challenges for these hosts, answered by certbot's
 # standalone server, which only listens while it issues or renews.
 backend be_acme_http01
   mode http
@@ -54,7 +54,7 @@ frontend fe_https
 {% endif %}
 {% endfor %}
 {% if haproxy_gatus_push %}
-  acl sni_gatus_push req.ssl_sni -i {{ haproxy_gatus_push.hostname }}
+  acl sni_gatus_push req.ssl_sni -i {{ [haproxy_gatus_push.hostname, haproxy_gatus_push.ui_hostname | default('')] | select | join(' ') }}
   use_backend be_gatus_push if sni_gatus_push
 {% endif %}
   use_backend be_kubernetes_tls if {{ kubernetes_acl_names | join(' || ') }}
@@ -66,9 +66,10 @@ backend be_kubernetes_tls
   server connector {{ connector_haproxy_backend }} check send-proxy-v2 check-send-proxy
 
 {% if haproxy_gatus_push %}
-# Heartbeat pushes into Gatus. TLS ends here; only POSTs to the external
-# endpoint API reach Gatus, which still checks the bearer token. The UI and
-# every other path stay unreachable from the internet.
+# Gatus behind TLS that ends here. Heartbeat pushes may POST to the external
+# endpoint API, which still checks the bearer token. With ui_hostname set,
+# GET and HEAD requests for that host reach the read-only UI, except Gatus's
+# /metrics. Everything else gets 403.
 backend be_gatus_push
   mode tcp
   server push {{ haproxy_gatus_push.bind }} send-proxy-v2
@@ -78,7 +79,11 @@ listen gatus_push
   mode http
   option httplog
   timeout http-request 10s
-  http-request deny deny_status 403 unless METH_POST { path -m reg ^/api/v1/endpoints/[^/]+/external$ }
+  http-request allow if METH_POST { path -m reg ^/api/v1/endpoints/[^/]+/external$ }
+{% if haproxy_gatus_push.ui_hostname | default('') %}
+  http-request allow if METH_GET { hdr(host),field(1,:) -i {{ haproxy_gatus_push.ui_hostname }} } !{ path_beg -i /metrics }
+{% endif %}
+  http-request deny deny_status 403
   server gatus {{ haproxy_gatus_push.backend }}
 
 {% endif %}

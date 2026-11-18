@@ -26,7 +26,10 @@
   ansible.builtin.meta: flush_handlers
 
 # --deploy-hook runs on this first issuance and is saved for every renewal,
-# replacing the haproxy role's placeholder certificate each time.
+# replacing the haproxy role's placeholder certificate each time. On later
+# runs certbot does nothing while the names match and the certificate is not
+# due; when acme_certificate_domains changes, --renew-with-new-domains reissues
+# the same certificate name with the new list.
 - name: Request the certificate
   ansible.builtin.command:
     argv:
@@ -45,11 +48,15 @@
       - "{{ acme_http01_port }}"
       - --deploy-hook
       - "{{ acme_deploy_hook_path }}"
+      - --renew-with-new-domains
       - --cert-name
-      - "{{ acme_certificate_domain }}"
+      - "{{ acme_certificate_domains | first }}"
       - -d
-      - "{{ acme_certificate_domain }}"
-    creates: /etc/letsencrypt/live/{{ acme_certificate_domain }}/fullchain.pem
+      - "{{ acme_certificate_domains | join(',') }}"
+  register: acme_certificate_request
+  changed_when: >-
+    'Successfully received certificate' in
+    (acme_certificate_request.stdout | default('')) ~ (acme_certificate_request.stderr | default(''))
 
 - name: Enable the certbot renewal timer
   ansible.builtin.systemd:

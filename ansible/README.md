@@ -42,7 +42,9 @@ Secrets in `group_vars/vps.sops.yml`, besides the WireGuard keys:
 - `gatus_heartbeat_token`: the bearer token Alertmanager sends with its heartbeat. The same value is `GATUS_HEARTBEAT_TOKEN` in `kubernetes/apps/observability/kube-prometheus-stack/app/alertmanager-heartbeat.sops.yaml`; change both together.
 - `gatus_pushover_token` and `pushover_user_key`: the Pushover application token Gatus sends with, and your user key.
 
-The `acme_certificate` role gets a Let's Encrypt certificate for `gw0.kiad.tansanrao.net` with the HTTP-01 challenge, which needs the public A record and port 80 open. certbot renews it from its systemd timer; its deploy hook writes `/etc/haproxy/certs/<name>.pem` and reloads HAProxy. Until the first issuance, HAProxy serves a 30-day self-signed placeholder.
+The `acme_certificate` role gets one Let's Encrypt certificate for the names in `acme_certificate_domains` (`gw0.kiad.tansanrao.net` and `status.tansanrao.net`) with the HTTP-01 challenge, which needs a public DNS record for each name and port 80 open. The first name is the certificate name. When the list changes, the next apply reissues the certificate with the new names. certbot renews it from its systemd timer; its deploy hook writes `/etc/haproxy/certs/<name>.pem` and reloads HAProxy. Until the first issuance, HAProxy serves a 30-day self-signed placeholder.
+
+`status.tansanrao.net` shows Gatus's UI publicly and read-only. HAProxy allows only `GET` and `HEAD` for that host, and blocks `/metrics`.
 
 To rotate a WireGuard key pair, generate it with `wg genkey | tee key | wg pubkey > key.pub`. Put the private key in that host's file and the public key in the peer's file (`wireguard_vps_*` and `wireguard_connector_*`). Then apply both hosts.
 

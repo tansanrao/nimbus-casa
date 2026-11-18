@@ -4,7 +4,11 @@
 # certbot's standalone server on loopback, and no DNS API credentials exist.
 # HAProxy gets the chain and key in one file; certbot's timer renews and the
 # deploy hook reloads HAProxy.
-acme_certificate_domain: "{{ system_fqdn }}"
+# The first name is also the certificate name, so HAProxy's file is
+# <acme_certificate_haproxy_dir>/<first name>.pem. Every name needs a public
+# DNS record pointing at this host and HAProxy's port 80 route to certbot.
+acme_certificate_domains:
+  - "{{ system_fqdn }}"
 acme_certificate_email: ""
 acme_certificate_haproxy_dir: /etc/haproxy/certs
 acme_http01_address: 127.0.0.1

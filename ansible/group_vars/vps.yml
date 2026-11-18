@@ -83,14 +83,22 @@ gatus_heartbeat_endpoints:
     interval: 15m
     description: Alertmanager stopped sending its heartbeat; homelab alerting may be down
 
+# Public, read-only Gatus UI. A temporary name: obs0's internal status page is
+# planned for status.tansanrao.net, so this page moves before obs0 takes it.
+edge_status_hostname: status.tansanrao.net
+
 acme_certificate_email: email@tansanrao.com
+acme_certificate_domains:
+  - "{{ system_fqdn }}"
+  - "{{ edge_status_hostname }}"
 acme_http01_address: 127.0.0.1
 acme_http01_port: 8402
 haproxy_acme_http01:
-  hostname: "{{ system_fqdn }}"
+  hostnames: "{{ acme_certificate_domains }}"
   backend: "{{ acme_http01_address }}:{{ acme_http01_port }}"
 haproxy_gatus_push:
   hostname: "{{ system_fqdn }}"
+  ui_hostname: "{{ edge_status_hostname }}"
   bind: 127.0.0.1:8443
   certificate: /etc/haproxy/certs/{{ system_fqdn }}.pem
   backend: "{{ gatus_web_address }}:{{ gatus_web_port }}"
