@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-heartbeat-secret
+stringData:
+  GATUS_HEARTBEAT_TOKEN: ENC[AES256_GCM,data:ZlKU+Sufw2kmsj6mrUo4yw+q8uooC+LT+uVUtUw/bYeXxzW5e3uyz0tG7mgndveSHPZ6ajYatE641952oGL5CQ==,iv:R3w8nKBdSsAZpwIgwMhCji1hevlG3Ote9YW8bcqVxVc=,tag:9mCQD5saCVip+Bdtc3Oh1A==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBRYkNJaEpPV0k2ZGc1MzlI
+        MkVzTFEybmNaeHorRVNsYUZSU1YyTjBqVlJnCkpFbmV1UTJQVnFMaWNJMnM4MHBX
+        ZTVuTTRtOGNiM29ZMFUzSGM2bktMcjQKLS0tIG5lQ2Y3bGE4MjBBS3A5NWo3dXo0
+        Q09NUnBrVWJvZnNlTklsc0Ryejc0bFEK2uXyodZFd01LlAg5ZBIKs0uXNleAAiDG
+        yLvyM9VpxWu0ZU4mb1anGZhidsXe8Ro4o2nJOEDQPZSaVUBX/Mf3ow==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-15T20:01:26Z"
+  mac: ENC[AES256_GCM,data:IqvKl/ePdLEZi7zexsv7pkcRbbGxhk8W4lBTTeveFyfUluuq5s94ehVxmGWtPrWJjPzKXixRobIwdU5Dq7z6DH/u4NEnlK/kMXMHC+2ZhE9Im8tx8+K2D5FjZeHjblK3UA8rSnt9fZiYpy4f2YSveRmItMx7cnhZB+np1D0epGM=,iv:siPl1N7OSt9kOxpb86jNSY16Em74tmN/YkP0NEfWuAs=,tag:B6kyqcvuL+6wTXHfI5cCgA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

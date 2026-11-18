@@ -277,6 +277,14 @@ spec:
             "keys": "grafana"
           },
           {
+            "namespace": "observability",
+            "name": "alertmanager-pushover",
+            "storeKind": "ClusterSecretStore",
+            "store": "onepassword",
+            "target": "alertmanager-pushover-secret",
+            "keys": "pushover"
+          },
+          {
             "namespace": "authentik",
             "name": "authentik-db-secret",
             "storeKind": "SecretStore",

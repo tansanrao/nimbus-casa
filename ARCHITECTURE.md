@@ -108,10 +108,16 @@ Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karake
 
 Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`, `group_vars/*.sops.yml` in `ansible/`. Kubernetes apps also read secrets from 1Password through External Secrets. Keep secrets out of OpenTofu state.
 
+## Alerting
+
+Alertmanager in `observability` sends warnings to Pushover at normal priority every 12 h and critical alerts at high priority every 4 h. Its always-firing `Watchdog` alert is a heartbeat: every 5 minutes it posts to Gatus on `gw0` at `https://gw0.kiad.tansanrao.net/api/v1/endpoints/monitoring_alertmanager/external` with a bearer token, over the internet rather than the tunnel. Gatus pages through Pushover when no heartbeat arrives for 15 minutes, which covers Alertmanager, Prometheus, the cluster, the home connection and the Proxmox host being down.
+
+On `gw0`, HAProxy terminates TLS only for `gw0.kiad.tansanrao.net`, with a Let's Encrypt certificate, and passes only `POST` requests to Gatus's external endpoint API. certbot validates with the HTTP-01 challenge: HAProxy sends `/.well-known/acme-challenge/` for that hostname on port 80 to certbot's standalone server on `127.0.0.1:8402`, so no DNS API credentials are involved. Every other hostname is still passed through to Kubernetes, and Gatus's UI listens on `127.0.0.1` only.
+
 ## Not built yet
 
 - L7 TLS termination on the VPS for services on separate VMs. The HAProxy map `vm-services.map` exists but is unused, so every TLS connection goes to Kubernetes.
-- External checks from the VPS. Gatus is installed on `gw0` with no endpoints configured; in-cluster Gatus covers internal checks.
+- External checks from the VPS. Gatus on `gw0` only watches Alertmanager's heartbeat; in-cluster Gatus covers internal checks.
 - A narrower Proxmox role for the OpenTofu API token, which currently has `Administrator`.
 - Off-site replication of Garage.
 

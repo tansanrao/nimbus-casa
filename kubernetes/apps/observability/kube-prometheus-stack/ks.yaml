@@ -7,7 +7,12 @@ spec:
   dependsOn:
     - name: openebs
       namespace: openebs-system
+    - name: onepassword
+      namespace: external-secrets
+    - name: external-secrets-access
+      namespace: external-secrets
   interval: 1h
+  retryInterval: 2m
   path: ./kubernetes/apps/observability/kube-prometheus-stack/app
   postBuild:
     substituteFrom:

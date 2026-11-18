@@ -12,9 +12,56 @@ spec:
     cleanPrometheusOperatorObjectNames: true
 
     alertmanager:
+      config:
+        route:
+          group_by: [cluster, alertname, namespace]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: pushover-warning
+          routes:
+            # Always firing. Each notification is a heartbeat to Gatus on gw0,
+            # which pages through Pushover when it stops.
+            - receiver: gw0-heartbeat
+              matchers: ['alertname = "Watchdog"']
+              group_by: [alertname]
+              group_wait: 0s
+              group_interval: 5m
+              repeat_interval: 5m
+            - receiver: "null"
+              matchers: ['alertname = "InfoInhibitor"']
+            - receiver: "null"
+              matchers: ['severity =~ "info|none"']
+            - receiver: pushover-critical
+              matchers: ['severity = "critical"']
+              repeat_interval: 4h
+        receivers:
+          - name: "null"
+          - name: gw0-heartbeat
+            webhook_configs:
+              - url: https://gw0.kiad.tansanrao.net/api/v1/endpoints/monitoring_alertmanager/external?success=true
+                send_resolved: false
+                http_config:
+                  authorization:
+                    credentials_file: /etc/alertmanager/secrets/alertmanager-heartbeat-secret/GATUS_HEARTBEAT_TOKEN
+          - name: pushover-critical
+            pushover_configs:
+              - user_key_file: &pushoverUser /etc/alertmanager/secrets/alertmanager-pushover-secret/PUSHOVER_USER_KEY
+                token_file: &pushoverToken /etc/alertmanager/secrets/alertmanager-pushover-secret/PUSHOVER_TOKEN
+                priority: "1"
+                send_resolved: true
+          - name: pushover-warning
+            pushover_configs:
+              - user_key_file: *pushoverUser
+                token_file: *pushoverToken
+                priority: "0"
+                send_resolved: true
       alertmanagerSpec:
         externalUrl: https://alertmanager.${SECRET_DOMAIN}
         terminationGracePeriodSeconds: 120
+        secrets:
+          - alertmanager-heartbeat-secret
+          - alertmanager-pushover-secret
         storage:
           disableMountSubPath: true
           volumeClaimTemplate:
@@ -67,6 +114,46 @@ spec:
 
     kube-state-metrics:
       fullnameOverride: kube-state-metrics
+      # OpenEBS LVM thin pool capacity, which no exporter reports.
+      # Thin pool metadata usage is not in LVMNode and stays unmonitored.
+      rbac:
+        extraRules:
+          - apiGroups: ["local.openebs.io"]
+            resources: ["lvmnodes"]
+            verbs: ["list", "watch"]
+      customResourceState:
+        enabled: true
+        config:
+          kind: CustomResourceStateMetrics
+          spec:
+            resources:
+              - groupVersionKind:
+                  group: local.openebs.io
+                  version: v1alpha1
+                  kind: LVMNode
+                labelsFromPath:
+                  node: [metadata, name]
+                metrics:
+                  - name: lvm_thinpool_size_bytes
+                    help: Size of the OpenEBS LVM thin pool in bytes.
+                    each:
+                      type: Gauge
+                      gauge:
+                        path: [volumeGroups]
+                        labelsFromPath:
+                          volume_group: [name]
+                          thin_pool: [thinPools, "0", name]
+                        valueFrom: [thinPools, "0", size]
+                  - name: lvm_thinpool_free_bytes
+                    help: Free space in the OpenEBS LVM thin pool in bytes.
+                    each:
+                      type: Gauge
+                      gauge:
+                        path: [volumeGroups]
+                        labelsFromPath:
+                          volume_group: [name]
+                          thin_pool: [thinPools, "0", name]
+                        valueFrom: [thinPools, "0", free]
 
     grafana:
       enabled: false

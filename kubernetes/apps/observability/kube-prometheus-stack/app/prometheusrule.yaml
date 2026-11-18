@@ -1,0 +1,136 @@
+---
+# Homelab rules the chart does not ship. Every aggregation keeps `cluster`
+# so these move to obs0 unchanged; today the label is empty.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: homelab-rules
+spec:
+  groups:
+    - name: storage.rules
+      rules:
+        # Every app and database volume lives in this pool, which is
+        # overcommitted. kube-state-metrics reads it from the LVMNode resource.
+        - alert: LVMThinPoolFillingUp
+          expr: |
+            1 - (
+              max by (cluster, node, volume_group, thin_pool) (kube_customresource_lvm_thinpool_free_bytes)
+              / max by (cluster, node, volume_group, thin_pool) (kube_customresource_lvm_thinpool_size_bytes)
+            ) > 0.80
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Thin pool {{ $labels.thin_pool }} on {{ $labels.node }} is {{ $value | humanizePercentage }} full
+        - alert: LVMThinPoolAlmostFull
+          expr: |
+            1 - (
+              max by (cluster, node, volume_group, thin_pool) (kube_customresource_lvm_thinpool_free_bytes)
+              / max by (cluster, node, volume_group, thin_pool) (kube_customresource_lvm_thinpool_size_bytes)
+            ) > 0.90
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Thin pool {{ $labels.thin_pool }} on {{ $labels.node }} is {{ $value | humanizePercentage }} full; writes to every volume stop when it fills
+        - alert: LVMThinPoolMetricsAbsent
+          expr: absent(kube_customresource_lvm_thinpool_size_bytes)
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: kube-state-metrics no longer reports the OpenEBS thin pool, so the thin pool alerts cannot fire
+
+    - name: node.rules
+      rules:
+        # Memory and filesystem pressure are covered by the chart's
+        # NodeMemoryHighUtilization and NodeFilesystem* rules.
+        - alert: NodeOOMKill
+          expr: increase(node_vmstat_oom_kill[10m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: The kernel OOM killer stopped a process on {{ $labels.instance }}
+
+    - name: cnpg.rules
+      rules:
+        - alert: CNPGCollectorDown
+          expr: max by (cluster, namespace, pod) (cnpg_collector_up) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: CloudNativePG cannot reach PostgreSQL in {{ $labels.namespace }}/{{ $labels.pod }}
+        # Daily backups; 26 h allows for a slow run. The Barman plugin metric
+        # replaces cnpg_collector_last_available_backup_timestamp, which reads 0.
+        - alert: CNPGBackupTooOld
+          expr: |
+            time() - max by (cluster, namespace, pod) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) > 26 * 3600
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: The last backup of {{ $labels.namespace }}/{{ $labels.pod }} is {{ $value | humanizeDuration }} old
+        - alert: CNPGWALArchivingFailing
+          expr: increase(cnpg_pg_stat_archiver_failed_count[15m]) > 0
+          labels:
+            severity: critical
+          annotations:
+            summary: WAL archiving to Garage is failing for {{ $labels.namespace }}/{{ $labels.pod }}
+        - alert: CNPGConnectionsHigh
+          expr: |
+            sum by (cluster, namespace, pod) (cnpg_backends_total)
+            / max by (cluster, namespace, pod) (cnpg_pg_settings_setting{name="max_connections"}) > 0.80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.namespace }}/{{ $labels.pod }} uses {{ $value | humanizePercentage }} of max_connections"
+
+    - name: flux.rules
+      rules:
+        - alert: FluxResourceNotReady
+          expr: |
+            max by (cluster, exported_namespace, kind, name, reason) (flux_resource_info{ready="False", suspended="False"}) == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Flux {{ $labels.kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready ({{ $labels.reason }})
+
+    - name: cert-manager.rules
+      rules:
+        # cert-manager renews 30 days before expiry, so 14 days means renewal failed.
+        - alert: CertificateExpiringSoon
+          expr: |
+            min by (cluster, exported_namespace, name) (certmanager_certificate_expiration_timestamp_seconds) - time() < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} expires in {{ $value | humanizeDuration }}
+        - alert: CertificateNotReady
+          expr: |
+            max by (cluster, exported_namespace, name) (certmanager_certificate_ready_status{condition="False"}) == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Certificate {{ $labels.exported_namespace }}/{{ $labels.name }} is not ready
+
+    - name: envoy.rules
+      rules:
+        # Per HTTPRoute, ignoring routes below 3 requests per minute so one
+        # failed request on an idle app does not page.
+        - alert: EnvoyRouteHighErrorRate
+          expr: |
+            (
+              sum by (cluster, envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx{envoy_cluster_name=~"httproute/.*", envoy_response_code_class="5"}[5m]))
+              / sum by (cluster, envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx{envoy_cluster_name=~"httproute/.*"}[5m]))
+            ) > 0.05
+            and sum by (cluster, envoy_cluster_name) (rate(envoy_cluster_upstream_rq_xx{envoy_cluster_name=~"httproute/.*"}[5m])) > 0.05
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.envoy_cluster_name }} returns {{ $value | humanizePercentage }} 5xx responses"
