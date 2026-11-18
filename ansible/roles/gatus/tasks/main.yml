@@ -28,7 +28,8 @@
     dest: "{{ gatus_config_dir }}/config.yaml"
     owner: root
     group: root
-    mode: "0644"
+    mode: "0600"
+  no_log: true
   notify: Restart Gatus
 
 - name: Configure Gatus systemd service

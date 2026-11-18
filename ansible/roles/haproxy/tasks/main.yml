@@ -28,6 +28,33 @@
     group: root
     mode: "0644"
 
+- name: Create the HAProxy certificate directory
+  ansible.builtin.file:
+    path: "{{ haproxy_gatus_push.certificate | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: haproxy_gatus_push | length > 0
+
+# HAProxy will not start without the push listener's certificate, but the
+# HTTP-01 challenge needs HAProxy running. A self-signed placeholder breaks
+# the loop; the acme_certificate deploy hook replaces it.
+- name: Create a placeholder certificate for the Gatus push listener
+  ansible.builtin.shell: |
+    set -eu
+    d=$(mktemp -d)
+    trap 'rm -rf "$d"' EXIT
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 30 \
+      -subj "/CN={{ haproxy_gatus_push.hostname }}" \
+      -keyout "$d/key.pem" -out "$d/cert.pem"
+    umask 077
+    cat "$d/cert.pem" "$d/key.pem" > "{{ haproxy_gatus_push.certificate }}"
+  args:
+    executable: /bin/bash
+    creates: "{{ haproxy_gatus_push.certificate }}"
+  when: haproxy_gatus_push | length > 0
+
 - name: Configure HAProxy
   ansible.builtin.template:
     src: haproxy.cfg.j2

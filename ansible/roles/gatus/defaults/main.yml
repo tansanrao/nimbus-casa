@@ -2,3 +2,7 @@
 gatus_config_dir: /etc/gatus
 gatus_data_dir: /var/lib/gatus
 gatus_service_name: gatus
+
+# Heartbeat endpoints: name, group, interval and description. Each needs
+# gatus_heartbeat_token and the Pushover settings.
+gatus_heartbeat_endpoints: []

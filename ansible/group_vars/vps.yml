@@ -75,3 +75,22 @@ gatus_web_address: 127.0.0.1
 gatus_web_port: 8080
 gatus_enable_connector_checks: false
 gatus_public_endpoints: []
+# k8s0's Alertmanager (obs0's after the move) posts its Watchdog here every
+# 5 minutes. Three missed pushes page through Pushover.
+gatus_heartbeat_endpoints:
+  - name: alertmanager
+    group: monitoring
+    interval: 15m
+    description: Alertmanager stopped sending its heartbeat; homelab alerting may be down
+
+acme_certificate_email: email@tansanrao.com
+acme_http01_address: 127.0.0.1
+acme_http01_port: 8402
+haproxy_acme_http01:
+  hostname: "{{ system_fqdn }}"
+  backend: "{{ acme_http01_address }}:{{ acme_http01_port }}"
+haproxy_gatus_push:
+  hostname: "{{ system_fqdn }}"
+  bind: 127.0.0.1:8443
+  certificate: /etc/haproxy/certs/{{ system_fqdn }}.pem
+  backend: "{{ gatus_web_address }}:{{ gatus_web_port }}"

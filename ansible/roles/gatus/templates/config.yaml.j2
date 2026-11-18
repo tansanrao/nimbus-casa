@@ -13,6 +13,35 @@ ui:
 web:
   address: {{ gatus_web_address }}
   port: {{ gatus_web_port }}
+{% if gatus_pushover_user_key is defined %}
+
+alerting:
+  pushover:
+    application-token: {{ gatus_pushover_application_token | to_json }}
+    user-key: {{ gatus_pushover_user_key | to_json }}
+    priority: 1
+    resolved-priority: 0
+    default-alert:
+      failure-threshold: 1
+      success-threshold: 1
+      send-on-resolved: true
+{% endif %}
+{% if gatus_heartbeat_endpoints %}
+
+# Pushed to by Alertmanager's always-firing Watchdog alert. Gatus records a
+# failure, and pages, when no push arrives within the interval.
+external-endpoints:
+{% for endpoint in gatus_heartbeat_endpoints %}
+  - name: {{ endpoint.name }}
+    group: {{ endpoint.group }}
+    token: {{ gatus_heartbeat_token | to_json }}
+    heartbeat:
+      interval: {{ endpoint.interval }}
+    alerts:
+      - type: pushover
+        description: {{ endpoint.description | to_json }}
+{% endfor %}
+{% endif %}
 
 endpoints:
   - name: HAProxy local health

@@ -1,0 +1,58 @@
+---
+- name: Assert ACME settings
+  ansible.builtin.assert:
+    that:
+      - acme_certificate_email | length > 0
+    fail_msg: Set acme_certificate_email.
+
+- name: Install certbot
+  ansible.builtin.apt:
+    name: certbot
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install the HAProxy deploy hook
+  ansible.builtin.template:
+    src: haproxy-deploy-hook.sh.j2
+    dest: "{{ acme_deploy_hook_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+# The challenge needs HAProxy's port 80 route to certbot, which the haproxy
+# role just rendered; reload now instead of at the end of the play.
+- name: Apply pending HAProxy changes before the HTTP-01 challenge
+  ansible.builtin.meta: flush_handlers
+
+# --deploy-hook runs on this first issuance and is saved for every renewal,
+# replacing the haproxy role's placeholder certificate each time.
+- name: Request the certificate
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --email
+      - "{{ acme_certificate_email }}"
+      - --standalone
+      - --preferred-challenges
+      - http
+      - --http-01-address
+      - "{{ acme_http01_address }}"
+      - --http-01-port
+      - "{{ acme_http01_port }}"
+      - --deploy-hook
+      - "{{ acme_deploy_hook_path }}"
+      - --cert-name
+      - "{{ acme_certificate_domain }}"
+      - -d
+      - "{{ acme_certificate_domain }}"
+    creates: /etc/letsencrypt/live/{{ acme_certificate_domain }}/fullchain.pem
+
+- name: Enable the certbot renewal timer
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+    state: started

@@ -17,6 +17,9 @@
       ansible.builtin.set_fact:
         wireguard_private_key: "{{ vps_sops_secrets.wireguard_vps_private_key }}"
         wireguard_peer_public_key: "{{ vps_sops_secrets.wireguard_connector_public_key }}"
+        gatus_heartbeat_token: "{{ vps_sops_secrets.gatus_heartbeat_token }}"
+        gatus_pushover_application_token: "{{ vps_sops_secrets.gatus_pushover_token }}"
+        gatus_pushover_user_key: "{{ vps_sops_secrets.pushover_user_key }}"
       no_log: true
       tags: always
 
@@ -27,6 +30,8 @@
     # Before haproxy, which binds the Floating IP.
     - role: floating_ip
     - role: haproxy
+    # After haproxy, which routes the HTTP-01 challenge to certbot.
+    - role: acme_certificate
     - role: gatus
 
 - name: Configure home connector hosts

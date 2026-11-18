@@ -4,7 +4,7 @@ Configures the hosts outside Kubernetes. All of them run UTC.
 
 | Group | Host | Roles |
 | --- | --- | --- |
-| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | common, firewall, wireguard, haproxy, gatus |
+| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | common, firewall, wireguard, acme_certificate, haproxy, gatus |
 | `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | common, firewall, wireguard, haproxy |
 | `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | common, docker, nexus |
 | `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | common, firewall, haproxy, gitlab |
@@ -36,6 +36,13 @@ mise install --force pipx:ansible-core pipx:makejinja
 ## Secrets
 
 Each group's secrets are in `group_vars/<group>.sops.yml`, encrypted with the repository's age recipient. Edit them with `sops`.
+
+Secrets in `group_vars/vps.sops.yml`, besides the WireGuard keys:
+
+- `gatus_heartbeat_token`: the bearer token Alertmanager sends with its heartbeat. The same value is `GATUS_HEARTBEAT_TOKEN` in `kubernetes/apps/observability/kube-prometheus-stack/app/alertmanager-heartbeat.sops.yaml`; change both together.
+- `gatus_pushover_token` and `pushover_user_key`: the Pushover application token Gatus sends with, and your user key.
+
+The `acme_certificate` role gets a Let's Encrypt certificate for `gw0.kiad.tansanrao.net` with the HTTP-01 challenge, which needs the public A record and port 80 open. certbot renews it from its systemd timer; its deploy hook writes `/etc/haproxy/certs/<name>.pem` and reloads HAProxy. Until the first issuance, HAProxy serves a 30-day self-signed placeholder.
 
 To rotate a WireGuard key pair, generate it with `wg genkey | tee key | wg pubkey > key.pub`. Put the private key in that host's file and the public key in the peer's file (`wireguard_vps_*` and `wireguard_connector_*`). Then apply both hosts.
 

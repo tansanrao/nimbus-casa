@@ -1,0 +1,13 @@
+#!/bin/sh
+# Installed by Ansible. certbot runs this after the first issuance and after
+# each renewal, with RENEWED_LINEAGE set. It replaces HAProxy's placeholder or
+# expiring certificate with the new chain and key, then reloads HAProxy.
+set -eu
+name=$(basename "$RENEWED_LINEAGE")
+install -d -m 0700 {{ acme_certificate_haproxy_dir }}
+umask 077
+cat "$RENEWED_LINEAGE/fullchain.pem" "$RENEWED_LINEAGE/privkey.pem" > "{{ acme_certificate_haproxy_dir }}/$name.pem.tmp"
+mv "{{ acme_certificate_haproxy_dir }}/$name.pem.tmp" "{{ acme_certificate_haproxy_dir }}/$name.pem"
+if systemctl is-active --quiet haproxy; then
+  systemctl reload haproxy
+fi

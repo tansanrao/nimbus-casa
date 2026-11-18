@@ -1,0 +1,12 @@
+---
+# One Let's Encrypt certificate per host, validated with the HTTP-01 challenge:
+# Let's Encrypt fetches a token over port 80, HAProxy forwards that path to
+# certbot's standalone server on loopback, and no DNS API credentials exist.
+# HAProxy gets the chain and key in one file; certbot's timer renews and the
+# deploy hook reloads HAProxy.
+acme_certificate_domain: "{{ system_fqdn }}"
+acme_certificate_email: ""
+acme_certificate_haproxy_dir: /etc/haproxy/certs
+acme_http01_address: 127.0.0.1
+acme_http01_port: 8402
+acme_deploy_hook_path: /usr/local/sbin/certbot-haproxy-deploy

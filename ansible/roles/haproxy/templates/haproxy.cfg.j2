@@ -20,7 +20,22 @@ frontend fe_http
   bind :::80 v4v6
   mode http
   option httplog
+{% if haproxy_acme_http01 %}
+  acl acme_host hdr(host) -i {{ haproxy_acme_http01.hostname }}
+  acl acme_challenge path_beg /.well-known/acme-challenge/
+  http-request redirect scheme https code 301 unless acme_host acme_challenge
+  use_backend be_acme_http01 if acme_host acme_challenge
+{% else %}
   http-request redirect scheme https code 301
+{% endif %}
+{% if haproxy_acme_http01 %}
+
+# Let's Encrypt HTTP-01 challenges for this host, answered by certbot's
+# standalone server, which only listens while it issues or renews.
+backend be_acme_http01
+  mode http
+  server certbot {{ haproxy_acme_http01.backend }}
+{% endif %}
 
 frontend fe_https
   bind :::443 v4v6
@@ -38,6 +53,10 @@ frontend fe_https
   acl {{ acl_name }} req.ssl_sni -i {{ domain }}
 {% endif %}
 {% endfor %}
+{% if haproxy_gatus_push %}
+  acl sni_gatus_push req.ssl_sni -i {{ haproxy_gatus_push.hostname }}
+  use_backend be_gatus_push if sni_gatus_push
+{% endif %}
   use_backend be_kubernetes_tls if {{ kubernetes_acl_names | join(' || ') }}
   default_backend be_kubernetes_tls
 
@@ -46,6 +65,23 @@ backend be_kubernetes_tls
   option tcp-check
   server connector {{ connector_haproxy_backend }} check send-proxy-v2 check-send-proxy
 
+{% if haproxy_gatus_push %}
+# Heartbeat pushes into Gatus. TLS ends here; only POSTs to the external
+# endpoint API reach Gatus, which still checks the bearer token. The UI and
+# every other path stay unreachable from the internet.
+backend be_gatus_push
+  mode tcp
+  server push {{ haproxy_gatus_push.bind }} send-proxy-v2
+
+listen gatus_push
+  bind {{ haproxy_gatus_push.bind }} accept-proxy ssl crt {{ haproxy_gatus_push.certificate }} alpn http/1.1
+  mode http
+  option httplog
+  timeout http-request 10s
+  http-request deny deny_status 403 unless METH_POST { path -m reg ^/api/v1/endpoints/[^/]+/external$ }
+  server gatus {{ haproxy_gatus_push.backend }}
+
+{% endif %}
 {% elif haproxy_role == 'connector' %}
 frontend fe_connector_tls
   bind {{ haproxy_connector_bind }} accept-proxy
