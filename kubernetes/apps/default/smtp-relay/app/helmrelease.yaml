@@ -71,7 +71,8 @@ spec:
     serviceMonitor:
       main:
         jobLabel: smtp-relay
-        serviceName: main
+        service:
+          identifier: main
         endpoints:
           - port: http
             scheme: http

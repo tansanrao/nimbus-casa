@@ -30,11 +30,11 @@ spec:
       redis:
         host: dragonfly.database.svc.cluster.local
         db: 1
-      metrics:
+    server:
+      metrics: &metrics
         enabled: true
         serviceMonitor:
           enabled: true
-    server:
       ingress:
         enabled: false
       containerSecurityContext:
@@ -48,6 +48,7 @@ spec:
       rules:
         enabled: true
     worker:
+      metrics: *metrics
       containerSecurityContext:
         allowPrivilegeEscalation: false
         capabilities:
