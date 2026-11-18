@@ -43,6 +43,17 @@ spec:
         login: true
         passwordSecret:
           name: paradedb-links-app
+      # Papers: the same split as Links.
+      - name: papers_migrator
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paradedb-papers-migrator
+      - name: papers_app
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paradedb-papers-app
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

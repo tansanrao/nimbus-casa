@@ -25,6 +25,18 @@ spec:
             k8s:io.kubernetes.pod.namespace: links
             k8s:app.kubernetes.io/name: links
             k8s:app.kubernetes.io/controller: migrate
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: backend
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: worker
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: papers
+            k8s:app.kubernetes.io/name: papers
+            k8s:app.kubernetes.io/controller: migrate
       toPorts:
         - ports:
             - port: "5432"

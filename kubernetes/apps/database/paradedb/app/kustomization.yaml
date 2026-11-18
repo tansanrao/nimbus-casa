@@ -6,5 +6,6 @@ resources:
   - ./databases.yaml
   - ./networkpolicy.yaml
   - ./links.sops.yaml
+  - ./papers.sops.yaml
 components:
   - ../../../../components/cnpg
