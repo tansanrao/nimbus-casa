@@ -1,0 +1,23 @@
+---
+# obs0's share of 10.10.40.41-.99. k8s0's pool is .41-.79; both clusters
+# announce on the HOMELAB VLAN, so the blocks must not overlap.
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: pool
+spec:
+  blocks:
+    - start: "10.10.40.80"
+      stop: "10.10.40.89"
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: l2-policy
+spec:
+  loadBalancerIPs: true
+  interfaces:
+    - ens+
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: linux

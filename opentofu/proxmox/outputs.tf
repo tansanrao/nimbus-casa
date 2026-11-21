@@ -37,6 +37,15 @@ output "gitlab" {
   }
 }
 
+output "obs0" {
+  description = "Monitoring VM details."
+  value = {
+    name         = proxmox_virtual_environment_vm.obs0.name
+    vm_id        = proxmox_virtual_environment_vm.obs0.vm_id
+    ipv4_address = var.obs0_ipv4_address
+  }
+}
+
 output "runner" {
   description = "Runner VM details."
   value = {

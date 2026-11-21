@@ -5,17 +5,26 @@ set: [pipefail]
 shopt: [globstar]
 
 vars:
+  # Talos cluster that talos:* and bootstrap:* act on: k8s0 (default) or obs0,
+  # as in `task bootstrap:talos CLUSTER=obs0`.
+  CLUSTER: '{{.CLUSTER | default "k8s0"}}'
   ANSIBLE_DIR: '{{.ROOT_DIR}}/ansible'
   BOOTSTRAP_DIR: '{{.ROOT_DIR}}/bootstrap'
   OPENTOFU_PROXMOX_DIR: '{{.ROOT_DIR}}/opentofu/proxmox'
-  KUBERNETES_DIR: '{{.ROOT_DIR}}/kubernetes'
   SCRIPTS_DIR: '{{.ROOT_DIR}}/scripts'
-  TALOS_DIR: '{{.ROOT_DIR}}/talos'
+  TALOS_DIR: '{{.ROOT_DIR}}/talos/{{.CLUSTER}}'
+  # k8s0 keeps the top of kubernetes/ and the root kubeconfig; other clusters
+  # use kubernetes/<cluster>/ and talos/<cluster>/kubeconfig.
+  KUBERNETES_DIR: '{{.ROOT_DIR}}/kubernetes{{if ne .CLUSTER "k8s0"}}/{{.CLUSTER}}{{end}}'
+  KUBECONFIG_DIR: '{{if eq .CLUSTER "k8s0"}}{{.ROOT_DIR}}{{else}}{{.TALOS_DIR}}{{end}}'
+  KUBECONFIG: '{{.KUBECONFIG_DIR}}/kubeconfig'
   PRIVATE_DIR: '{{.ROOT_DIR}}/.private'
-  TALOSCONFIG: '{{.ROOT_DIR}}/talos/clusterconfig/talosconfig'
+  TALOSCONFIG: '{{.TALOS_DIR}}/clusterconfig/talosconfig'
 
 env:
-  KUBECONFIG: '{{.ROOT_DIR}}/kubeconfig'
+  CLUSTER: '{{.CLUSTER}}'
+  KUBERNETES_DIR: '{{.KUBERNETES_DIR}}'
+  KUBECONFIG: '{{.KUBECONFIG}}'
   SOPS_AGE_KEY_FILE: '{{.ROOT_DIR}}/age.key'
   TALOSCONFIG: '{{.TALOSCONFIG}}'
 

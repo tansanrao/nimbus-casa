@@ -1,0 +1,115 @@
+---
+# obs0: single-node Talos cluster for monitoring. It runs the same platform as
+# k8s0 (Cilium, CoreDNS, cert-manager, Flux, Envoy Gateway) without the GPU,
+# LVM and BGP pieces, so a failure inside k8s0 cannot take monitoring down.
+clusterName: obs0
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://10.10.40.26:6443
+additionalApiServerCertSans: &sans
+  - "127.0.0.1"
+  - "10.10.40.26"
+additionalMachineCertSans: *sans
+
+clusterPodNets: ["10.42.0.0/16"]
+clusterSvcNets: ["10.43.0.0/16"]
+
+# Cilium replaces the built-in CNI.
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "obs0"
+    ipAddress: "10.10.40.26"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    # Schematic: siderolabs/qemu-guest-agent. Keep obs0_talos_schematic_id in sync.
+    talosImageURL: factory.talos.dev/installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    controlPlane: true
+    # UniFi first: only it resolves obs0's own *.tansanrao.net names.
+    nameservers:
+      - 10.10.40.1
+      - 1.1.1.1
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "02:ca:5a:40:00:26"
+        dhcp: false
+        addresses:
+          - "10.10.40.26/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "10.10.40.1"
+        mtu: 1500
+
+patches:
+  - |-
+    machine:
+      kubelet:
+        extraConfig:
+          serializeImagePulls: false
+          shutdownGracePeriod: 3m
+          shutdownGracePeriodCriticalPods: 30s
+        nodeIP:
+          validSubnets:
+            - 10.10.40.0/24
+      sysctls:
+        fs.inotify.max_user_watches: "1048576"
+        fs.inotify.max_user_instances: "8192"
+      time:
+        disabled: false
+        servers:
+          - 162.159.200.1
+          - 162.159.200.123
+  # Talos 1.14 generates its own documents for these settings, so they are
+  # patched there rather than in v1alpha1.
+  - |-
+    apiVersion: v1alpha1
+    kind: ResolverConfig
+    searchDomains:
+      disableDefault: true
+  # The 100 GB data disk (OpenTofu serial obs0-data), mounted at
+  # /var/mnt/data for metrics and logs. The 20 GB system disk keeps images.
+  - |-
+    apiVersion: v1alpha1
+    kind: UserVolumeConfig
+    name: data
+    provisioning:
+      diskSelector:
+        match: disk.serial == "obs0-data"
+      minSize: 90GiB
+      grow: true
+    filesystem:
+      type: xfs
+
+controlPlane:
+  patches:
+    - |-
+      cluster:
+        allowSchedulingOnControlPlanes: true
+        # CoreDNS comes from Flux instead.
+        coreDNS:
+          disabled: true
+        etcd:
+          extraArgs:
+            listen-metrics-urls: http://0.0.0.0:2381
+          advertisedSubnets:
+            - 10.10.40.0/24
+    # Cilium replaces kube-proxy.
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeProxyConfig
+      enabled: false
+    # Metrics listeners for Prometheus.
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeControllerManagerConfig
+      extraArgs:
+        bind-address: 0.0.0.0
+    - |-
+      apiVersion: v1alpha1
+      kind: KubeSchedulerConfig
+      extraArgs:
+        bind-address: 0.0.0.0

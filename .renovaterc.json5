@@ -75,6 +75,8 @@
       matchFileNames: [
         "kubernetes/apps/flux-system/flux-operator/**",
         "kubernetes/apps/flux-system/flux-instance/**",
+        "kubernetes/obs0/apps/flux-system/flux-operator/**",
+        "kubernetes/obs0/apps/flux-system/flux-instance/**",
         "kubernetes/apps/external-secrets/external-secrets/**",
       ],
       pinDigests: true,
@@ -84,7 +86,10 @@
     },
     {
       description: "Flux distribution version follows the official CLI release, not an image reference",
-      matchFileNames: ["kubernetes/apps/flux-system/flux-instance/app/helmrelease.yaml"],
+      matchFileNames: [
+        "kubernetes/apps/flux-system/flux-instance/app/helmrelease.yaml",
+        "kubernetes/obs0/apps/flux-system/flux-instance/app/helmrelease.yaml",
+      ],
       matchPackageNames: ["ghcr.io/fluxcd/flux-cli"],
       pinDigests: false,
     },

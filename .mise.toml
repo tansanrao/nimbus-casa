@@ -1,8 +1,10 @@
 [env]
 _.python.venv = { path = "{{config_root}}/.venv", create = true }
-KUBECONFIG = "{{config_root}}/kubeconfig"
+# k8s0 by default. A value already in the environment wins, so tasks run
+# with CLUSTER=obs0 keep obs0's kubeconfig and talosconfig in shimmed tools.
+KUBECONFIG = "{{ get_env(name='KUBECONFIG', default=config_root ~ '/kubeconfig') }}"
 SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
-TALOSCONFIG = "{{config_root}}/talos/clusterconfig/talosconfig"
+TALOSCONFIG = "{{ get_env(name='TALOSCONFIG', default=config_root ~ '/talos/k8s0/clusterconfig/talosconfig') }}"
 
 [tools]
 # Keep on 3.14: ansible-core 2.21 supports controller Python through 3.14.

@@ -6,11 +6,12 @@ Infrastructure as code for the Nimbus Casa homelab: a single-node Talos Kubernet
 
 | Path | Contents |
 | --- | --- |
-| `kubernetes/` | Flux apps, shared components and cluster settings |
-| `talos/` | talhelper configuration and patches for `k8s0` |
+| `kubernetes/` | Flux apps, shared components and cluster settings for `k8s0` |
+| `kubernetes/obs0/` | Flux tree for `obs0`, the monitoring cluster, with the same layout |
+| `talos/<cluster>/` | talhelper configuration and patches for `k8s0` and `obs0` |
 | `talos-runner/` | talhelper configuration for `runner0` and its gitlab-runner helmfile |
 | `bootstrap/` | One-time cluster bootstrap resources |
-| `opentofu/proxmox/` | VMs created on Proxmox (`connector0`, `nexus-kb`, `gitlab0`, `runner0`) |
+| `opentofu/proxmox/` | VMs created on Proxmox (`connector0`, `nexus-kb`, `gitlab0`, `runner0`, `obs0`) |
 | `ansible/` | Configuration for the VPS, `connector0`, `nexus-kb` and `gitlab0` |
 | `scripts/` | Static checks and live verification scripts |
 | `docs/` | Runbooks and isolation notes |
@@ -27,6 +28,8 @@ mise install
 
 SOPS decrypts secrets with the age key at `age.key`. The Taskfile sets `KUBECONFIG`, `SOPS_AGE_KEY_FILE` and `TALOSCONFIG` from the repository root.
 
+`talos:*`, `bootstrap:*` and `reconcile` act on `k8s0` unless you pass `CLUSTER=obs0`. For `obs0` they use `talos/obs0/`, `kubernetes/obs0/` and the kubeconfig at `talos/obs0/kubeconfig`.
+
 ## Common tasks
 
 ```sh
@@ -35,6 +38,7 @@ task talos:generate-config
 task talos:apply-node IP=? MODE=?
 task talos:upgrade-node IP=?
 task talos:upgrade-k8s
+task talos:upgrade-node CLUSTER=obs0 IP=10.10.40.26
 task opentofu:plan             # also: fmt, validate, apply
 task ansible:check             # also: inventory, syntax, apply
 ```
