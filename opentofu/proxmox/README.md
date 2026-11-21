@@ -84,7 +84,7 @@ To bootstrap a rebuilt runner0: `cd talos-runner && talhelper genconfig`, then `
 
 ## obs0
 
-MAC `02:CA:5A:40:00:26`. The monitoring cluster, kept apart from `k8s0` so a failure there does not take monitoring down. It boots the same Image Factory image as runner0 (`qemu-guest-agent` only), downloaded under its own file name. The data disk on `scsi1` has serial `obs0-data`; a Talos `UserVolumeConfig` in `talos/obs0/talconfig.yaml` formats it and mounts it at `/var/mnt/data`. As with runner0, the image only bootstraps the VM, and later image changes are ignored.
+MAC `02:CA:5A:40:00:26`. The monitoring cluster, kept apart from `k8s0` so a failure there does not take monitoring down. It boots the same Image Factory image as runner0 (`qemu-guest-agent` only), downloaded under its own file name. The data disk on `scsi1` has serial `obs0-data`, but Talos cannot read serials from virtio-scsi disks, so the `UserVolumeConfig` in `talos/obs0/talconfig.yaml` selects it as the non-system disk over 90 GB, formats it and mounts it at `/var/mnt/data`. As with runner0, the image only bootstraps the VM, and later image changes are ignored.
 
 Before bootstrapping, set the Cloudflare API token that cert-manager uses for the `*.tansanrao.net` certificate. It needs `Zone:DNS:Edit` on `tansanrao.net` only:
 

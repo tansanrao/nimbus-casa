@@ -13,6 +13,9 @@ releases:
     namespace: network
     chart: oci://ghcr.io/home-operations/charts-mirror/external-dns
     version: 1.24.0
+    # Chart 1.24 requires policy in its schema; only CRDs are used from here.
+    values:
+      - policy: sync
 
   - name: envoy-gateway
     namespace: network

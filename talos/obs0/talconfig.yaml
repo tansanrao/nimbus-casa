@@ -70,15 +70,16 @@ patches:
     kind: ResolverConfig
     searchDomains:
       disableDefault: true
-  # The 100 GB data disk (OpenTofu serial obs0-data), mounted at
-  # /var/mnt/data for metrics and logs. The 20 GB system disk keeps images.
+  # The 100 GB data disk, mounted at /var/mnt/data for metrics and logs. The
+  # 20 GB system disk keeps images. Selected by size, not by its serial
+  # (obs0-data): Talos reads no serial from virtio-scsi disks.
   - |-
     apiVersion: v1alpha1
     kind: UserVolumeConfig
     name: data
     provisioning:
       diskSelector:
-        match: disk.serial == "obs0-data"
+        match: "!system_disk && disk.size > 90u * GB"
       minSize: 90GiB
       grow: true
     filesystem:

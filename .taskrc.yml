@@ -1,0 +1,6 @@
+---
+# mise exports k8s0's KUBECONFIG and TALOSCONFIG into every shell here. Without
+# this, those shell values override Taskfile.yaml's env, and CLUSTER=obs0
+# tasks would run against k8s0.
+experiments:
+  ENV_PRECEDENCE: 1

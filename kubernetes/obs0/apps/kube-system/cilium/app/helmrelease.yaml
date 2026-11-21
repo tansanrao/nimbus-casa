@@ -18,8 +18,8 @@ spec:
       automount:
         enabled: false
       hostRoot: /sys/fs/cgroup
-    # NOTE: devices might need to be set if you have more than one active NIC on your hosts
-    devices: ens+
+    # obs0's NIC is eth0 (k8s0's is ens18).
+    devices: eth+
     dashboards:
       enabled: true
     endpointRoutes:
