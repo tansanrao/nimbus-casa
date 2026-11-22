@@ -47,7 +47,7 @@ spec:
           app:
             image:
               repository: registry.twicecooked.software/twicecooked-software/papers/frontend
-              tag: 0.2.0@sha256:5da30301d58964254db2e64a4054a0fc0a0d026a333c78bcdbb31254fed70023
+              tag: 0.13.0@sha256:958f461bf43831f0645205189ee6403d24541995726e72bd6fe01c89f53af030
             env:
               # nginx does not apply search domains, so this must be fully qualified.
               API_PROXY_TARGET: http://papers-backend.papers.svc.cluster.local:8080
@@ -88,7 +88,7 @@ spec:
           app:
             image: &backendImage
               repository: registry.twicecooked.software/twicecooked-software/papers/backend
-              tag: 0.2.0@sha256:a8dc6689aed8138641831ba847240dadc5204fde45517a490af3bf2550283585
+              tag: 0.13.0@sha256:1ce19e9e73a339af08a0e6e05d72d659fda0ee560f36a14a2b0f263155ef870d
             args: [serve, --hostname, 0.0.0.0, --port, "8080"]
             env:
               <<: &appEnv
@@ -195,7 +195,7 @@ spec:
           app:
             image:
               repository: registry.twicecooked.software/twicecooked-software/papers/cite
-              tag: 0.2.0@sha256:b864c52bf3587a830e00e11984fc305341642610ae9978d739182549cf61e619
+              tag: 0.13.0@sha256:7b981be5612ff77fd30cf67c3cbab5c1ca298a47cfc87c0b3e803cebcb32c9e3
             probes:
               liveness: &citeProbe
                 enabled: true
@@ -227,7 +227,7 @@ spec:
           app:
             image:
               repository: registry.twicecooked.software/twicecooked-software/papers/pdftext
-              tag: 0.2.0@sha256:1781a14764e19f4375d8f16b92c9f037c4a1ff87f0d9e95b7041932d823f07b4
+              tag: 0.13.0@sha256:603bb2cb5d9c8dbcde61bcd9e64ce9fb92cb655046a53ad70de802af8e48e1b9
             probes:
               liveness: &pdftextProbe
                 enabled: true
