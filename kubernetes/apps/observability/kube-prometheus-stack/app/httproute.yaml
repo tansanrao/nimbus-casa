@@ -5,7 +5,7 @@ metadata:
   name: prometheus
 spec:
   hostnames:
-    - prometheus.${SECRET_DOMAIN}
+    - prometheus.tansanrao.net
   parentRefs:
     - name: envoy-internal
       namespace: network
@@ -20,7 +20,7 @@ metadata:
   name: alertmanager
 spec:
   hostnames:
-    - alertmanager.${SECRET_DOMAIN}
+    - alertmanager.tansanrao.net
   parentRefs:
     - name: envoy-internal
       namespace: network

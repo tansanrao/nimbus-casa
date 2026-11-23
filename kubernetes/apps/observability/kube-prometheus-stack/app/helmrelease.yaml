@@ -59,7 +59,7 @@ spec:
                 priority: "0"
                 send_resolved: true
       alertmanagerSpec:
-        externalUrl: https://alertmanager.${SECRET_DOMAIN}
+        externalUrl: https://alertmanager.tansanrao.net
         terminationGracePeriodSeconds: 120
         secrets:
           - alertmanager-heartbeat-secret
@@ -83,7 +83,7 @@ spec:
 
     prometheus:
       prometheusSpec:
-        externalUrl: https://prometheus.${SECRET_DOMAIN}
+        externalUrl: https://prometheus.tansanrao.net
         terminationGracePeriodSeconds: 120
         retention: 14d
         retentionSize: 50GB

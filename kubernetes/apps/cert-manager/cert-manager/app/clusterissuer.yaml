@@ -16,3 +16,12 @@ spec:
               key: api-token
         selector:
           dnsZones: ["${SECRET_DOMAIN}"]
+      # Monitoring endpoints. A token limited to DNS edit on this zone; only
+      # the challenge's TXT record ever reaches public DNS.
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-secret
+              key: api-token-tansanrao
+        selector:
+          dnsZones: ["tansanrao.net"]

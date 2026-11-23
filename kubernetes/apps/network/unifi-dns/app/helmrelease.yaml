@@ -43,8 +43,11 @@ spec:
       - service
     txtOwnerId: main
     txtPrefix: k8s.main.
+    # tansanrao.net: monitoring endpoints on envoy-internal. Hand-made records
+    # there (s3.kbcb, sandcrawler.kbcb) carry no owner TXT, so sync leaves them.
     domainFilters:
       - "${SECRET_DOMAIN}"
+      - tansanrao.net
     serviceMonitor:
       enabled: true
     podAnnotations:

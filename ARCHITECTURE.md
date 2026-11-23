@@ -110,6 +110,8 @@ Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`
 
 ## Alerting
 
+Prometheus, Alertmanager and Grafana run in `observability` and are served on `envoy-internal` at `prometheus.tansanrao.net`, `alertmanager.tansanrao.net` and `grafana.tansanrao.net`, with a `*.tansanrao.net` certificate on a listener of its own. UniFi DNS is the only resolver for these names; Cloudflare has no record. Fluent Bit ships every container's logs to VictoriaLogs in the same namespace, which keeps 7 days or 50 GiB and serves `logs.tansanrao.net`.
+
 Alertmanager in `observability` sends warnings to Pushover at normal priority every 12 h and critical alerts at high priority every 4 h. Its always-firing `Watchdog` alert is a heartbeat: every 5 minutes it posts to Gatus on `gw0` at `https://gw0.kiad.tansanrao.net/api/v1/endpoints/monitoring_alertmanager/external` with a bearer token, over the internet rather than the tunnel. Gatus pages through Pushover when no heartbeat arrives for 15 minutes, which covers Alertmanager, Prometheus, the cluster, the home connection and the Proxmox host being down.
 
 On `gw0`, HAProxy terminates TLS only for `gw0.kiad.tansanrao.net` and `status.tansanrao.net`, with one Let's Encrypt certificate for both. It passes `POST` requests for Gatus's external endpoint API, and `GET` and `HEAD` requests for `status.tansanrao.net` to Gatus's read-only UI, except `/metrics`; everything else gets 403. certbot validates with the HTTP-01 challenge: HAProxy sends `/.well-known/acme-challenge/` for those hostnames on port 80 to certbot's standalone server on `127.0.0.1:8402`, so no DNS API credentials are involved. Every other hostname is still passed through to Kubernetes, and Gatus itself listens on `127.0.0.1` only.

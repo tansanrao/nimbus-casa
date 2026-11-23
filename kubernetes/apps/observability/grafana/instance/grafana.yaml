@@ -14,7 +14,7 @@ spec:
     security:
       allow_embedding: "true"
     server:
-      root_url: https://grafana.${SECRET_DOMAIN}
+      root_url: https://grafana.tansanrao.net
     log:
       mode: console
     metrics:

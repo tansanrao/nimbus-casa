@@ -1,0 +1,40 @@
+---
+# The homelab's log store. Fluent Bit in k8s0 writes to the Service directly;
+# hosts and TrueNAS push through envoy-internal at logs.tansanrao.net.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-logs
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: victoria-logs
+  interval: 1h
+  values:
+    server:
+      fullnameOverride: victoria-logs
+      # Whichever comes first. The volume keeps the 20% headroom VictoriaLogs
+      # recommends; above the cap it drops whole days, oldest first.
+      retentionPeriod: 7d
+      retentionDiskSpaceUsage: 50
+      persistentVolume:
+        enabled: true
+        storageClassName: openebs-lvm
+        size: 60Gi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+      serviceMonitor:
+        enabled: true
+    dashboards:
+      enabled: true
+      grafanaOperator:
+        enabled: true
+        spec:
+          instanceSelector:
+            matchLabels:
+              dashboards: null
+              grafana.internal/instance: grafana

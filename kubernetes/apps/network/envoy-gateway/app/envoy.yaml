@@ -108,6 +108,19 @@ spec:
         certificateRefs:
           - kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
+    # Monitoring endpoints. A listener of its own, so a missing or expired
+    # tansanrao.net certificate cannot affect the nimbus.casa routes.
+    - name: https-tansanrao
+      protocol: HTTPS
+      port: 443
+      hostname: "*.tansanrao.net"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: tansanrao-net-production-tls
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy

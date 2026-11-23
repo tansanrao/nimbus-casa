@@ -1,0 +1,97 @@
+---
+# Query UI and API, for you and Grafana. Your network only, like Prometheus.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: victoria-logs
+spec:
+  hostnames:
+    - logs.tansanrao.net
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - backendRefs:
+        - name: victoria-logs
+          port: 9428
+---
+# JSON-lines ingest for TrueNAS's Fluent Bit. The longer prefix outranks the
+# UI route's "/", so this path only answers with the credentials below.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: victoria-logs-ingest
+  annotations:
+    # The UI route already publishes this hostname.
+    external-dns.kubernetes.io/controller: none
+spec:
+  hostnames:
+    - logs.tansanrao.net
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /insert/jsonline
+      backendRefs:
+        - name: victoria-logs
+          port: 9428
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: victoria-logs-ingest
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-logs-ingest
+  basicAuth:
+    users:
+      name: victoria-logs-ingest-users
+---
+# Every other write and admin path. The journald endpoint for the hosts opens
+# in Phase 4 with its own policy; until then nothing outside k8s0 writes here.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: victoria-logs-blocked
+  annotations:
+    external-dns.kubernetes.io/controller: none
+spec:
+  hostnames:
+    - logs.tansanrao.net
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /insert
+        - path:
+            type: PathPrefix
+            value: /internal
+        - path:
+            type: PathPrefix
+            value: /delete
+        - path:
+            type: PathPrefix
+            value: /metrics
+      backendRefs:
+        - name: victoria-logs
+          port: 9428
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: victoria-logs-blocked
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-logs-blocked
+  authorization:
+    defaultAction: Deny

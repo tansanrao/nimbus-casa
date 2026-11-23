@@ -1,0 +1,119 @@
+---
+# Ships every container's logs on k8s0 to VictoriaLogs in this namespace.
+# Fields are renamed to Prometheus's label names (namespace, pod, container,
+# node) so an alert's labels select its logs.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: fluent-bit
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: fluent-bit
+  interval: 1h
+  values:
+    kind: DaemonSet
+    testFramework:
+      enabled: false
+    serviceMonitor:
+      enabled: true
+    resources:
+      requests:
+        cpu: 20m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    daemonSetVolumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      # Tail offsets and the disk buffer survive pod restarts.
+      - name: state
+        hostPath:
+          path: /var/lib/fluent-bit
+          type: DirectoryOrCreate
+    daemonSetVolumeMounts:
+      - name: varlog
+        mountPath: /var/log
+        readOnly: true
+      - name: state
+        mountPath: /var/lib/fluent-bit
+    config:
+      service: |
+        [SERVICE]
+            Daemon Off
+            Flush 1
+            Log_Level info
+            Parsers_File /fluent-bit/etc/parsers.conf
+            HTTP_Server On
+            HTTP_Listen 0.0.0.0
+            HTTP_Port {{ .Values.metricsPort }}
+            Health_Check On
+            storage.path /var/lib/fluent-bit/buffer
+            storage.sync normal
+            storage.backlog.mem_limit 16M
+            storage.metrics On
+      inputs: |
+        [INPUT]
+            Name tail
+            Path /var/log/containers/*.log
+            multiline.parser cri
+            Tag kube.*
+            DB /var/lib/fluent-bit/tail.db
+            Skip_Long_Lines On
+            Refresh_Interval 10
+            storage.type filesystem
+      filters: |
+        [FILTER]
+            Name kubernetes
+            Match kube.*
+            Merge_Log Off
+            Labels On
+            Annotations Off
+            K8S-Logging.Exclude On
+
+        [FILTER]
+            Name nest
+            Match kube.*
+            Operation lift
+            Nested_under kubernetes
+            Add_prefix k8s_
+
+        [FILTER]
+            Name nest
+            Match kube.*
+            Operation lift
+            Nested_under k8s_labels
+            Add_prefix k8s_label_
+
+        # app: the pod's app.kubernetes.io/name label, else its app label
+        # (Flux controllers, Grafana, OpenEBS). Rename skips a key that
+        # already exists, so the first match wins.
+        [FILTER]
+            Name modify
+            Match kube.*
+            Rename k8s_namespace_name namespace
+            Rename k8s_pod_name pod
+            Rename k8s_container_name container
+            Rename k8s_host node
+            Rename k8s_label_app.kubernetes.io/name app
+            Rename k8s_label_app app
+            Remove_wildcard k8s_
+            Remove _p
+            Remove time
+            Add cluster k8s0
+      # Retries forever from the disk buffer while VictoriaLogs is down; the
+      # oldest chunks are dropped past 2G.
+      outputs: |
+        [OUTPUT]
+            Name http
+            Match kube.*
+            Host victoria-logs.observability.svc.cluster.local
+            Port 9428
+            URI /insert/jsonline?_stream_fields=cluster,namespace,app,pod,container&_msg_field=log&_time_field=date
+            Format json_lines
+            Json_Date_Key date
+            Json_Date_Format iso8601
+            Compress gzip
+            Retry_Limit no_limits
+            storage.total_limit_size 2G

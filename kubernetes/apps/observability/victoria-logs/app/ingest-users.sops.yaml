@@ -1,0 +1,26 @@
+# Basic-auth users for logs.tansanrao.net/insert/jsonline. truenas-password is
+# the plain password for TrueNAS's Fluent Bit (Phase 4); Envoy reads .htpasswd.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: victoria-logs-ingest-users
+type: Opaque
+stringData:
+  .htpasswd: ENC[AES256_GCM,data:LjmnlkTHOwvjzc/3hwEGua+kk8Ubte3Wcblk0ftve+NG4rij/KHs/cU=,iv:9xKXHiNI+WmJ2Y7se29WbJj+zbruu3t+aSoh1KSxQNw=,tag:SCZ1XCG5rUb4Do+iCMHxLw==,type:str]
+  truenas-password: ENC[AES256_GCM,data:UcJ2F+0QAsw0DSU5abkq6p/ZnSoR0SIwbqIu1t/Zqao=,iv:TLm4Iez77gzQ7iV0tEa9OggOBcaCR7hOb9eynL6Fyp8=,tag:I1niItS4laOUyk1OxCxD3w==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB1S240UXpiQ0RHeFVOQW9O
+        M1RWQVpWZS8wb0xYbUswWG9lMFlKNklkSG53CmR1YUxDTnlFYm1IcGhBbzRieUFU
+        UW9aa0F4NWpzVDRFZzRJNTU5QXpRN2MKLS0tIDErM1JXcXluTkliMnJSQWhOeWtw
+        allWQ2FrZFpuY3I1ajhYRVdCRUN4WEEK04ndFE07dCEHxnsLOdstNzdwo36xejNV
+        8dZpzU6RNnxXOWy8uqO06nMPEX/1NcM+OvkumgTCpuOU4VjrhtMTvQ==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1dc9236rsea7k8gtqttxfr832cz3s5k6rx37cqvuxe0432ud22yqsf9mhqe
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-23T22:04:18Z"
+  mac: ENC[AES256_GCM,data:iwaYWWKbAoU+eVBse44c6P4I6pc/m9YKBJqRLABKJ6k7N+7OSIwNE0DE45IWHEUh8x++AAsgf+LMAgOAchfi4XnR0ALM0AbujJtzageIBwdtKbGEcYjoQVbBb05ltRUOArAT5J1z1mzCnJPk9mkgSZP1tTqmeD66bmmJBmUtvRY=,iv:pKZ3JND9FQKqxB/exYS4QBwPQfCb0QBvZIfjnZkpxy4=,tag:yOLkMH2kMVI1rXAT1r23Gw==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

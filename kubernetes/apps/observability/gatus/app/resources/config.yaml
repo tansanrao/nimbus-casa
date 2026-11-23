@@ -130,7 +130,7 @@ endpoints:
     group: private-services
     url: *internal_gateway_url
     headers:
-      Host: alertmanager.${SECRET_DOMAIN}
+      Host: alertmanager.tansanrao.net
     client: *private_client
     interval: 1m
     conditions: *app_http_conditions
@@ -138,7 +138,7 @@ endpoints:
     group: private-services
     url: *internal_gateway_url
     headers:
-      Host: grafana.${SECRET_DOMAIN}
+      Host: grafana.tansanrao.net
     client: *private_client
     interval: 1m
     conditions: *app_http_conditions
@@ -146,7 +146,15 @@ endpoints:
     group: private-services
     url: *internal_gateway_url
     headers:
-      Host: prometheus.${SECRET_DOMAIN}
+      Host: prometheus.tansanrao.net
+    client: *private_client
+    interval: 1m
+    conditions: *app_http_conditions
+  - name: observability/victoria-logs
+    group: private-services
+    url: *internal_gateway_url
+    headers:
+      Host: logs.tansanrao.net
     client: *private_client
     interval: 1m
     conditions: *app_http_conditions

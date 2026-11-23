@@ -1,0 +1,40 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: victoria-logs
+spec:
+  groups:
+    - name: victoria-logs.rules
+      rules:
+        # Rows outside retention, with bad timestamps or too many fields. A
+        # Fluent Bit restart can send a burst of week-old lines; only a steady
+        # drop pages.
+        - alert: VictoriaLogsDroppingRows
+          expr: |
+            sum by (cluster, namespace, pod, reason) (increase(vl_rows_dropped_total{reason!="debug"}[15m])) > 0
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: VictoriaLogs is dropping log rows ({{ $labels.reason }})
+        # Free space fell below -storage.minFreeDiskSpaceBytes; new logs are rejected.
+        - alert: VictoriaLogsReadOnly
+          expr: max by (cluster, namespace, pod) (vl_storage_is_read_only) == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: VictoriaLogs storage is read-only and rejects new logs
+        # The 50 GiB cap should keep the 60 Gi volume below this.
+        - alert: VictoriaLogsVolumeFilling
+          expr: |
+            max by (cluster, namespace, persistentvolumeclaim) (
+              kubelet_volume_stats_used_bytes{namespace="observability", persistentvolumeclaim=~"server-volume-victoria-logs-.*"}
+              / kubelet_volume_stats_capacity_bytes{namespace="observability", persistentvolumeclaim=~"server-volume-victoria-logs-.*"}
+            ) > 0.85
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: The VictoriaLogs volume is {{ $value | humanizePercentage }} full; the retention cap is not keeping up

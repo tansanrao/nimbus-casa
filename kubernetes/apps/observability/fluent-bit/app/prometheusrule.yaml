@@ -1,0 +1,30 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: fluent-bit
+spec:
+  groups:
+    - name: fluent-bit.rules
+      rules:
+        - alert: FluentBitOutputFailing
+          expr: sum by (cluster, namespace, pod, name) (rate(fluentbit_output_errors_total[5m])) > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Fluent Bit {{ $labels.pod }} cannot deliver logs through {{ $labels.name }}; they buffer on disk
+        - alert: FluentBitDroppingRecords
+          expr: sum by (cluster, namespace, pod, name) (increase(fluentbit_output_dropped_records_total[15m])) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: Fluent Bit {{ $labels.pod }} dropped log records from {{ $labels.name }}
+        # k8s0 always has some container writing logs.
+        - alert: FluentBitNoLogsSent
+          expr: sum by (cluster, namespace, pod) (rate(fluentbit_output_proc_records_total[15m])) == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Fluent Bit {{ $labels.pod }} has sent no logs for 30 minutes

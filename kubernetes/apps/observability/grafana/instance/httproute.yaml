@@ -5,7 +5,7 @@ metadata:
   name: grafana
 spec:
   hostnames:
-    - grafana.${SECRET_DOMAIN}
+    - grafana.tansanrao.net
   parentRefs:
     - name: envoy-internal
       namespace: network
