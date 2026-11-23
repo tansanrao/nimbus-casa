@@ -11,6 +11,9 @@ spec:
   values:
     controllers:
       gatus:
+        # The config is a subPath mount, which never sees ConfigMap updates.
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
