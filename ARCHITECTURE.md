@@ -2,7 +2,7 @@
 
 Nimbus Casa is a single-host homelab. Public traffic enters through a Hetzner VPS and reaches Kubernetes over a WireGuard tunnel to a home connector VM. Cloudflare only serves DNS.
 
-Last updated: 2026-11-18
+Last updated: 2026-11-15
 
 ## Hosts
 
@@ -10,12 +10,11 @@ Last updated: 2026-11-18
 | --- | --- | --- | --- |
 | Proxmox | `10.10.1.20` (MGMT), `10.10.40.20` | Hypervisor for every VM below | Manual |
 | TrueNAS Scale | `10.10.40.10` | NAS (PCI-passthrough disks), NFS exports, Garage S3 | Manual |
-| `k8s0` | `10.10.40.40` | Single-node Talos Kubernetes cluster | `talos/k8s0/`, `kubernetes/` |
+| `k8s0` | `10.10.40.40` | Single-node Talos Kubernetes cluster | `talos/`, `kubernetes/` |
 | `connector0` | `10.10.40.21` | WireGuard and HAProxy endpoint for the VPS | `opentofu/`, `ansible/` |
 | `nexus-kb` | `10.10.40.23` | Ubuntu 24.04 host for the Nexus application | `opentofu/`, `ansible/` |
 | `gitlab0` | `10.10.40.24` | GitLab EE (Omnibus) on Ubuntu 24.04: `code.twicecooked.software` and `registry.twicecooked.software` | `opentofu/`, `ansible/` |
 | `runner0` | `10.10.40.25` | Single-node Talos cluster running gitlab-runner. Untrusted CI jobs | `opentofu/`, `talos-runner/` |
-| `obs0` | `10.10.40.26` | Single-node Talos cluster for monitoring, separate from `k8s0`. Platform only so far; monitoring moves in next | `opentofu/`, `talos/obs0/`, `kubernetes/obs0/` |
 | `gw0.kiad.tansanrao.net` | Hetzner | Public edge: HAProxy, WireGuard, Gatus | `ansible/` |
 
 There is one Proxmox host, so it is the largest single point of failure.
@@ -32,8 +31,8 @@ There is one Proxmox host, so it is the largest single point of failure.
 HOMELAB allocation:
 
 - `10.10.40.1`: UniFi gateway.
-- `10.10.40.21`–`10.10.40.39`: static VM addresses. In use: `connector0` `.21`, `nexus-kb` `.23`, `gitlab0` `.24`, `runner0` `.25`, `obs0` `.26`.
-- `10.10.40.41`–`10.10.40.99`: Kubernetes node, Cilium LoadBalancer and service addresses. `k8s0`'s pool is `.41`–`.79` and `obs0`'s is `.80`–`.89`, so the two clusters never announce the same address; `obs0`'s Envoy internal is `10.10.40.81`. In use in `k8s0`: SMTP relay `10.10.40.55`, Envoy internal `10.10.40.61`, Envoy external `10.10.40.62`, Dragonfly `10.10.40.71` and the authentik LDAP outpost `10.10.40.72`.
+- `10.10.40.21`–`10.10.40.39`: static VM addresses. In use: `connector0` `.21`, `nexus-kb` `.23`, `gitlab0` `.24`, `runner0` `.25`.
+- `10.10.40.41`–`10.10.40.99`: Kubernetes node, Cilium LoadBalancer and service addresses. In use: SMTP relay `10.10.40.55`, Envoy internal `10.10.40.61`, Envoy external `10.10.40.62`, Dragonfly `10.10.40.71` and the authentik LDAP outpost `10.10.40.72`.
 - `10.10.40.100`–`10.10.40.250`: DHCP.
 
 Proxmox guests sit only on HOMELAB. The VPS never gets a route to MGMT, LAN, IOT or the HOMELAB subnet.
@@ -102,10 +101,10 @@ Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karake
 
 ## Configuration layers
 
-- Flux owns everything in each cluster: `kubernetes/` for `k8s0`, `kubernetes/obs0/` for `obs0`.
-- OpenTofu (`opentofu/proxmox/`) creates the `connector0`, `nexus-kb`, `gitlab0`, `runner0` and `obs0` VMs and runner0's Proxmox firewall. The VPS was created by hand.
+- Flux (`kubernetes/`) owns everything in the cluster.
+- OpenTofu (`opentofu/proxmox/`) creates the `connector0`, `nexus-kb`, `gitlab0` and `runner0` VMs and runner0's Proxmox firewall. The VPS was created by hand.
 - Ansible (`ansible/`) configures the VPS, `connector0`, `nexus-kb` and `gitlab0`.
-- talhelper configures the Talos clusters: `talos/k8s0/`, `talos/obs0/` and `talos-runner/`. runner0's helmfile deploys gitlab-runner.
+- talhelper (`talos-runner/`) configures `runner0`; its helmfile deploys gitlab-runner.
 
 Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`, `group_vars/*.sops.yml` in `ansible/`. Kubernetes apps also read secrets from 1Password through External Secrets. Keep secrets out of OpenTofu state.
 
@@ -113,7 +112,7 @@ Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`
 
 Alertmanager in `observability` sends warnings to Pushover at normal priority every 12 h and critical alerts at high priority every 4 h. Its always-firing `Watchdog` alert is a heartbeat: every 5 minutes it posts to Gatus on `gw0` at `https://gw0.kiad.tansanrao.net/api/v1/endpoints/monitoring_alertmanager/external` with a bearer token, over the internet rather than the tunnel. Gatus pages through Pushover when no heartbeat arrives for 15 minutes, which covers Alertmanager, Prometheus, the cluster, the home connection and the Proxmox host being down.
 
-On `gw0`, HAProxy terminates TLS only for `gw0.kiad.tansanrao.net` and `status.tansanrao.net`, with one Let's Encrypt certificate for both. It passes `POST` requests for Gatus's external endpoint API, and `GET` and `HEAD` requests for `status.tansanrao.net` to Gatus's read-only UI, except `/metrics`; everything else gets 403. `status.tansanrao.net` is a temporary name for this public page, since obs0's internal status page is planned for it. certbot validates with the HTTP-01 challenge: HAProxy sends `/.well-known/acme-challenge/` for those hostnames on port 80 to certbot's standalone server on `127.0.0.1:8402`, so no DNS API credentials are involved. Every other hostname is still passed through to Kubernetes, and Gatus itself listens on `127.0.0.1` only.
+On `gw0`, HAProxy terminates TLS only for `gw0.kiad.tansanrao.net` and `status.tansanrao.net`, with one Let's Encrypt certificate for both. It passes `POST` requests for Gatus's external endpoint API, and `GET` and `HEAD` requests for `status.tansanrao.net` to Gatus's read-only UI, except `/metrics`; everything else gets 403. certbot validates with the HTTP-01 challenge: HAProxy sends `/.well-known/acme-challenge/` for those hostnames on port 80 to certbot's standalone server on `127.0.0.1:8402`, so no DNS API credentials are involved. Every other hostname is still passed through to Kubernetes, and Gatus itself listens on `127.0.0.1` only.
 
 ## Not built yet
 

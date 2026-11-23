@@ -1,6 +1,5 @@
 ---
-# Homelab rules the chart does not ship. Every aggregation keeps `cluster`
-# so these move to obs0 unchanged; today the label is empty.
+# Homelab rules the chart does not ship.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:

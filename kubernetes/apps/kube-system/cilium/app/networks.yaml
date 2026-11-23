@@ -5,10 +5,8 @@ metadata:
   name: pool
 spec:
   allowFirstLastIPs: "No"
-  # k8s0's share of 10.10.40.41-.99; obs0 announces .80-.89 from the same VLAN.
   blocks:
-    - start: "10.10.40.41"
-      stop: "10.10.40.79"
+    - cidr: "10.10.40.0/24"
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy

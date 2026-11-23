@@ -39,11 +39,6 @@ jobs:
         with:
           args: test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
 
-      - name: Run flux-local test (obs0)
-        uses: docker://ghcr.io/allenporter/flux-local:v8.4.0
-        with:
-          args: test --enable-helm --all-namespaces --path /github/workspace/kubernetes/obs0/flux/cluster -v
-
   diff:
     name: Flux Local Diff
     needs: pre-job

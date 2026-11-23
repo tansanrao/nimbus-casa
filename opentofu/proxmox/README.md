@@ -1,6 +1,6 @@
 # Proxmox VMs
 
-OpenTofu creates five VMs on Proxmox with the `bpg/proxmox` provider. The Ubuntu VMs use custom cloud-init snippets.
+OpenTofu creates four VMs on Proxmox with the `bpg/proxmox` provider. The Ubuntu VMs use custom cloud-init snippets.
 
 | VM | Image | Address | Size |
 | --- | --- | --- | --- |
@@ -8,7 +8,6 @@ OpenTofu creates five VMs on Proxmox with the `bpg/proxmox` provider. The Ubuntu
 | `nexus-kb` | Ubuntu 24.04 cloud image | `10.10.40.23/24` | 8 vCPU, 16 GiB RAM, 400 GiB disk |
 | `gitlab0` | Ubuntu 24.04 cloud image | `10.10.40.24/24` | 12 vCPU (`host`, CPU units 200), 24 GiB RAM, 40 GiB OS + 300 GiB data disk |
 | `runner0` | Talos Image Factory `nocloud` image | `10.10.40.25/24` | 24 vCPU (`host`, CPU units 50), 36 GiB RAM, 200 GiB disk |
-| `obs0` | Talos Image Factory `nocloud` image | `10.10.40.26/24` | 2 vCPU (`host`), 12 GiB RAM, 20 GiB system + 100 GiB data disk |
 
 Local settings go in `terraform.tfvars` (copy `terraform.tfvars.example`). State is kept locally in `terraform.tfstate`. Both files are gitignored.
 
@@ -62,7 +61,7 @@ task opentofu:plan
 task opentofu:apply
 ```
 
-One plan covers every VM, so read it before applying. After a VM is created, configure it with Ansible (see [ansible/README.md](../../ansible/README.md)).
+One plan covers both VMs, so read it before applying. After a VM is created, configure it with Ansible (see [ansible/README.md](../../ansible/README.md)).
 
 ## nexus-kb
 
@@ -81,22 +80,3 @@ MAC `02:CA:5A:40:00:25`. The disk is imported from a Talos Image Factory image w
 `runner.tf` also manages the Proxmox firewall. runner0's VM firewall drops inbound traffic except the Talos and Kubernetes APIs from `runner_admin_sources`, and outbound traffic to every private, CGNAT, link-local and IPv6 destination except `10.10.40.24:443` and gateway DNS. `ipfilter` stops it from sending from any other address. The datacenter firewall has to be on for any VM firewall to apply; it stays on with ACCEPT policies, and the node firewall stays off, so no other guest or the host is filtered.
 
 To bootstrap a rebuilt runner0: `cd talos-runner && talhelper genconfig`, then `talosctl apply-config --insecure -n 10.10.40.25 -e 10.10.40.25 -f clusterconfig/gitlab-runner-runner0.yaml`, `talosctl bootstrap`, `talosctl kubeconfig talos-runner/kubeconfig`, and `task runner:deploy`. A rebuilt runner needs a new runner token from GitLab in `talos-runner/gitlab-runner/runner-token.sops.yaml`.
-
-## obs0
-
-MAC `02:CA:5A:40:00:26`. The monitoring cluster, kept apart from `k8s0` so a failure there does not take monitoring down. It boots the same Image Factory image as runner0 (`qemu-guest-agent` only), downloaded under its own file name. The data disk on `scsi1` has serial `obs0-data`, but Talos cannot read serials from virtio-scsi disks, so the `UserVolumeConfig` in `talos/obs0/talconfig.yaml` selects it as the non-system disk over 90 GB, formats it and mounts it at `/var/mnt/data`. As with runner0, the image only bootstraps the VM, and later image changes are ignored.
-
-Before bootstrapping, set the Cloudflare API token that cert-manager uses for the `*.tansanrao.net` certificate. It needs `Zone:DNS:Edit` on `tansanrao.net` only:
-
-```sh
-sops set kubernetes/obs0/apps/cert-manager/cert-manager/app/secret.sops.yaml '["stringData"]["api-token"]' '"<token>"'
-```
-
-Then, from the repository root, after `task opentofu:apply`:
-
-```sh
-task bootstrap:talos CLUSTER=obs0   # Talos config, etcd bootstrap, talos/obs0/kubeconfig
-task bootstrap:apps CLUSTER=obs0    # Cilium, CoreDNS, cert-manager and Flux; Flux syncs kubernetes/obs0
-```
-
-unifi-dns starts with `policy: upsert-only`. Once its records in UniFi look right, switch it to `sync` in `kubernetes/obs0/apps/network/unifi-dns/app/helmrelease.yaml`.

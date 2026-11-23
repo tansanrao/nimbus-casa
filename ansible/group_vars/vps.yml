@@ -75,7 +75,7 @@ gatus_web_address: 127.0.0.1
 gatus_web_port: 8080
 gatus_enable_connector_checks: false
 gatus_public_endpoints: []
-# k8s0's Alertmanager (obs0's after the move) posts its Watchdog here every
+# k8s0's Alertmanager posts its Watchdog here every
 # 5 minutes. Three missed pushes page through Pushover.
 gatus_heartbeat_endpoints:
   - name: alertmanager
@@ -83,8 +83,7 @@ gatus_heartbeat_endpoints:
     interval: 15m
     description: Alertmanager stopped sending its heartbeat; homelab alerting may be down
 
-# Public, read-only Gatus UI. A temporary name: obs0's internal status page is
-# planned for status.tansanrao.net, so this page moves before obs0 takes it.
+# Public, read-only Gatus UI.
 edge_status_hostname: status.tansanrao.net
 
 acme_certificate_email: email@tansanrao.com
