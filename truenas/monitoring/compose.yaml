@@ -31,13 +31,13 @@ services:
     image: cr.fluentbit.io/fluent/fluent-bit:5.1.3
     command: ["-c", "/fluent-bit/etc/fluent-bit.yaml"]
     environment:
-      # truenas-password from
+      # paste truenas-password from
       # kubernetes/apps/observability/victoria-logs/app/ingest-users.sops.yaml
       VL_PASSWORD: CHANGE_ME
     volumes:
       - /var/log:/var/log:ro
       - /etc/machine-id:/etc/machine-id:ro
       # The app's dataset on pool ssd-rz1, created in the TrueNAS UI.
-      - /mnt/ssd-rz1/apps/fluent-bit/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
-      - /mnt/ssd-rz1/apps/fluent-bit/buffer:/buffer
+      - /mnt/ssd-rz1/fluent-bit/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
+      - /mnt/ssd-rz1/fluent-bit/buffer:/buffer
     restart: unless-stopped
