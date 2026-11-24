@@ -2481,8 +2481,8 @@
     },
     {
       "type": "table",
-      "title": "SMART (smartctl_exporter)",
-      "description": "TrueNAS drives. Empty on hosts without smartctl_exporter. CRC errors point at cables, not the disk.",
+      "title": "Disk health",
+      "description": "TrueNAS drives from smartctl_exporter, Proxmox NVMe drives from the textfile collector (refreshed every 15 minutes). Health is the SMART verdict, or for NVMe no critical warning; Critical warning is the raw NVMe bitmask (0 is healthy). Columns no disk on this host reports are left out. CRC errors point at cables, not the disk.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2493,7 +2493,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device, model_name) (smartctl_device{instance=\"$instance\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device, model) (label_replace(smartctl_device{instance=\"$instance\"}, \"model\", \"$1\", \"model_name\", \"(.*)\")) or max by (device, model) (nvme_device_info{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "A",
           "legendFormat": "__auto",
           "instant": true,
@@ -2505,7 +2505,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device, serial_number) (smartctl_device{instance=\"$instance\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device, serial) (label_replace(smartctl_device{instance=\"$instance\"}, \"serial\", \"$1\", \"serial_number\", \"(.*)\")) or max by (device, serial) (nvme_device_info{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "B",
           "legendFormat": "__auto",
           "instant": true,
@@ -2517,7 +2517,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_smart_status{instance=\"$instance\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_smart_status{instance=\"$instance\"}) or max by (device) (nvme_critical_warning{instance=\"$instance\"} == bool 0)) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "C",
           "legendFormat": "__auto",
           "instant": true,
@@ -2529,7 +2529,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_temperature{instance=\"$instance\", temperature_type=\"current\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_temperature{instance=\"$instance\", temperature_type=\"current\"}) or max by (device) (nvme_temperature_celsius{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "D",
           "legendFormat": "__auto",
           "instant": true,
@@ -2541,7 +2541,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_power_on_seconds{instance=\"$instance\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_power_on_seconds{instance=\"$instance\"}) or max by (device) (nvme_power_on_hours_total{instance=\"$instance\"}) * 3600) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "E",
           "legendFormat": "__auto",
           "instant": true,
@@ -2553,7 +2553,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Reallocated_Sector_Ct\", attribute_value_type=\"raw\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_percentage_used{instance=\"$instance\"}) / 100 or max by (device) (nvme_percentage_used_ratio{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "F",
           "legendFormat": "__auto",
           "instant": true,
@@ -2565,7 +2565,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Current_Pending_Sector\", attribute_value_type=\"raw\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_available_spare{instance=\"$instance\"}) / 100 or max by (device) (nvme_available_spare_ratio{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "G",
           "legendFormat": "__auto",
           "instant": true,
@@ -2577,7 +2577,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Offline_Uncorrectable\", attribute_value_type=\"raw\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_media_errors{instance=\"$instance\"}) or max by (device) (nvme_media_errors_total{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "H",
           "legendFormat": "__auto",
           "instant": true,
@@ -2589,8 +2589,80 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"UDMA_CRC_Error_Count\", attribute_value_type=\"raw\"}) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "expr": "(max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Reallocated_Sector_Ct\", attribute_value_type=\"raw\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
           "refId": "I",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Current_Pending_Sector\", attribute_value_type=\"raw\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "J",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"Offline_Uncorrectable\", attribute_value_type=\"raw\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "K",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (smartctl_device_attribute{instance=\"$instance\", attribute_name=\"UDMA_CRC_Error_Count\", attribute_value_type=\"raw\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "L",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (nvme_unsafe_shutdowns_total{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "M",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (nvme_data_units_written_total{instance=\"$instance\"}) * 512000) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "N",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (device) (smartctl_device_critical_warning{instance=\"$instance\"}) or max by (device) (nvme_critical_warning{instance=\"$instance\"})) unless on (device) smartctl_device{instance=\"$instance\", scsi_vendor=\"QEMU\"}",
+          "refId": "O",
           "legendFormat": "__auto",
           "instant": true,
           "range": false,
@@ -2617,31 +2689,43 @@
           "id": "organize",
           "options": {
             "renameByName": {
+              "model": "Model",
+              "serial": "Serial",
               "Value #A": "_model",
               "Value #B": "_serial",
               "Value #C": "Health",
               "Value #D": "Temperature",
               "Value #E": "Power-on",
-              "Value #F": "Reallocated",
-              "Value #G": "Pending",
-              "Value #H": "Uncorrectable",
-              "Value #I": "CRC errors",
-              "model_name": "Model",
-              "serial_number": "Serial"
+              "Value #F": "Endurance used",
+              "Value #G": "Spare",
+              "Value #H": "Media errors",
+              "Value #I": "Reallocated",
+              "Value #J": "Pending",
+              "Value #K": "Uncorrectable",
+              "Value #L": "CRC errors",
+              "Value #M": "Unsafe shutdowns",
+              "Value #N": "Written",
+              "Value #O": "Critical warning"
             },
             "indexByName": {
               "device": 0,
+              "Model": 1,
+              "Serial": 2,
               "_model": 3,
               "_serial": 4,
               "Health": 5,
-              "Temperature": 6,
-              "Power-on": 7,
-              "Reallocated": 8,
-              "Pending": 9,
-              "Uncorrectable": 10,
-              "CRC errors": 11,
-              "Model": 1,
-              "Serial": 2
+              "Temperature": 7,
+              "Power-on": 8,
+              "Endurance used": 9,
+              "Spare": 10,
+              "Media errors": 11,
+              "Reallocated": 12,
+              "Pending": 13,
+              "Uncorrectable": 14,
+              "CRC errors": 15,
+              "Unsafe shutdowns": 16,
+              "Written": 17,
+              "Critical warning": 6
             },
             "excludeByName": {
               "Value #A": true,
@@ -2658,6 +2742,18 @@
           }
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -2687,11 +2783,11 @@
                     "type": "value",
                     "options": {
                       "1": {
-                        "text": "PASSED",
+                        "text": "OK",
                         "color": "green"
                       },
                       "0": {
-                        "text": "FAILED",
+                        "text": "FAILING",
                         "color": "red"
                       }
                     }
@@ -2728,11 +2824,11 @@
                     },
                     {
                       "color": "orange",
-                      "value": 50
+                      "value": 60
                     },
                     {
                       "color": "red",
-                      "value": 65
+                      "value": 70
                     }
                   ]
                 }
@@ -2759,6 +2855,123 @@
               {
                 "id": "decimals",
                 "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Endurance used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.7
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spare"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.2
+                    },
+                    {
+                      "color": "green",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Media errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
               }
             ]
           },
@@ -2885,198 +3098,19 @@
                 }
               }
             ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "sortBy": []
-      },
-      "gridPos": {
-        "h": 13,
-        "w": 24,
-        "x": 0,
-        "y": 66
-      },
-      "id": 28
-    },
-    {
-      "type": "table",
-      "title": "NVMe (textfile collector)",
-      "description": "Proxmox NVMe drives, refreshed every 15 minutes. Empty on other hosts.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
           },
-          "expr": "max by (device, model) (nvme_device_info{instance=\"$instance\"})",
-          "refId": "A",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_critical_warning{instance=\"$instance\"})",
-          "refId": "B",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_temperature_celsius{instance=\"$instance\"})",
-          "refId": "C",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_percentage_used_ratio{instance=\"$instance\"})",
-          "refId": "D",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_available_spare_ratio{instance=\"$instance\"})",
-          "refId": "E",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_media_errors_total{instance=\"$instance\"})",
-          "refId": "F",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_unsafe_shutdowns_total{instance=\"$instance\"})",
-          "refId": "G",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_power_on_hours_total{instance=\"$instance\"}) * 3600",
-          "refId": "H",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max by (device) (nvme_data_units_written_total{instance=\"$instance\"}) * 512000",
-          "refId": "I",
-          "legendFormat": "__auto",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        }
-      ],
-      "transformations": [
-        {
-          "id": "joinByField",
-          "options": {
-            "byField": "device",
-            "mode": "outer"
-          }
-        },
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "pattern": "^(?!Time).*$"
-            }
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "renameByName": {
-              "Value #A": "_model",
-              "Value #B": "Critical warning",
-              "Value #C": "Temperature",
-              "Value #D": "Endurance used",
-              "Value #E": "Spare",
-              "Value #F": "Media errors",
-              "Value #G": "Unsafe shutdowns",
-              "Value #H": "Power-on",
-              "Value #I": "Written",
-              "model": "Model"
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Written"
             },
-            "indexByName": {
-              "device": 0,
-              "_model": 2,
-              "Critical warning": 3,
-              "Temperature": 4,
-              "Endurance used": 5,
-              "Spare": 6,
-              "Media errors": 7,
-              "Unsafe shutdowns": 8,
-              "Power-on": 9,
-              "Written": 10,
-              "Model": 1
-            },
-            "excludeByName": {
-              "Value #A": true
-            }
-          }
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "noValue": "\u2013",
-          "custom": {
-            "align": "auto"
-          }
-        },
-        "overrides": [
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -3107,190 +3141,6 @@
                 }
               }
             ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Temperature"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "celsius"
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 60
-                    },
-                    {
-                      "color": "red",
-                      "value": 70
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background",
-                  "mode": "basic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Endurance used"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percentunit"
-              },
-              {
-                "id": "decimals",
-                "value": 0
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 0.7
-                    },
-                    {
-                      "color": "red",
-                      "value": 0.9
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background",
-                  "mode": "basic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Spare"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percentunit"
-              },
-              {
-                "id": "decimals",
-                "value": 0
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "red",
-                      "value": null
-                    },
-                    {
-                      "color": "orange",
-                      "value": 0.2
-                    },
-                    {
-                      "color": "green",
-                      "value": 0.5
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background",
-                  "mode": "basic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Media errors"
-            },
-            "properties": [
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-background",
-                  "mode": "basic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Power-on"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "s"
-              },
-              {
-                "id": "decimals",
-                "value": 1
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Written"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bytes"
-              }
-            ]
           }
         ]
       },
@@ -3300,12 +3150,12 @@
         "sortBy": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 13,
         "w": 24,
         "x": 0,
-        "y": 79
+        "y": 66
       },
-      "id": 29
+      "id": 28
     },
     {
       "type": "row",
@@ -3316,7 +3166,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 86
+        "y": 79
       },
       "panels": []
     },
@@ -3351,7 +3201,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 87
+        "y": 80
       },
       "id": 31
     },
@@ -3386,7 +3236,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 96
+        "y": 89
       },
       "id": 32
     }
