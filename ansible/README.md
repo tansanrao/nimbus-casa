@@ -4,15 +4,23 @@ Configures the hosts outside Kubernetes. All of them run UTC.
 
 | Group | Host | Roles |
 | --- | --- | --- |
-| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | common, firewall, wireguard, acme_certificate, haproxy, gatus, monitoring_agent |
-| `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | common, firewall, wireguard, haproxy, monitoring_agent |
-| `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | common, docker, nexus, monitoring_agent |
-| `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | common, firewall, haproxy, gitlab |
-| `proxmox` | `pve`, `10.10.1.20` (user `root`) | monitoring_agent, proxmox_monitoring |
+| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | ssh_access, common, firewall, wireguard, acme_certificate, haproxy, gatus, monitoring_agent |
+| `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | ssh_access, common, firewall, wireguard, haproxy, monitoring_agent |
+| `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | ssh_access, common, docker, nexus, monitoring_agent |
+| `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | ssh_access, common, firewall, haproxy, gitlab |
+| `proxmox` | `pve`, `10.10.1.20` (user `root`) | ssh_access, monitoring_agent, proxmox_monitoring |
 
 The VPS also runs `floating_ip`, which keeps GitLab's Floating IP on `eth0`.
 
 The `common` role sets the hostname, timezone, chrony, unattended-upgrades and SSH hardening. Upgrades install from 07:00 UTC, and a host reboots at 08:30 UTC when an upgrade needs it. [ARCHITECTURE.md](../ARCHITECTURE.md) describes the VPS and connector traffic path.
+
+## SSH access
+
+`ssh_access` runs first in every play. It fetches `https://github.com/<user>.keys` for each GitHub user in [`authorized_users`](../authorized_users) and replaces the `authorized_keys` of the account Ansible logs in as (`ansible_user`: root on gw0 and pve, `ubuntu` on the VMs) with those keys, removing any other key. If the file is empty or a user returns no keys, the play fails before anything is written. Make sure your key is on GitHub under one of those users before a run, or the run locks you out.
+
+Host-specific keys go in group or host vars: `ssh_access_extra_keys` for key lines, `ssh_access_extra_key_files` for public key files on the host. Proxmox keeps its own `/root/.ssh/id_rsa.pub`, which its web UI shell needs. Its `authorized_keys` is a link into `/etc/pve`, and the role writes through the link.
+
+Other accounts, such as root on the Ubuntu VMs, are left alone.
 
 ## Monitoring
 
@@ -24,7 +32,7 @@ The `common` role sets the hostname, timezone, chrony, unattended-upgrades and S
 
 gw0 has no route home, so connector0 relays for it: `10.10.40.21:9101` and `:9102` forward to gw0's node_exporter and HAProxy metrics, and `10.200.0.2:9443` (`haproxy_logs_relay`) accepts only journald uploads over WireGuard and forwards them to `logs.tansanrao.net` over TLS. HAProxy on both hosts serves Prometheus metrics on `haproxy_prometheus_bind`.
 
-The `proxmox` play runs only the monitoring roles, as root, and needs your SSH key in root's `authorized_keys` on the host. With `monitoring_agent_proxmox_firewall`, the role adds a Proxmox firewall rule for its exporter ports from k8s0.
+The `proxmox` play runs only `ssh_access` and the monitoring roles, as root. Its first run needs your SSH key in root's `authorized_keys` on the host. With `monitoring_agent_proxmox_firewall`, the role adds a Proxmox firewall rule for its exporter ports from k8s0.
 
 `proxmox_monitoring` installs `prometheus-pve-exporter` in a venv at `/opt/pve-exporter`, creates the read-only API user `pve-exporter@pve` (role `PVEAuditor`) and its token, whose secret stays in `/etc/pve-exporter/pve.yml` on the host, and opens port 9221 to k8s0. To replace the token, delete that file and rerun the play.
 

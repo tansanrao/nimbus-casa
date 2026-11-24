@@ -1,0 +1,4 @@
+# GitHub users whose SSH keys can log in to Ansible-managed hosts, as the
+# inventory's ansible_user, and to new Proxmox VMs. One username per line.
+avyask
+tansanrao

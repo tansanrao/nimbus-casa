@@ -17,7 +17,7 @@ resource "proxmox_virtual_environment_file" "nexus_kb_user_data" {
     data = templatefile("${path.module}/cloud-init/nexus_kb-user-data.yaml.tftpl", {
       fqdn                = var.nexus_kb_fqdn
       hostname            = var.nexus_kb_name
-      ssh_authorized_keys = var.ssh_authorized_keys
+      ssh_authorized_keys = local.github_ssh_keys
       ssh_username        = var.ssh_username
     })
     file_name = "${var.nexus_kb_name}-user-data.yaml"

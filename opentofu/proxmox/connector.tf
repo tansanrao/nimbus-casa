@@ -24,7 +24,7 @@ resource "proxmox_virtual_environment_file" "connector_user_data" {
     data = templatefile("${path.module}/cloud-init/connector-user-data.yaml.tftpl", {
       fqdn                = var.connector_fqdn
       hostname            = var.connector_name
-      ssh_authorized_keys = var.ssh_authorized_keys
+      ssh_authorized_keys = local.github_ssh_keys
       ssh_username        = var.ssh_username
     })
     file_name = "${var.connector_name}-user-data.yaml"

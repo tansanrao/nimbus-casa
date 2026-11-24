@@ -1,0 +1,16 @@
+---
+# GitHub users whose public keys (https://github.com/<user>.keys) become the
+# only SSH keys of the account Ansible logs in as. OpenTofu seeds new VMs'
+# cloud-init user from the same file.
+ssh_access_users_file: "{{ playbook_dir }}/../authorized_users"
+
+# The login account from the inventory: root on gw0 and pve, ubuntu on the
+# Ubuntu VMs.
+ssh_access_user: "{{ ansible_user | default('root') }}"
+
+# Extra keys for this host or group, as authorized_keys lines.
+ssh_access_extra_keys: []
+
+# Public key files on the host itself to keep in the file, such as Proxmox's
+# own root key.
+ssh_access_extra_key_files: []

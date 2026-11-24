@@ -7,7 +7,7 @@ resource "proxmox_virtual_environment_file" "gitlab_user_data" {
     data = templatefile("${path.module}/cloud-init/gitlab-user-data.yaml.tftpl", {
       fqdn                = var.gitlab_fqdn
       hostname            = var.gitlab_name
-      ssh_authorized_keys = var.ssh_authorized_keys
+      ssh_authorized_keys = local.github_ssh_keys
       ssh_port            = var.gitlab_ssh_port
       ssh_username        = var.ssh_username
     })

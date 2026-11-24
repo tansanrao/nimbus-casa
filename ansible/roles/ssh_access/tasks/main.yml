@@ -1,0 +1,90 @@
+---
+# Replaces the login account's authorized_keys on every run, removing any
+# key not listed here. Each GitHub user must return at least one key, so an outage or a
+# renamed account fails the play instead of emptying the file.
+
+- name: Read GitHub users with root SSH access
+  ansible.builtin.set_fact:
+    ssh_access_users: >-
+      {{ lookup('ansible.builtin.file', ssh_access_users_file).splitlines()
+         | map('trim') | reject('equalto', '') | reject('match', '#') | list }}
+  run_once: true
+  delegate_to: localhost
+  become: false
+
+- name: Fetch GitHub users' SSH keys
+  ansible.builtin.uri:
+    url: "https://github.com/{{ item }}.keys"
+    return_content: true
+  loop: "{{ ssh_access_users }}"
+  register: ssh_access_github_keys
+  run_once: true
+  delegate_to: localhost
+  become: false
+  check_mode: false
+
+- name: Check that every GitHub user has SSH keys
+  ansible.builtin.assert:
+    that:
+      - ssh_access_users | length > 0
+      - ssh_access_github_keys.results
+        | map(attribute='content') | map('regex_findall', '(?m)^ssh-') | select('equalto', []) | list | length == 0
+    fail_msg: "authorized_users is empty, or a GitHub user returned no SSH keys. {{ ssh_access_user }}'s keys were left unchanged."
+  run_once: true
+  delegate_to: localhost
+  become: false
+
+- name: Read this host's extra public key files
+  ansible.builtin.slurp:
+    src: "{{ item }}"
+  loop: "{{ ssh_access_extra_key_files }}"
+  register: ssh_access_host_keys
+
+- name: Look up the login account
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ ssh_access_user }}"
+
+# passwd fields after the name: password, uid, gid, gecos, home, shell.
+- name: Locate the login account's authorized_keys
+  ansible.builtin.set_fact:
+    ssh_access_uid: "{{ ansible_facts.getent_passwd[ssh_access_user][1] }}"
+    ssh_access_gid: "{{ ansible_facts.getent_passwd[ssh_access_user][2] }}"
+    ssh_access_keys_file: "{{ ansible_facts.getent_passwd[ssh_access_user][4] }}/.ssh/authorized_keys"
+
+- name: Find the login account's authorized_keys
+  ansible.builtin.stat:
+    path: "{{ ssh_access_keys_file }}"
+  register: ssh_access_keys_stat
+
+# Proxmox links root's file into /etc/pve, whose filesystem keeps its own
+# owner and mode. Write through the link instead of replacing it.
+- name: Create the login account's .ssh directory
+  ansible.builtin.file:
+    path: "{{ ssh_access_keys_file | dirname }}"
+    state: directory
+    owner: "{{ ssh_access_uid }}"
+    group: "{{ ssh_access_gid }}"
+    mode: "0700"
+  when: not (ssh_access_keys_stat.stat.islnk | default(false))
+
+- name: Write the login account's authorized_keys
+  ansible.builtin.copy:
+    dest: "{{ ssh_access_keys_stat.stat.lnk_source if ssh_access_keys_stat.stat.islnk | default(false) else ssh_access_keys_file }}"
+    content: |
+      # Managed by Ansible (ssh_access). Edits are overwritten on the next run.
+      {% for result in ssh_access_github_keys.results %}
+      {% for key in result.content.splitlines() | map('trim') | select('match', 'ssh-') %}
+      {{ key }} github:{{ result.item }}
+      {% endfor %}
+      {% endfor %}
+      {% for key in ssh_access_extra_keys %}
+      {{ key }}
+      {% endfor %}
+      {% for result in ssh_access_host_keys.results %}
+      {{ result.content | b64decode | trim }}
+      {% endfor %}
+    owner: "{{ omit if ssh_access_keys_stat.stat.islnk | default(false) else ssh_access_uid }}"
+    group: "{{ omit if ssh_access_keys_stat.stat.islnk | default(false) else ssh_access_gid }}"
+    mode: "{{ omit if ssh_access_keys_stat.stat.islnk | default(false) else '0600' }}"
+    unsafe_writes: "{{ ssh_access_keys_stat.stat.islnk | default(false) }}"

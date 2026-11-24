@@ -6,6 +6,10 @@
 # for these ports.
 proxmox_node_name: pve
 
+# Proxmox's own root key, which the web UI shell and node-to-node SSH use.
+ssh_access_extra_key_files:
+  - /root/.ssh/id_rsa.pub
+
 monitoring_agent_listen_address: 10.10.1.20
 monitoring_agent_nvme_enabled: true
 monitoring_agent_proxmox_firewall: true

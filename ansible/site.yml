@@ -24,6 +24,7 @@
       tags: always
 
   roles:
+    - role: ssh_access
     - role: common
     - role: firewall
     - role: wireguard
@@ -57,6 +58,7 @@
       tags: always
 
   roles:
+    - role: ssh_access
     - role: common
     - role: firewall
     - role: wireguard
@@ -91,6 +93,7 @@
       tags: always
 
   roles:
+    - role: ssh_access
     - role: common
     - role: docker
     - role: nexus
@@ -148,18 +151,20 @@
       tags: always
 
   roles:
+    - role: ssh_access
     - role: common
     - role: firewall
     - role: haproxy
     - role: gitlab
 
-# Monitoring only; Proxmox manages everything else on its host. Needs your
-# SSH key in root's authorized_keys on the host.
-- name: Configure the Proxmox host's monitoring
+# SSH keys and monitoring only; Proxmox manages everything else on
+# its host. The first run needs your SSH key in root's authorized_keys there.
+- name: Configure the Proxmox host's SSH access and monitoring
   hosts: proxmox
   become: true
   gather_facts: true
 
   roles:
+    - role: ssh_access
     - role: monitoring_agent
     - role: proxmox_monitoring

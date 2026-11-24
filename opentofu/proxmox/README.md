@@ -41,6 +41,10 @@ Check access from your workstation:
 ssh terraform@10.10.1.20 'sudo -n /usr/sbin/pvesm apiinfo'
 ```
 
+## SSH keys
+
+New VMs get the public keys of the GitHub users in [`authorized_users`](../../authorized_users), fetched during each plan (`github-keys.tf`), for the cloud-init user (`ssh_username`, default `ubuntu`). Root gets no keys. A user with no keys fails the plan. VMs ignore later changes to their user data, so Ansible's `ssh_access` role keeps that user's keys on existing VMs in sync and adds host-specific keys.
+
 ## Usage
 
 Export the provider settings and load your SSH key with `ssh-add`:

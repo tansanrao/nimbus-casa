@@ -104,16 +104,6 @@ variable "ssh_username" {
   default     = "ubuntu"
 }
 
-variable "ssh_authorized_keys" {
-  description = "SSH public keys authorized for the initial cloud-init user."
-  type        = list(string)
-
-  validation {
-    condition     = length(var.ssh_authorized_keys) > 0
-    error_message = "At least one SSH public key is required."
-  }
-}
-
 variable "ubuntu_cloud_image_url" {
   description = "Rolling Ubuntu 26.04 LTS cloud image URL."
   type        = string
