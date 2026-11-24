@@ -37,6 +37,35 @@ spec:
             - receiver: pushover-critical
               matchers: ['severity = "critical"']
               repeat_interval: 4h
+        # One page per failure. The first four are the chart defaults, which
+        # this list replaces.
+        inhibit_rules:
+          - source_matchers: ['severity = "critical"']
+            target_matchers: ['severity =~ "warning|info"']
+            equal: [namespace, alertname]
+          - source_matchers: ['severity = "warning"']
+            target_matchers: ['severity = "info"']
+            equal: [namespace, alertname]
+          - source_matchers: ['alertname = "InfoInhibitor"']
+            target_matchers: ['severity = "info"']
+            equal: [namespace]
+          - target_matchers: ['alertname = "InfoInhibitor"']
+          # A host that is down silences every other alert about it, such as
+          # its exporters, journal upload and systemd units. instance =~ ".+"
+          # keeps alerts without an instance label out, because Alertmanager
+          # treats two missing labels as equal.
+          - source_matchers: ['alertname = "HostDown"']
+            target_matchers: ['alertname != "HostDown"', 'instance =~ ".+"']
+            equal: [instance]
+          # gw0 is scraped through connector0.
+          - source_matchers: ['alertname = "HostDown"', 'instance = "connector0"']
+            target_matchers: ['instance = "gw0"']
+          # The chart's TargetDown is per job, with no instance. The hosts
+          # outside k8s0 have no namespace label, so this leaves k8s0's own
+          # TargetDown alerts alone.
+          - source_matchers: ['alertname =~ "HostDown|HostExporterDown"']
+            target_matchers: ['alertname = "TargetDown"']
+            equal: [job, namespace]
         receivers:
           - name: "null"
           - name: gw0-heartbeat

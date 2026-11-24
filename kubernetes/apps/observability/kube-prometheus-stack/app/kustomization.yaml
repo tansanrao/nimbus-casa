@@ -10,3 +10,12 @@ resources:
   - ./httproute.yaml
   - ./prometheusrule.yaml
   - ./scrapeconfig.yaml
+configMapGenerator:
+  - name: grafana-dashboard-node-health
+    files:
+      - ./resources/node-health.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    # The dashboard uses Grafana's ${...} variables.
+    kustomize.toolkit.fluxcd.io/substitute: disabled

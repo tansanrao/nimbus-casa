@@ -149,9 +149,11 @@ spec:
             severity: critical
           annotations:
             summary: "{{ $labels.instance }} is unreachable or its node_exporter is down"
+        # Fires before the chart's TargetDown (10m) for the same job, so
+        # Alertmanager can inhibit TargetDown before it is first sent.
         - alert: HostExporterDown
           expr: up{job=~"smartctl|haproxy|pve|garage"} == 0
-          for: 10m
+          for: 5m
           labels:
             severity: warning
           annotations:
@@ -164,8 +166,12 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.instance }} is not shipping its journal to VictoriaLogs"
+        # Only backends with servers. local_health answers by itself and has
+        # none, so its active server count is always 0.
         - alert: HAProxyBackendDown
-          expr: haproxy_backend_active_servers == 0
+          expr: |
+            haproxy_backend_active_servers == 0
+            and on (instance, proxy) group by (instance, proxy) (haproxy_server_status)
           for: 5m
           labels:
             severity: warning
