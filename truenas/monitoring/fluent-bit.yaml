@@ -29,7 +29,7 @@ pipeline:
     # Matches the Prometheus instance label in scrapeconfig.yaml.
     - name: modify
       match: middlewared
-      add: _HOSTNAME truenas
+      add: _HOSTNAME sandcrawler
 
   outputs:
     - name: http

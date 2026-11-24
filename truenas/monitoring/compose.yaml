@@ -37,7 +37,7 @@ services:
     volumes:
       - /var/log:/var/log:ro
       - /etc/machine-id:/etc/machine-id:ro
-      # Replace <pool> with the pool holding the app's dataset.
-      - /mnt/<pool>/apps/fluent-bit/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
-      - /mnt/<pool>/apps/fluent-bit/buffer:/buffer
+      # The app's dataset on pool ssd-rz1, created in the TrueNAS UI.
+      - /mnt/ssd-rz1/apps/fluent-bit/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
+      - /mnt/ssd-rz1/apps/fluent-bit/buffer:/buffer
     restart: unless-stopped

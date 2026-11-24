@@ -9,7 +9,7 @@ Last updated: 2026-11-15
 | Host | Address | Role | Managed by |
 | --- | --- | --- | --- |
 | Proxmox | `10.10.1.20` (MGMT only) | Hypervisor for every VM below | Manual; exporters by `ansible/` |
-| TrueNAS Scale | `10.10.40.10` | NAS (PCI-passthrough disks), NFS exports, Garage S3 | Manual |
+| TrueNAS Scale (`sandcrawler`) | `10.10.40.10` | NAS (PCI-passthrough disks), NFS exports, Garage S3 | Manual |
 | `k8s0` | `10.10.40.40` | Single-node Talos Kubernetes cluster | `talos/`, `kubernetes/` |
 | `connector0` | `10.10.40.21` | WireGuard and HAProxy endpoint for the VPS | `opentofu/`, `ansible/` |
 | `nexus-kb` | `10.10.40.23` | Ubuntu 24.04 host for the Nexus application | `opentofu/`, `ansible/` |
@@ -112,7 +112,7 @@ Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`
 
 Prometheus, Alertmanager and Grafana run in `observability` and are served on `envoy-internal` at `prometheus.tansanrao.net`, `alertmanager.tansanrao.net` and `grafana.tansanrao.net`, with a `*.tansanrao.net` certificate on a listener of its own. UniFi DNS is the only resolver for these names; Cloudflare has no record. Fluent Bit ships every container's logs to VictoriaLogs in the same namespace, which keeps 7 days or 50 GiB and serves `logs.tansanrao.net`.
 
-Prometheus also scrapes the hosts outside Kubernetes, from k8s0's node address `10.10.40.40`: node_exporter on Proxmox, TrueNAS, `connector0`, `nexus-kb` and `gw0`; NVMe health on Proxmox through node_exporter's textfile collector; smartctl_exporter on TrueNAS; pve-exporter on Proxmox; HAProxy on `connector0` and `gw0`; and Garage. `gw0`'s exporters are reached through TCP relays on `connector0` (ports 9101 and 9102) over WireGuard. Each host's `instance` label is its hostname. The hosts send their journals with `systemd-journal-upload` to `logs.tansanrao.net/insert/journald`, which accepts only their addresses; `gw0` sends plain HTTP over WireGuard to `connector0`'s logs relay, which allows only journald uploads and forwards them over TLS. TrueNAS runs its exporters and Fluent Bit as a custom app (`truenas/monitoring/`).
+Prometheus also scrapes the hosts outside Kubernetes, from k8s0's node address `10.10.40.40`: node_exporter on Proxmox, TrueNAS (`sandcrawler`), `connector0`, `nexus-kb` and `gw0`; NVMe health on Proxmox through node_exporter's textfile collector; smartctl_exporter on TrueNAS; pve-exporter on Proxmox; HAProxy on `connector0` and `gw0`; and Garage. `gw0`'s exporters are reached through TCP relays on `connector0` (ports 9101 and 9102) over WireGuard. Each host's `instance` label is its hostname. The hosts send their journals with `systemd-journal-upload` to `logs.tansanrao.net/insert/journald`, which accepts only their addresses; `gw0` sends plain HTTP over WireGuard to `connector0`'s logs relay, which allows only journald uploads and forwards them over TLS. TrueNAS runs its exporters and Fluent Bit as a custom app (`truenas/monitoring/`).
 
 Alertmanager in `observability` sends warnings to Pushover at normal priority every 12 h and critical alerts at high priority every 4 h. Its always-firing `Watchdog` alert is a heartbeat: every 5 minutes it posts to Gatus on `gw0` at `https://gw0.kiad.tansanrao.net/api/v1/endpoints/monitoring_alertmanager/external` with a bearer token, over the internet rather than the tunnel. Gatus pages through Pushover when no heartbeat arrives for 15 minutes, which covers Alertmanager, Prometheus, the cluster, the home connection and the Proxmox host being down.
 

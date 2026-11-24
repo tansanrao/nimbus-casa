@@ -8,13 +8,13 @@ One TrueNAS custom app with three containers:
 | `smartctl-exporter` | 9633 | SMART health, temperatures, reallocated and pending sectors, NVMe wear and media errors |
 | `fluent-bit` | none | The host journal and `middlewared.log`, sent to VictoriaLogs at `logs.tansanrao.net` |
 
-Prometheus in k8s0 scrapes both exporters, and Garage's `/metrics` on port 30190, as `instance="truenas"` (`kubernetes/apps/observability/kube-prometheus-stack/app/scrapeconfig.yaml`). Their alerts are in `prometheusrule.yaml` next to it.
+Prometheus in k8s0 scrapes both exporters, and Garage's `/metrics` on port 30190, as `instance="sandcrawler"`, TrueNAS's hostname (`kubernetes/apps/observability/kube-prometheus-stack/app/scrapeconfig.yaml`). Their alerts are in `prometheusrule.yaml` next to it.
 
 ## Install
 
 1. Check that the journal is persistent: `ls /var/log/journal` in the TrueNAS shell should list a machine-ID directory. If it does not, change `path` in `fluent-bit.yaml` to `/run/log/journal` and mount `/run/log/journal` instead of `/var/log`.
 2. Check that TrueNAS resolves the log endpoint through UniFi: `getent hosts logs.tansanrao.net` should print `10.10.40.61`.
-3. Check the hostname with `hostname`. If it is not `truenas`, use it in `fluent-bit.yaml`'s `modify` filter and as the `instance` label in `scrapeconfig.yaml`, so metrics and logs share one name.
+3. Check that `hostname` prints `sandcrawler`. That name is the `instance` label in `scrapeconfig.yaml` and the `_HOSTNAME` that `fluent-bit.yaml`'s `modify` filter adds to `middlewared.log`, so metrics and logs share one name. If the hostname changes, change both.
 4. Create a dataset for the app, such as `<pool>/apps/fluent-bit`, with a `buffer` directory inside it, and copy `fluent-bit.yaml` into it.
 5. Get the ingest password:
 
@@ -28,8 +28,8 @@ Prometheus in k8s0 scrapes both exporters, and Garage's `/metrics` on port 30190
 
 - `curl -s http://10.10.40.10:9100/metrics | grep node_zfs_zpool_state` lists every pool.
 - `curl -s http://10.10.40.10:9633/metrics | grep smartctl_device_smart_status` lists every disk.
-- In Grafana → Explore → VictoriaLogs, `_HOSTNAME:truenas` returns lines within a minute.
-- In Prometheus → Status → Targets, the `node-exporter`, `smartctl` and `garage` targets for `truenas` are up.
+- In Grafana → Explore → VictoriaLogs, `_HOSTNAME:sandcrawler` returns lines within a minute.
+- In Prometheus → Status → Targets, the `node-exporter`, `smartctl` and `garage` targets for `sandcrawler` are up.
 
 ## TrueNAS's own alerts
 

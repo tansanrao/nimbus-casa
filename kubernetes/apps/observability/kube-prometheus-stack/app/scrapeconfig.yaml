@@ -17,7 +17,7 @@ spec:
         instance: pve
     - targets: ["10.10.40.10:9100"]
       labels:
-        instance: truenas
+        instance: sandcrawler
     - targets: ["10.10.40.21:9100"]
       labels:
         instance: connector0
@@ -42,7 +42,7 @@ spec:
   staticConfigs:
     - targets: ["10.10.40.10:9633"]
       labels:
-        instance: truenas
+        instance: sandcrawler
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig
@@ -87,4 +87,4 @@ spec:
   staticConfigs:
     - targets: ["10.10.40.10:30190"]
       labels:
-        instance: truenas
+        instance: sandcrawler
