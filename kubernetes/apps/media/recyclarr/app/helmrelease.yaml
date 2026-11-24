@@ -15,7 +15,8 @@ spec:
         cronjob:
           # Each scheduled pod reads the latest config and credentials.
           # Reloader-triggered jobs bypass CronJob concurrency and contend for the PVC.
-          schedule: '@daily'
+          # The pod's TZ does not apply; the schedule is UTC. 03:00 EST / 04:00 EDT.
+          schedule: '0 8 * * *'
           concurrencyPolicy: Forbid
           successfulJobsHistory: 1
           failedJobsHistory: 1

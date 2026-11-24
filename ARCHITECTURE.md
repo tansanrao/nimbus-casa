@@ -95,7 +95,7 @@ Databases run in Kubernetes, managed by operators:
 | `database/postgres` | Mealie, Miniflux |
 | `database/paradedb` | Links (with `pg_search` and `vector`); an empty `app` database for upcoming apps |
 
-All clusters run PostgreSQL 18 with one instance. The Barman Cloud plugin archives WAL continuously and takes a base backup daily at 03:00 to `s3://crunchy-pgo/cnpg/<cluster>/` on Garage, kept for 14 days. Off-site copies come from replicating Garage as a whole, which is not set up yet. `scripts/check-postgres.py --live` checks cluster health, WAL archiving and backup age.
+All clusters run PostgreSQL 18 with one instance. The Barman Cloud plugin archives WAL continuously and takes a base backup daily at 07:00 UTC to `s3://crunchy-pgo/cnpg/<cluster>/` on Garage, kept for 14 days. Off-site copies come from replicating Garage as a whole, which is not set up yet. `scripts/check-postgres.py --live` checks cluster health, WAL archiving and backup age.
 
 Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karakeep uses SQLite.
 
@@ -105,6 +105,8 @@ Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karake
 - OpenTofu (`opentofu/proxmox/`) creates the `connector0`, `nexus-kb`, `gitlab0` and `runner0` VMs and runner0's Proxmox firewall. The VPS was created by hand.
 - Ansible (`ansible/`) configures the VPS, `connector0`, `nexus-kb` and `gitlab0`.
 - talhelper (`talos-runner/`) configures `runner0`; its helmfile deploys gitlab-runner.
+
+Every host and the cluster run in UTC, and schedules are written in UTC. Daily jobs that matter to users, such as backups, upgrades and reboots, run between 07:00 and 09:00 UTC, which is 02:00 to 04:00 EST or 03:00 to 05:00 EDT, quiet hours on the US East Coast all year. Backups start at 07:00, Ubuntu hosts install upgrades from 07:00 and reboot at 08:30 when an upgrade needs it, and Recyclarr syncs at 08:00. Kubernetes CronJobs use the cluster's UTC clock even when the pod sets `TZ`.
 
 Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`, `group_vars/*.sops.yml` in `ansible/`. Kubernetes apps also read secrets from 1Password through External Secrets. Keep secrets out of OpenTofu state.
 

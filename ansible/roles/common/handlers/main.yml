@@ -15,3 +15,9 @@
     name: ssh.socket
     daemon_reload: true
     state: restarted
+
+- name: Restart apt-daily-upgrade timer
+  ansible.builtin.systemd_service:
+    name: apt-daily-upgrade.timer
+    daemon_reload: true
+    state: restarted

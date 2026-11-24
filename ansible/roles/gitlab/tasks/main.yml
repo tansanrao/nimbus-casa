@@ -261,8 +261,9 @@
   ansible.builtin.copy:
     dest: /etc/cron.d/gitlab-backup
     content: |
-      # Managed by Ansible. Runs before the 03:00 CloudNativePG base backups.
-      0 2 * * * root /opt/gitlab/bin/gitlab-backup create CRON=1
+      # Managed by Ansible. 07:00 UTC is 02:00 EST / 03:00 EDT, before the
+      # 08:30 automatic reboot.
+      0 7 * * * root /opt/gitlab/bin/gitlab-backup create CRON=1
     owner: root
     group: root
     mode: "0644"

@@ -12,7 +12,7 @@ Configures the hosts outside Kubernetes. All of them run UTC.
 
 The VPS also runs `floating_ip`, which keeps GitLab's Floating IP on `eth0`.
 
-The `common` role sets the hostname, timezone, chrony, unattended-upgrades and SSH hardening. [ARCHITECTURE.md](../ARCHITECTURE.md) describes the VPS and connector traffic path.
+The `common` role sets the hostname, timezone, chrony, unattended-upgrades and SSH hardening. Upgrades install from 07:00 UTC, and a host reboots at 08:30 UTC when an upgrade needs it. [ARCHITECTURE.md](../ARCHITECTURE.md) describes the VPS and connector traffic path.
 
 ## Monitoring
 
@@ -101,7 +101,7 @@ Scheduled off-host backups for `nexus-kb` are not set up.
 
 ## gitlab0
 
-The `gitlab` role installs the pinned `gitlab_version` of `gitlab-ee` from GitLab's apt repository and holds the package. To upgrade, follow GitLab's required upgrade stops, change `gitlab_version` one stop at a time and rerun the play. The role mounts the data disk at `/var/opt/gitlab`, adds a 4 GiB swap file, renders `/etc/gitlab/gitlab.rb`, and applies instance settings that live in the database (sign-ups off, private by default). Nightly `gitlab-backup` runs at 02:00 and keeps two days of local backups.
+The `gitlab` role installs the pinned `gitlab_version` of `gitlab-ee` from GitLab's apt repository and holds the package. To upgrade, follow GitLab's required upgrade stops, change `gitlab_version` one stop at a time and rerun the play. The role mounts the data disk at `/var/opt/gitlab`, adds a 4 GiB swap file, renders `/etc/gitlab/gitlab.rb`, and applies instance settings that live in the database (sign-ups off, private by default). Nightly `gitlab-backup` runs at 07:00 UTC and keeps two days of local backups.
 
 HAProxy (`haproxy_role: forwards`) owns ports 22, 80 and 443 for direct clients and 10022, 10080 and 10443 for connector0; see `group_vars/gitlab.yml` and the GitLab section of [ARCHITECTURE.md](../ARCHITECTURE.md). Use `ssh -p 2022 ubuntu@10.10.40.24` for administration.
 

@@ -1,3 +1,8 @@
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
+
+// Reboot when an upgrade needs it, after the 07:00 upgrade run (see the
+// apt-daily-upgrade timer override). 08:30 UTC is 03:30 EST / 04:30 EDT.
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "08:30";

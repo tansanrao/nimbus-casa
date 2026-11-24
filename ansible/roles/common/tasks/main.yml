@@ -57,6 +57,29 @@
     group: root
     mode: "0644"
 
+# Ubuntu's default is 06:00 plus up to an hour, 01:00 EST. Upgrades must
+# finish before the 08:30 automatic reboot.
+- name: Create the apt-daily-upgrade timer drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/apt-daily-upgrade.timer.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Schedule unattended upgrades for 07:00 UTC
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/apt-daily-upgrade.timer.d/override.conf
+    content: |
+      [Timer]
+      OnCalendar=
+      OnCalendar=*-*-* 07:00
+      RandomizedDelaySec=30m
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart apt-daily-upgrade timer
+
 - name: Configure SSH hardening drop-in
   ansible.builtin.template:
     src: sshd-hardening.conf.j2
