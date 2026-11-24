@@ -1,0 +1,64 @@
+# Fluent Bit on TrueNAS. Buffers on the app dataset while k8s0 is down, up
+# to 1 GiB per output, then drops the oldest chunks.
+service:
+  flush: 5
+  log_level: info
+  storage.path: /buffer/storage
+  storage.sync: normal
+  storage.backlog.mem_limit: 16M
+
+pipeline:
+  inputs:
+    # Keeps the journal's own fields (_HOSTNAME, _SYSTEMD_UNIT, MESSAGE), so
+    # TrueNAS filters like the hosts that use systemd-journal-upload.
+    - name: systemd
+      path: /var/log/journal
+      tag: journal
+      db: /buffer/journal.db
+      # The first start skips history; later starts resume from db.
+      read_from_tail: on
+      storage.type: filesystem
+    - name: tail
+      path: /var/log/middlewared.log
+      tag: middlewared
+      db: /buffer/tail.db
+      skip_long_lines: on
+      storage.type: filesystem
+
+  filters:
+    # Matches the Prometheus instance label in scrapeconfig.yaml.
+    - name: modify
+      match: middlewared
+      add: _HOSTNAME truenas
+
+  outputs:
+    - name: http
+      match: journal
+      host: logs.tansanrao.net
+      port: 443
+      tls: on
+      tls.verify: on
+      uri: /insert/jsonline?_stream_fields=_HOSTNAME,_SYSTEMD_UNIT&_msg_field=MESSAGE&_time_field=date
+      format: json_lines
+      json_date_key: date
+      json_date_format: iso8601
+      compress: gzip
+      http_user: truenas
+      http_passwd: ${VL_PASSWORD}
+      retry_limit: no_limits
+      storage.total_limit_size: 1G
+    - name: http
+      match: middlewared
+      host: logs.tansanrao.net
+      port: 443
+      tls: on
+      tls.verify: on
+      uri: /insert/jsonline?_stream_fields=_HOSTNAME&_msg_field=log&_time_field=date
+      format: json_lines
+      json_date_key: date
+      json_date_format: iso8601
+      compress: gzip
+      http_user: truenas
+      http_passwd: ${VL_PASSWORD}
+      retry_limit: no_limits
+      storage.total_limit_size: 1G

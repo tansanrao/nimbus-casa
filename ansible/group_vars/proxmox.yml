@@ -1,0 +1,18 @@
+---
+# Only the monitoring roles run here; Proxmox owns the rest of the host.
+# The exporters listen on the MGMT address, the host's only one. Prometheus
+# reaches them from monitoring_prometheus_source, which needs the Proxmox
+# firewall rule monitoring_agent adds and a UniFi rule from HOMELAB to MGMT
+# for these ports.
+proxmox_node_name: pve
+
+monitoring_agent_listen_address: 10.10.1.20
+monitoring_agent_smartctl_enabled: true
+monitoring_agent_proxmox_firewall: true
+monitoring_agent_extra_systemd_units:
+  - pve-cluster
+  - pvedaemon
+  - pveproxy
+  - pvestatd
+  - pve-exporter
+  - smartctl_exporter

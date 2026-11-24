@@ -1,0 +1,18 @@
+---
+- name: Restart node_exporter
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    state: restarted
+    daemon_reload: true
+
+- name: Restart journal upload
+  ansible.builtin.systemd:
+    name: systemd-journal-upload
+    state: restarted
+    daemon_reload: true
+
+- name: Restart smartctl_exporter
+  ansible.builtin.systemd:
+    name: smartctl_exporter
+    state: restarted
+    daemon_reload: true

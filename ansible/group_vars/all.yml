@@ -1,0 +1,10 @@
+---
+# k8s0's node address. Prometheus's scrapes of hosts outside Kubernetes leave
+# k8s0 from here, so exporter firewall rules allow only this source.
+monitoring_prometheus_source: 10.10.40.40
+
+# VictoriaLogs' journald endpoint on envoy-internal. It accepts only the
+# client addresses allowlisted in
+# kubernetes/apps/observability/victoria-logs/app/httproute.yaml. Keep the
+# port: systemd-journal-upload otherwise appends :19532.
+monitoring_logs_journald_url: https://logs.tansanrao.net:443/insert/journald

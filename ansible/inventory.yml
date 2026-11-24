@@ -22,3 +22,8 @@ all:
           ansible_host: 10.10.40.24
           ansible_port: 2022
           ansible_user: ubuntu
+    proxmox:
+      hosts:
+        pve:
+          ansible_host: 10.10.1.20
+          ansible_user: root

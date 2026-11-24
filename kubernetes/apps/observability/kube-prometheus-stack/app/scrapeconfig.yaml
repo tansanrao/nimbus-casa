@@ -1,0 +1,92 @@
+---
+# Hosts outside Kubernetes. Each target's instance is its hostname, the same
+# as _HOSTNAME in its journal logs in VictoriaLogs. Scrapes leave k8s0 from
+# its node address, 10.10.40.40, which the hosts' firewalls allow.
+#
+# Same job as k8s0's own node exporter, so the chart's Node* alerts and the
+# Node Exporter dashboards cover these hosts too.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: hosts-node-exporter
+spec:
+  jobName: node-exporter
+  staticConfigs:
+    - targets: ["10.10.1.20:9100"]
+      labels:
+        instance: pve
+    - targets: ["10.10.40.10:9100"]
+      labels:
+        instance: truenas
+    - targets: ["10.10.40.21:9100"]
+      labels:
+        instance: connector0
+    # Through connector0's relay over WireGuard.
+    - targets: ["10.10.40.21:9101"]
+      labels:
+        instance: gw0
+    - targets: ["10.10.40.23:9100"]
+      labels:
+        instance: nexus-kb
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: hosts-smartctl
+spec:
+  jobName: smartctl
+  # The exporter rereads SMART data once a minute.
+  scrapeInterval: 60s
+  scrapeTimeout: 30s
+  staticConfigs:
+    - targets: ["10.10.1.20:9633"]
+      labels:
+        instance: pve
+    - targets: ["10.10.40.10:9633"]
+      labels:
+        instance: truenas
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: hosts-haproxy
+spec:
+  jobName: haproxy
+  staticConfigs:
+    - targets: ["10.10.40.21:8405"]
+      labels:
+        instance: connector0
+    # Through connector0's relay over WireGuard.
+    - targets: ["10.10.40.21:9102"]
+      labels:
+        instance: gw0
+---
+# Per-guest CPU, memory, disk and network, and storage pool usage, as
+# Proxmox sees them.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: pve-exporter
+spec:
+  jobName: pve
+  metricsPath: /pve
+  params:
+    cluster: ["1"]
+    node: ["1"]
+  scrapeTimeout: 20s
+  staticConfigs:
+    - targets: ["10.10.1.20:9221"]
+      labels:
+        instance: pve
+---
+# Garage on TrueNAS, where every Postgres backup goes.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: garage
+spec:
+  jobName: garage
+  staticConfigs:
+    - targets: ["10.10.40.10:30190"]
+      labels:
+        instance: truenas

@@ -43,6 +43,8 @@
 !/ansible/group_vars/*.sops.yml
 !/ansible/group_vars/vps.yml
 !/ansible/group_vars/connector.yml
+!/ansible/group_vars/all.yml
+!/ansible/group_vars/proxmox.yml
 # Template config files
 /cluster.yaml
 /nodes.yaml

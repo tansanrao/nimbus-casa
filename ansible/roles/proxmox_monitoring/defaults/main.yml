@@ -1,0 +1,10 @@
+---
+# prometheus-pve-exporter has no Debian package, so it runs from a venv and
+# reads the local API. That keeps port 8006 closed to k8s0.
+pve_exporter_version: 3.11.0
+pve_exporter_listen_address: "{{ monitoring_agent_listen_address }}"
+pve_exporter_port: 9221
+pve_exporter_venv: /opt/pve-exporter
+pve_exporter_config_dir: /etc/pve-exporter
+pve_exporter_api_user: pve-exporter@pve
+pve_exporter_token_name: monitoring

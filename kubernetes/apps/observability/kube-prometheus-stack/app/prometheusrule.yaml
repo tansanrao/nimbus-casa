@@ -133,3 +133,158 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.envoy_cluster_name }} returns {{ $value | humanizePercentage }} 5xx responses"
+
+    # Hosts outside Kubernetes, from scrapeconfig.yaml. Their node_exporter
+    # shares k8s0's job, so the chart's Node* rules cover memory, filesystems,
+    # NIC errors and failed systemd units on them too. Only k8s0's own
+    # targets have a namespace label.
+    - name: hosts.rules
+      rules:
+        # gw0 is scraped through connector0, so connector0 going down takes
+        # gw0 with it.
+        - alert: HostDown
+          expr: up{job="node-exporter", namespace=""} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.instance }} is unreachable or its node_exporter is down"
+        - alert: HostExporterDown
+          expr: up{job=~"smartctl|haproxy|pve|garage"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Prometheus cannot scrape {{ $labels.job }} on {{ $labels.instance }}"
+        # Restarts every 30 s while uploads fail, so it is rarely active then.
+        - alert: JournalUploadNotRunning
+          expr: node_systemd_unit_state{name="systemd-journal-upload.service", state="active"} == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} is not shipping its journal to VictoriaLogs"
+        - alert: HAProxyBackendDown
+          expr: haproxy_backend_active_servers == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HAProxy backend {{ $labels.proxy }} on {{ $labels.instance }} has no healthy server"
+        - alert: NFSClientRetransmitting
+          expr: rate(node_nfs_rpc_retransmissions_total[10m]) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "NFS requests from {{ $labels.instance }} are being retransmitted; a TrueNAS mount is stalling"
+        - alert: HostTemperatureHigh
+          expr: max by (instance, chip, sensor) (node_hwmon_temp_celsius) > 80
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} sensor {{ $labels.chip }}/{{ $labels.sensor }} is at {{ $value }}°C"
+
+    - name: proxmox.rules
+      rules:
+        - alert: ProxmoxStorageFilling
+          expr: |
+            max by (instance, id) (pve_disk_usage_bytes{id=~"storage/.+"})
+            / max by (instance, id) (pve_disk_size_bytes{id=~"storage/.+"}) > 0.85
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox {{ $labels.id }} is {{ $value | humanizePercentage }} full"
+        - alert: ProxmoxStorageAlmostFull
+          expr: |
+            max by (instance, id) (pve_disk_usage_bytes{id=~"storage/.+"})
+            / max by (instance, id) (pve_disk_size_bytes{id=~"storage/.+"}) > 0.95
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Proxmox {{ $labels.id }} is {{ $value | humanizePercentage }} full; guests on it stop writing when it fills"
+        - alert: ProxmoxGuestStopped
+          expr: pve_up{id=~"qemu/.+"} == 0 and on (instance, id) pve_onboot_status == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Proxmox guest {{ $labels.id }} starts on boot but is not running"
+
+    - name: truenas.rules
+      rules:
+        - alert: ZFSPoolNotOnline
+          expr: node_zfs_zpool_state{state!="online"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ZFS pool {{ $labels.zpool }} on {{ $labels.instance }} is {{ $labels.state }}"
+        # Pool roots only: their free space is the pool's. TrueNAS's own
+        # alert covers a pool over 80%.
+        - alert: TrueNASPoolFullIn7Days
+          expr: |
+            predict_linear(node_filesystem_avail_bytes{instance="truenas", fstype="zfs", mountpoint=~"/mnt/[^/.][^/]*"}[3d], 7 * 86400) < 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TrueNAS {{ $labels.mountpoint }} fills within 7 days at the last 3 days' rate"
+        - alert: GarageUnavailable
+          expr: cluster_available{job="garage"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Garage on TrueNAS is unavailable; Postgres backups and WAL archiving fail
+
+    - name: disks.rules
+      rules:
+        - alert: DiskSMARTFailed
+          expr: smartctl_device_smart_status == 0
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.device }} on {{ $labels.instance }} failed its SMART health check"
+        - alert: NVMeCriticalWarning
+          expr: smartctl_device_critical_warning > 0
+          labels:
+            severity: critical
+          annotations:
+            summary: "NVMe {{ $labels.device }} on {{ $labels.instance }} reports critical warning {{ $value }}"
+        - alert: NVMeSpareLow
+          expr: smartctl_device_available_spare < smartctl_device_available_spare_threshold
+          labels:
+            severity: critical
+          annotations:
+            summary: "NVMe {{ $labels.device }} on {{ $labels.instance }} is below its spare threshold"
+        - alert: DiskWearHigh
+          expr: smartctl_device_percentage_used >= 90
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} on {{ $labels.instance }} has used {{ $value }}% of its rated endurance"
+        - alert: DiskMediaErrors
+          expr: delta(smartctl_device_media_errors[1h]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} on {{ $labels.instance }} logged new media errors"
+        - alert: DiskBadSectorsRising
+          expr: |
+            delta(smartctl_device_attribute{attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Offline_Uncorrectable", attribute_value_type="raw"}[1d]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} on {{ $labels.instance }}: {{ $labels.attribute_name }} rose in the last day"
+        - alert: DiskTemperatureHigh
+          expr: smartctl_device_temperature{temperature_type="current"} > 65
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.device }} on {{ $labels.instance }} is at {{ $value }}°C"

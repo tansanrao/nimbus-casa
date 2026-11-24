@@ -1,0 +1,59 @@
+---
+- name: Assert smartctl_exporter host is Debian trixie
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == "Debian"
+      - ansible_facts['distribution_release'] == "trixie"
+    fail_msg: smartctl_exporter comes from trixie-backports; this host is not Debian trixie.
+
+# Backports have pin priority 100, so nothing else upgrades from them.
+- name: Add Debian trixie-backports
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/debian-backports.sources
+    content: |
+      Types: deb
+      URIs: http://deb.debian.org/debian/
+      Suites: trixie-backports
+      Components: main
+      Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+    owner: root
+    group: root
+    mode: "0644"
+
+# Before the package, whose install starts the exporter on every address.
+- name: Create the smartctl_exporter drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/smartctl_exporter.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Bind smartctl_exporter to the scrape address
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/smartctl_exporter.service.d/listen.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/smartctl_exporter --web.listen-address={{ monitoring_agent_listen_address }}:{{ monitoring_agent_smartctl_port }}
+      Restart=always
+      RestartSec=10
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart smartctl_exporter
+
+- name: Install smartctl_exporter
+  ansible.builtin.apt:
+    name: prometheus-smartctl-exporter
+    default_release: trixie-backports
+    state: present
+    install_recommends: false
+    update_cache: true
+
+- name: Enable smartctl_exporter
+  ansible.builtin.systemd:
+    name: smartctl_exporter
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -1,0 +1,43 @@
+# TrueNAS custom app "monitoring": node_exporter and smartctl_exporter for
+# Prometheus in k8s0, and Fluent Bit shipping the journal and middlewared's
+# log to VictoriaLogs. Install with Apps → Discover → Install via YAML; see
+# README.md for the steps and the values to fill in.
+services:
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.13.1
+    network_mode: host
+    pid: host
+    command:
+      - --path.rootfs=/host
+      - --web.listen-address=:9100
+      # Skip the app runtime's own datasets and container layers.
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|mnt/\.ix-apps)($|/)
+    volumes:
+      - /:/host:ro,rslave
+    restart: unless-stopped
+
+  # The disks are passed through to TrueNAS, so it sees their SMART data.
+  smartctl-exporter:
+    image: quay.io/prometheuscommunity/smartctl-exporter:v0.15.0
+    privileged: true
+    user: root
+    ports:
+      - "9633:9633"
+    volumes:
+      - /dev:/dev:ro
+    restart: unless-stopped
+
+  fluent-bit:
+    image: cr.fluentbit.io/fluent/fluent-bit:5.1.3
+    command: ["-c", "/fluent-bit/etc/fluent-bit.yaml"]
+    environment:
+      # truenas-password from
+      # kubernetes/apps/observability/victoria-logs/app/ingest-users.sops.yaml
+      VL_PASSWORD: CHANGE_ME
+    volumes:
+      - /var/log:/var/log:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      # Replace <pool> with the pool holding the app's dataset.
+      - /mnt/<pool>/apps/fluent-bit/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro
+      - /mnt/<pool>/apps/fluent-bit/buffer:/buffer
+    restart: unless-stopped

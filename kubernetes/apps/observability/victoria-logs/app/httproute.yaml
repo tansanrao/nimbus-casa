@@ -52,8 +52,52 @@ spec:
     users:
       name: victoria-logs-ingest-users
 ---
-# Every other write and admin path. The journald endpoint for the hosts opens
-# in Phase 4 with its own policy; until then nothing outside k8s0 writes here.
+# systemd-journal-upload from the hosts. Before systemd 258 it cannot send
+# credentials, so Envoy allows only these client addresses; envoy-internal
+# sees them unchanged (Cilium DSR, one node). Keep in sync with the hosts in
+# ansible/site.yml that run monitoring_agent.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: victoria-logs-journald
+  annotations:
+    external-dns.kubernetes.io/controller: none
+spec:
+  hostnames:
+    - logs.tansanrao.net
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /insert/journald
+      backendRefs:
+        - name: victoria-logs
+          port: 9428
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: victoria-logs-journald
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: victoria-logs-journald
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: hosts
+        action: Allow
+        principal:
+          clientCIDRs:
+            - 10.10.1.20/32 # Proxmox, MGMT address
+            - 10.10.40.21/32 # connector0, also relaying gw0
+            - 10.10.40.23/32 # nexus-kb
+---
+# Every other write and admin path.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

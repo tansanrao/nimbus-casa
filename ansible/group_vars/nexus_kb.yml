@@ -15,3 +15,9 @@ common_extra_services:
 
 # Shared admin authentication and Git mailing-list removal release.
 nexus_revision: 4afab0aebdec4a9527d61db915bd695d09b95ba4
+
+# No nftables here, because Docker manages this host's packet filter, so
+# node_exporter is open to HOMELAB.
+monitoring_agent_listen_address: 10.10.40.23
+monitoring_agent_extra_systemd_units:
+  - docker

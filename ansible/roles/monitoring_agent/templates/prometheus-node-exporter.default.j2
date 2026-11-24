@@ -1,0 +1,2 @@
+# Managed by Ansible (monitoring_agent).
+ARGS="--web.listen-address={{ monitoring_agent_listen_address }}:{{ monitoring_agent_node_exporter_port }} --collector.textfile.directory={{ monitoring_agent_textfile_dir }} --collector.systemd --collector.systemd.unit-include=({{ (monitoring_agent_systemd_units + monitoring_agent_extra_systemd_units) | join('|') }})\.service"

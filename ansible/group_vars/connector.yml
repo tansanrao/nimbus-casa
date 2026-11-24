@@ -22,10 +22,19 @@ firewall_tcp_allow_rules:
   - { port: 10022, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
   - { port: 10080, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
   - { port: 10443, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
+  # Prometheus in k8s0: this host's node_exporter and HAProxy, and the relays
+  # to gw0's.
+  - { port: 9100, source: "{{ monitoring_prometheus_source }}" }
+  - { port: 8405, source: "{{ monitoring_prometheus_source }}" }
+  - { port: 9101, source: "{{ monitoring_prometheus_source }}" }
+  - { port: 9102, source: "{{ monitoring_prometheus_source }}" }
+  # gw0's journal upload.
+  - { port: 9443, source: 10.200.0.1, iifname: "{{ wireguard_interface }}" }
 firewall_udp_allow_rules: []
 
 haproxy_role: connector
 haproxy_health_bind: 127.0.0.1:8404
+haproxy_prometheus_bind: 10.10.40.21:8405
 haproxy_connector_bind: "10.200.0.2:443"
 haproxy_envoy_external_backend: "10.10.40.62:443"
 haproxy_connect_timeout: 5s
@@ -52,3 +61,20 @@ haproxy_tcp_forwards:
     backend: 10.10.40.24:10080
     accept_proxy: true
     send_proxy: true
+  # gw0's node_exporter and HAProxy metrics, for Prometheus in k8s0.
+  - name: gw0_node_exporter
+    bind: 10.10.40.21:9101
+    backend: 10.200.0.1:9100
+  - name: gw0_haproxy_metrics
+    bind: 10.10.40.21:9102
+    backend: 10.200.0.1:8405
+
+haproxy_logs_relay:
+  bind: 10.200.0.2:9443
+  backend: 10.10.40.61:443
+  hostname: logs.tansanrao.net
+
+monitoring_agent_listen_address: 10.10.40.21
+monitoring_agent_extra_systemd_units:
+  - haproxy
+  - "wg-quick@{{ wireguard_interface }}"

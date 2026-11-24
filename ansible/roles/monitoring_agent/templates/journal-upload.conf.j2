@@ -1,0 +1,10 @@
+# Managed by Ansible (monitoring_agent). Sends this host's journal to
+# VictoriaLogs, which keys streams on _HOSTNAME and _SYSTEMD_UNIT.
+[Upload]
+URL={{ monitoring_agent_journal_upload_url }}
+{% if monitoring_agent_journal_upload_url.startswith('https://') %}
+# No client certificate: envoy-internal allowlists this host's address.
+ServerKeyFile=-
+ServerCertificateFile=-
+TrustedCertificateFile=/etc/ssl/certs/ca-certificates.crt
+{% endif %}

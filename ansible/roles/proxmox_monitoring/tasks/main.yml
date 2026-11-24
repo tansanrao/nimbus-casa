@@ -1,0 +1,118 @@
+---
+- name: Assert this is the Proxmox host
+  ansible.builtin.command: pveversion
+  changed_when: false
+
+- name: Install Python venv support
+  ansible.builtin.apt:
+    name: python3-venv
+    state: present
+    install_recommends: false
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the pve-exporter system user
+  ansible.builtin.user:
+    name: pve-exporter
+    system: true
+    shell: /usr/sbin/nologin
+    home: /nonexistent
+    create_home: false
+
+- name: Install pve-exporter
+  ansible.builtin.pip:
+    name: prometheus-pve-exporter=={{ pve_exporter_version }}
+    virtualenv: "{{ pve_exporter_venv }}"
+    virtualenv_command: python3 -m venv
+  notify: Restart pve-exporter
+
+# A read-only API user. The token's secret never leaves this host.
+- name: Look up the pve-exporter API user
+  ansible.builtin.command: pvesh get /access/users/{{ pve_exporter_api_user }} --output-format json
+  register: pve_exporter_user
+  changed_when: false
+  failed_when: false
+
+- name: Create the pve-exporter API user
+  ansible.builtin.command: >-
+    pveum user add {{ pve_exporter_api_user }}
+    --comment "Prometheus pve-exporter, read-only (Ansible)"
+  when: pve_exporter_user.rc != 0
+  changed_when: true
+
+- name: Read the API ACLs
+  ansible.builtin.command: pvesh get /access/acl --output-format json
+  register: pve_exporter_acl
+  changed_when: false
+
+- name: Grant the pve-exporter user PVEAuditor
+  ansible.builtin.command: pveum acl modify / --users {{ pve_exporter_api_user }} --roles PVEAuditor
+  when: >-
+    pve_exporter_acl.stdout | from_json
+    | selectattr('ugid', 'equalto', pve_exporter_api_user)
+    | selectattr('roleid', 'equalto', 'PVEAuditor')
+    | selectattr('path', 'equalto', '/')
+    | list | length == 0
+  changed_when: true
+
+- name: Create the pve-exporter config directory
+  ansible.builtin.file:
+    path: "{{ pve_exporter_config_dir }}"
+    state: directory
+    owner: root
+    group: pve-exporter
+    mode: "0750"
+
+# Only while the config is missing, since Proxmox shows a token's secret once.
+# Replaces a token left behind by a lost config.
+- name: Create the pve-exporter API token
+  ansible.builtin.shell: |
+    set -euo pipefail
+    pveum user token remove {{ pve_exporter_api_user }} {{ pve_exporter_token_name }} >/dev/null 2>&1 || true
+    pveum user token add {{ pve_exporter_api_user }} {{ pve_exporter_token_name }} \
+      --privsep 0 --comment "pve-exporter (Ansible)" --output-format json
+  args:
+    executable: /bin/bash
+    creates: "{{ pve_exporter_config_dir }}/pve.yml"
+  register: pve_exporter_token
+  no_log: true
+
+- name: Write the pve-exporter config
+  ansible.builtin.copy:
+    dest: "{{ pve_exporter_config_dir }}/pve.yml"
+    content: |
+      default:
+        user: {{ pve_exporter_api_user }}
+        token_name: {{ pve_exporter_token_name }}
+        token_value: {{ (pve_exporter_token.stdout | from_json).value }}
+        # The local API's certificate is Proxmox's self-signed one.
+        verify_ssl: false
+    owner: root
+    group: pve-exporter
+    mode: "0640"
+  when: pve_exporter_token is changed
+  no_log: true
+  notify: Restart pve-exporter
+
+- name: Install the pve-exporter service
+  ansible.builtin.template:
+    src: pve-exporter.service.j2
+    dest: /etc/systemd/system/pve-exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart pve-exporter
+
+- name: Enable pve-exporter
+  ansible.builtin.systemd:
+    name: pve-exporter
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Allow Prometheus to reach pve-exporter
+  ansible.builtin.include_role:
+    name: monitoring_agent
+    tasks_from: proxmox_firewall.yml
+  vars:
+    proxmox_firewall_ports: ["{{ pve_exporter_port }}"]

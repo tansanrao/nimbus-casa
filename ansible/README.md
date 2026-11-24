@@ -4,14 +4,31 @@ Configures the hosts outside Kubernetes. All of them run UTC.
 
 | Group | Host | Roles |
 | --- | --- | --- |
-| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | common, firewall, wireguard, acme_certificate, haproxy, gatus |
-| `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | common, firewall, wireguard, haproxy |
-| `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | common, docker, nexus |
+| `vps` | `gw0.kiad.tansanrao.net` (user `root`) | common, firewall, wireguard, acme_certificate, haproxy, gatus, monitoring_agent |
+| `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | common, firewall, wireguard, haproxy, monitoring_agent |
+| `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | common, docker, nexus, monitoring_agent |
 | `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | common, firewall, haproxy, gitlab |
+| `proxmox` | `pve`, `10.10.1.20` (user `root`) | monitoring_agent, proxmox_monitoring |
 
 The VPS also runs `floating_ip`, which keeps GitLab's Floating IP on `eth0`.
 
 The `common` role sets the hostname, timezone, chrony, unattended-upgrades and SSH hardening. [ARCHITECTURE.md](../ARCHITECTURE.md) describes the VPS and connector traffic path.
+
+## Monitoring
+
+`monitoring_agent` installs Debian's `prometheus-node-exporter` and `systemd-journal-remote` on every host but gitlab0:
+
+- node_exporter listens on `monitoring_agent_listen_address`, with the systemd collector for the units in `monitoring_agent_systemd_units` and `monitoring_agent_extra_systemd_units`. Prometheus in k8s0 scrapes it from `monitoring_prometheus_source` (`group_vars/all.yml`).
+- `systemd-journal-upload` sends the journal to `monitoring_agent_journal_upload_url`. Its first start begins at the newest entry instead of uploading the whole journal. VictoriaLogs accepts uploads only from the addresses allowlisted in `kubernetes/apps/observability/victoria-logs/app/httproute.yaml`; add a new host there too.
+- With `monitoring_agent_smartctl_enabled`, smartctl_exporter from Debian trixie-backports (Proxmox only).
+
+gw0 has no route home, so connector0 relays for it: `10.10.40.21:9101` and `:9102` forward to gw0's node_exporter and HAProxy metrics, and `10.200.0.2:9443` (`haproxy_logs_relay`) accepts only journald uploads over WireGuard and forwards them to `logs.tansanrao.net` over TLS. HAProxy on both hosts serves Prometheus metrics on `haproxy_prometheus_bind`.
+
+The `proxmox` play runs only the monitoring roles, as root, and needs your SSH key in root's `authorized_keys` on the host. With `monitoring_agent_proxmox_firewall`, the role adds a Proxmox firewall rule for its exporter ports from k8s0.
+
+`proxmox_monitoring` installs `prometheus-pve-exporter` in a venv at `/opt/pve-exporter`, creates the read-only API user `pve-exporter@pve` (role `PVEAuditor`) and its token, whose secret stays in `/etc/pve-exporter/pve.yml` on the host, and opens port 9221 to k8s0. To replace the token, delete that file and rerun the play.
+
+The Proxmox host has only its MGMT address, so Prometheus also needs a UniFi firewall rule that allows `10.10.40.40` to `10.10.1.20` on TCP 9100, 9221 and 9633.
 
 ## Commands
 
@@ -80,7 +97,7 @@ Check mode fails on a fresh VM until the first apply has added Docker's apt repo
 4. Restore into a new database created from `template0` with `pg_restore --exit-on-error --no-owner --no-acl`. Check row counts, migration checksums and search indexes, then rename it to `nexus`.
 5. Run the normal play, then check `/healthz`, `/api/v1/mailing-lists` and search through the local listener.
 
-Scheduled off-host backups and monitoring for `nexus-kb` are not set up.
+Scheduled off-host backups for `nexus-kb` are not set up.
 
 ## gitlab0
 

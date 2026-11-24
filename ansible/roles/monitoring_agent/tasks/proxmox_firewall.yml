@@ -1,0 +1,25 @@
+---
+# Opens proxmox_firewall_ports to Prometheus in k8s0 in the Proxmox node
+# firewall. An extra ACCEPT never blocks anything, whether or not the
+# firewall is on. Changing the ports adds a second rule; delete the old one
+# in Datacenter → pve → Firewall.
+- name: Read the node's firewall rules
+  ansible.builtin.command: pvesh get /nodes/{{ proxmox_node_name }}/firewall/rules --output-format json
+  register: proxmox_firewall_rules
+  changed_when: false
+
+- name: Allow Prometheus through the Proxmox firewall
+  vars:
+    proxmox_firewall_comment: "Prometheus in k8s0 scrapes {{ proxmox_firewall_ports | join(',') }} (Ansible)"
+  ansible.builtin.command: >-
+    pvesh create /nodes/{{ proxmox_node_name }}/firewall/rules
+    --type in --action ACCEPT --enable 1 --proto tcp
+    --source {{ monitoring_prometheus_source }}
+    --dport {{ proxmox_firewall_ports | join(',') }}
+    --comment "{{ proxmox_firewall_comment }}"
+  when: >-
+    proxmox_firewall_rules.stdout | from_json
+    | selectattr('comment', 'defined')
+    | selectattr('comment', 'equalto', proxmox_firewall_comment)
+    | list | length == 0
+  changed_when: true

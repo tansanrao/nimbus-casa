@@ -125,6 +125,28 @@ backend be_{{ forward.name }}
 
 {% endfor %}
 
+{% if haproxy_logs_relay %}
+# gw0's journal upload: plain HTTP over WireGuard in, TLS to envoy-internal
+# out. Only journald uploads pass, so gw0 reaches no other internal route.
+listen logs_relay
+  bind {{ haproxy_logs_relay.bind }}
+  mode http
+  option httplog
+  timeout http-request 10s
+  http-request deny deny_status 403 unless METH_POST { path /insert/journald/upload }
+  http-request set-header Host {{ haproxy_logs_relay.hostname }}
+  server envoy_internal {{ haproxy_logs_relay.backend }} ssl verify required ca-file @system-ca sni str({{ haproxy_logs_relay.hostname }}) verifyhost {{ haproxy_logs_relay.hostname }}
+
+{% endif %}
+{% if haproxy_prometheus_bind %}
+frontend prometheus
+  bind {{ haproxy_prometheus_bind }}
+  mode http
+  no log
+  http-request use-service prometheus-exporter if { path /metrics }
+  http-request return status 404
+
+{% endif %}
 listen local_health
   bind {{ haproxy_health_bind }}
   mode http

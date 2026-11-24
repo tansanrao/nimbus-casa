@@ -1,0 +1,23 @@
+---
+# Address node_exporter listens on; Prometheus in k8s0 scrapes it. Required.
+monitoring_agent_listen_address: ""
+monitoring_agent_node_exporter_port: 9100
+monitoring_agent_textfile_dir: /var/lib/prometheus/node-exporter
+
+# systemd units whose state node_exporter reports (names without .service).
+# The chart's NodeSystemdServiceFailed and the JournalUploadNotRunning rule
+# read these.
+monitoring_agent_systemd_units:
+  - systemd-journal-upload
+monitoring_agent_extra_systemd_units: []
+
+# Where systemd-journal-upload sends this host's journal. Include the port.
+monitoring_agent_journal_upload_url: "{{ monitoring_logs_journald_url }}"
+
+# smartctl_exporter from Debian trixie-backports, for hosts with real disks.
+monitoring_agent_smartctl_enabled: false
+monitoring_agent_smartctl_port: 9633
+
+# On a Proxmox host, open the exporter ports in its node firewall. Needs
+# proxmox_node_name.
+monitoring_agent_proxmox_firewall: false

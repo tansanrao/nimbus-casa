@@ -1,0 +1,18 @@
+[Unit]
+Description=Prometheus Proxmox VE exporter
+After=network-online.target pveproxy.service
+Wants=network-online.target
+
+[Service]
+User=pve-exporter
+Group=pve-exporter
+ExecStart={{ pve_exporter_venv }}/bin/pve_exporter --config.file={{ pve_exporter_config_dir }}/pve.yml --web.listen-address={{ pve_exporter_listen_address }}:{{ pve_exporter_port }}
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

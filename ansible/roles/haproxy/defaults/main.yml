@@ -14,6 +14,16 @@ haproxy_tcp_forwards: []
 # ui_hostname also gets the read-only UI. Empty disables it.
 haproxy_gatus_push: {}
 
+# Address of HAProxy's built-in Prometheus endpoint (/metrics), scraped by
+# k8s0. Empty disables it.
+haproxy_prometheus_bind: ""
+
+# Forwards plain-HTTP journald uploads to VictoriaLogs over TLS, and nothing
+# else. Keys: bind, backend (envoy-internal address and port) and hostname
+# (logs hostname, used for SNI, Host and certificate checks). Empty disables
+# it.
+haproxy_logs_relay: {}
+
 # Edge only: sends Let's Encrypt HTTP-01 challenges for these hostnames on
 # port 80 to certbot instead of redirecting them to HTTPS. Keys: hostnames
 # (list), backend.

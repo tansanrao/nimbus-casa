@@ -31,6 +31,9 @@ firewall_tcp_allow_rules:
   - { port: 10022, destination: "{{ gitlab_public_ipv4 }}", dnat_only: true }
   - { port: 10080, destination: "{{ gitlab_public_ipv4 }}", dnat_only: true }
   - { port: 10443, destination: "{{ gitlab_public_ipv4 }}", dnat_only: true }
+  # node_exporter and HAProxy metrics, through connector0's relays only.
+  - { port: 9100, source: 10.200.0.2, iifname: "{{ wireguard_interface }}" }
+  - { port: 8405, source: 10.200.0.2, iifname: "{{ wireguard_interface }}" }
 firewall_dnat_rules:
   - { destination: "{{ gitlab_public_ipv4 }}", port: 22, to_port: 10022 }
   - { destination: "{{ gitlab_public_ipv4 }}", port: 80, to_port: 10080 }
@@ -43,6 +46,9 @@ haproxy_kubernetes_domains:
   - "{{ edge_domain }}"
   - ".{{ edge_domain }}"
 haproxy_health_bind: 127.0.0.1:8404
+# Every address, because HAProxy must start before wg0 exists; nftables
+# admits only connector0 over wg0.
+haproxy_prometheus_bind: :8405
 haproxy_connect_timeout: 5s
 haproxy_client_timeout: 60s
 haproxy_server_timeout: 60s
@@ -101,3 +107,13 @@ haproxy_gatus_push:
   bind: 127.0.0.1:8443
   certificate: /etc/haproxy/certs/{{ system_fqdn }}.pem
   backend: "{{ gatus_web_address }}:{{ gatus_web_port }}"
+
+# node_exporter on the WireGuard address; it retries until wg0 is up.
+# Prometheus reaches it through connector0's relay. The journal goes the same
+# way, as plain HTTP over WireGuard to connector0's logs relay.
+monitoring_agent_listen_address: 10.200.0.1
+monitoring_agent_journal_upload_url: http://10.200.0.2:9443/insert/journald
+monitoring_agent_extra_systemd_units:
+  - haproxy
+  - "wg-quick@{{ wireguard_interface }}"
+  - gatus

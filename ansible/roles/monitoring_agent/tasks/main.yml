@@ -1,0 +1,139 @@
+---
+- name: Assert monitoring agent settings
+  ansible.builtin.assert:
+    that:
+      - monitoring_agent_listen_address | length > 0
+      - monitoring_agent_journal_upload_url is regex('^https?://[^/]+:[0-9]+/')
+    fail_msg: >-
+      Set monitoring_agent_listen_address, and give monitoring_agent_journal_upload_url
+      an explicit port (systemd-journal-upload otherwise uses 19532).
+
+# Written before the packages are installed, so their first start already
+# uses them.
+- name: Create the journal upload config directory
+  ansible.builtin.file:
+    path: /etc/systemd/journal-upload.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure journal upload
+  ansible.builtin.template:
+    src: journal-upload.conf.j2
+    dest: /etc/systemd/journal-upload.conf.d/50-victorialogs.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart journal upload
+
+- name: Create systemd drop-in directories
+  ansible.builtin.file:
+    path: /etc/systemd/system/{{ item }}.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - prometheus-node-exporter
+    - systemd-journal-upload
+
+# The listen address can be on an interface that comes up after the
+# exporter, such as wg0 on gw0.
+- name: Keep node_exporter retrying until its address exists
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/prometheus-node-exporter.service.d/restart.conf
+    content: |
+      [Service]
+      Restart=always
+      RestartSec=10
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+# Keep retrying through a k8s0 outage instead of giving up after a few
+# failed uploads; the saved cursor resumes where it stopped.
+- name: Keep journal upload retrying
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/systemd-journal-upload.service.d/retry.conf
+    content: |
+      [Unit]
+      StartLimitIntervalSec=0
+
+      [Service]
+      Restart=always
+      RestartSec=30
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart journal upload
+
+# Without a saved cursor the first start uploads the whole journal, most of
+# it older than VictoriaLogs' 7-day retention. Start from the newest entry.
+# systemd moves this directory under /var/lib/private on the first start.
+- name: Start the journal upload from the newest entry
+  ansible.builtin.shell: |
+    set -euo pipefail
+    for dir in /var/lib/systemd/journal-upload /var/lib/private/systemd/journal-upload; do
+      if [ -e "$dir/state" ]; then exit 0; fi
+    done
+    cursor=$(journalctl -q -n 1 -o export | sed -n 's/^__CURSOR=//p')
+    install -d -m 0755 /var/lib/systemd/journal-upload
+    printf 'LAST_CURSOR=%s\n' "$cursor" > /var/lib/systemd/journal-upload/state
+    echo seeded
+  args:
+    executable: /bin/bash
+  register: monitoring_agent_cursor
+  changed_when: "'seeded' in monitoring_agent_cursor.stdout"
+
+- name: Install node_exporter and journal upload
+  ansible.builtin.apt:
+    name:
+      - prometheus-node-exporter
+      - systemd-journal-remote
+    state: present
+    install_recommends: false
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Configure node_exporter
+  ansible.builtin.template:
+    src: prometheus-node-exporter.default.j2
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Enable node_exporter and journal upload
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop:
+    - prometheus-node-exporter
+    - systemd-journal-upload
+
+# The same package ships the receiving side, which this host must not run.
+- name: Disable the journal receiver
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  loop:
+    - systemd-journal-remote.socket
+    - systemd-journal-remote.service
+
+- name: Install smartctl_exporter
+  ansible.builtin.include_tasks: smartctl.yml
+  when: monitoring_agent_smartctl_enabled
+
+- name: Open the exporter ports in the Proxmox firewall
+  ansible.builtin.include_tasks: proxmox_firewall.yml
+  vars:
+    proxmox_firewall_ports: >-
+      {{ [monitoring_agent_node_exporter_port]
+         + ([monitoring_agent_smartctl_port] if monitoring_agent_smartctl_enabled else []) }}
+  when: monitoring_agent_proxmox_firewall
