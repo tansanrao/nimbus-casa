@@ -96,6 +96,7 @@
     install_recommends: false
     update_cache: true
     cache_valid_time: 3600
+  register: monitoring_agent_install
 
 - name: Configure node_exporter
   ansible.builtin.template:
@@ -115,6 +116,8 @@
   loop:
     - prometheus-node-exporter
     - systemd-journal-upload
+  # In check mode a package that is not installed yet has no unit to manage.
+  when: not (ansible_check_mode and monitoring_agent_install is changed)
 
 # The same package ships the receiving side, which this host must not run.
 - name: Disable the journal receiver
@@ -125,15 +128,15 @@
   loop:
     - systemd-journal-remote.socket
     - systemd-journal-remote.service
+  # In check mode a package that is not installed yet has no unit to manage.
+  when: not (ansible_check_mode and monitoring_agent_install is changed)
 
-- name: Install smartctl_exporter
-  ansible.builtin.include_tasks: smartctl.yml
-  when: monitoring_agent_smartctl_enabled
+- name: Collect NVMe health
+  ansible.builtin.include_tasks: nvme.yml
+  when: monitoring_agent_nvme_enabled
 
 - name: Open the exporter ports in the Proxmox firewall
   ansible.builtin.include_tasks: proxmox_firewall.yml
   vars:
-    proxmox_firewall_ports: >-
-      {{ [monitoring_agent_node_exporter_port]
-         + ([monitoring_agent_smartctl_port] if monitoring_agent_smartctl_enabled else []) }}
+    proxmox_firewall_ports: ["{{ monitoring_agent_node_exporter_port }}"]
   when: monitoring_agent_proxmox_firewall

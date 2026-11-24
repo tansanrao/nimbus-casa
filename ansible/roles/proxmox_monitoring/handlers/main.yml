@@ -4,3 +4,4 @@
     name: pve-exporter
     state: restarted
     daemon_reload: true
+  when: not (ansible_check_mode and pve_exporter_unit is changed)

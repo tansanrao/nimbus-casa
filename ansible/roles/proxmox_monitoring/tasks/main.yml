@@ -2,6 +2,7 @@
 - name: Assert this is the Proxmox host
   ansible.builtin.command: pveversion
   changed_when: false
+  check_mode: false
 
 - name: Install Python venv support
   ansible.builtin.apt:
@@ -32,6 +33,7 @@
   register: pve_exporter_user
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Create the pve-exporter API user
   ansible.builtin.command: >-
@@ -44,6 +46,7 @@
   ansible.builtin.command: pvesh get /access/acl --output-format json
   register: pve_exporter_acl
   changed_when: false
+  check_mode: false
 
 - name: Grant the pve-exporter user PVEAuditor
   ansible.builtin.command: pveum acl modify / --users {{ pve_exporter_api_user }} --roles PVEAuditor
@@ -90,7 +93,8 @@
     owner: root
     group: pve-exporter
     mode: "0640"
-  when: pve_exporter_token is changed
+  # In check mode the token task reports changed without creating a token.
+  when: pve_exporter_token is changed and not ansible_check_mode
   no_log: true
   notify: Restart pve-exporter
 
@@ -101,6 +105,7 @@
     owner: root
     group: root
     mode: "0644"
+  register: pve_exporter_unit
   notify: Restart pve-exporter
 
 - name: Enable pve-exporter
@@ -109,6 +114,8 @@
     enabled: true
     state: started
     daemon_reload: true
+  # In check mode a unit file that is not written yet cannot be managed.
+  when: not (ansible_check_mode and pve_exporter_unit is changed)
 
 - name: Allow Prometheus to reach pve-exporter
   ansible.builtin.include_role:

@@ -1,0 +1,42 @@
+---
+# NVMe health (critical warning, spare, wear, media errors) from Debian's
+# prometheus-node-exporter-collectors. A timer runs nvme_metrics.py every
+# 15 minutes and writes nvme.prom into node_exporter's textfile directory, so
+# no extra port is opened. Temperatures already come from node_exporter's
+# hwmon collector.
+- name: Install the NVMe collector
+  ansible.builtin.apt:
+    name:
+      - prometheus-node-exporter-collectors
+      - nvme-cli
+    state: present
+    install_recommends: false
+    update_cache: true
+    cache_valid_time: 3600
+  register: monitoring_agent_nvme_install
+
+- name: Enable the NVMe collector timer
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter-nvme.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+  # In check mode a package that is not installed yet has no unit to manage.
+  when: not (ansible_check_mode and monitoring_agent_nvme_install is changed)
+
+# Left by an earlier attempt at smartctl_exporter from trixie-backports.
+- name: Remove the trixie-backports source
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/debian-backports.sources
+    state: absent
+  register: monitoring_agent_backports_removed
+
+- name: Remove the smartctl_exporter drop-in
+  ansible.builtin.file:
+    path: /etc/systemd/system/smartctl_exporter.service.d
+    state: absent
+
+- name: Drop the trixie-backports package lists
+  ansible.builtin.apt:
+    update_cache: true
+  when: monitoring_agent_backports_removed is changed

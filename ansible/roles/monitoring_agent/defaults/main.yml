@@ -14,9 +14,9 @@ monitoring_agent_extra_systemd_units: []
 # Where systemd-journal-upload sends this host's journal. Include the port.
 monitoring_agent_journal_upload_url: "{{ monitoring_logs_journald_url }}"
 
-# smartctl_exporter from Debian trixie-backports, for hosts with real disks.
-monitoring_agent_smartctl_enabled: false
-monitoring_agent_smartctl_port: 9633
+# NVMe health metrics through node_exporter's textfile collector, for hosts
+# with real NVMe drives.
+monitoring_agent_nvme_enabled: false
 
 # On a Proxmox host, open the exporter ports in its node firewall. Needs
 # proxmox_node_name.

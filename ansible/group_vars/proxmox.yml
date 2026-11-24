@@ -7,7 +7,7 @@
 proxmox_node_name: pve
 
 monitoring_agent_listen_address: 10.10.1.20
-monitoring_agent_smartctl_enabled: true
+monitoring_agent_nvme_enabled: true
 monitoring_agent_proxmox_firewall: true
 monitoring_agent_extra_systemd_units:
   - pve-cluster
@@ -15,4 +15,5 @@ monitoring_agent_extra_systemd_units:
   - pveproxy
   - pvestatd
   - pve-exporter
-  - smartctl_exporter
+  # Oneshot run by its timer; reported so a failing run alerts.
+  - prometheus-node-exporter-nvme

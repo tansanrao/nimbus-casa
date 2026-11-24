@@ -38,10 +38,8 @@ spec:
   # The exporter rereads SMART data once a minute.
   scrapeInterval: 60s
   scrapeTimeout: 30s
+  # Proxmox's NVMe health arrives through its node_exporter instead.
   staticConfigs:
-    - targets: ["10.10.1.20:9633"]
-      labels:
-        instance: pve
     - targets: ["10.10.40.10:9633"]
       labels:
         instance: truenas

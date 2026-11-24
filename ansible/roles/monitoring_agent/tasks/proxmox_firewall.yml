@@ -7,6 +7,8 @@
   ansible.builtin.command: pvesh get /nodes/{{ proxmox_node_name }}/firewall/rules --output-format json
   register: proxmox_firewall_rules
   changed_when: false
+  # Read-only, so it also runs in check mode.
+  check_mode: false
 
 - name: Allow Prometheus through the Proxmox firewall
   vars:

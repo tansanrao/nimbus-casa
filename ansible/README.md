@@ -20,7 +20,7 @@ The `common` role sets the hostname, timezone, chrony, unattended-upgrades and S
 
 - node_exporter listens on `monitoring_agent_listen_address`, with the systemd collector for the units in `monitoring_agent_systemd_units` and `monitoring_agent_extra_systemd_units`. Prometheus in k8s0 scrapes it from `monitoring_prometheus_source` (`group_vars/all.yml`).
 - `systemd-journal-upload` sends the journal to `monitoring_agent_journal_upload_url`. Its first start begins at the newest entry instead of uploading the whole journal. VictoriaLogs accepts uploads only from the addresses allowlisted in `kubernetes/apps/observability/victoria-logs/app/httproute.yaml`; add a new host there too.
-- With `monitoring_agent_smartctl_enabled`, smartctl_exporter from Debian trixie-backports (Proxmox only).
+- With `monitoring_agent_nvme_enabled` (Proxmox only), NVMe health from Debian's `prometheus-node-exporter-collectors`: a timer runs its `nvme_metrics.py` every 15 minutes and writes `nvme.prom` into node_exporter's textfile directory, so no extra port is opened.
 
 gw0 has no route home, so connector0 relays for it: `10.10.40.21:9101` and `:9102` forward to gw0's node_exporter and HAProxy metrics, and `10.200.0.2:9443` (`haproxy_logs_relay`) accepts only journald uploads over WireGuard and forwards them to `logs.tansanrao.net` over TLS. HAProxy on both hosts serves Prometheus metrics on `haproxy_prometheus_bind`.
 
@@ -28,7 +28,7 @@ The `proxmox` play runs only the monitoring roles, as root, and needs your SSH k
 
 `proxmox_monitoring` installs `prometheus-pve-exporter` in a venv at `/opt/pve-exporter`, creates the read-only API user `pve-exporter@pve` (role `PVEAuditor`) and its token, whose secret stays in `/etc/pve-exporter/pve.yml` on the host, and opens port 9221 to k8s0. To replace the token, delete that file and rerun the play.
 
-The Proxmox host has only its MGMT address, so Prometheus also needs a UniFi firewall rule that allows `10.10.40.40` to `10.10.1.20` on TCP 9100, 9221 and 9633.
+The Proxmox host has only its MGMT address, so Prometheus also needs a UniFi firewall rule that allows `10.10.40.40` to `10.10.1.20` on TCP 9100 and 9221.
 
 ## Commands
 

@@ -241,6 +241,8 @@ spec:
           annotations:
             summary: Garage on TrueNAS is unavailable; Postgres backups and WAL archiving fail
 
+    # TrueNAS reports through smartctl_exporter (smartctl_*), Proxmox's NVMe
+    # drives through the textfile collector (nvme_*). Rules match either.
     - name: disks.rules
       rules:
         - alert: DiskSMARTFailed
@@ -250,26 +252,28 @@ spec:
           annotations:
             summary: "{{ $labels.device }} on {{ $labels.instance }} failed its SMART health check"
         - alert: NVMeCriticalWarning
-          expr: smartctl_device_critical_warning > 0
+          expr: smartctl_device_critical_warning > 0 or nvme_critical_warning > 0
           labels:
             severity: critical
           annotations:
             summary: "NVMe {{ $labels.device }} on {{ $labels.instance }} reports critical warning {{ $value }}"
         - alert: NVMeSpareLow
-          expr: smartctl_device_available_spare < smartctl_device_available_spare_threshold
+          expr: |
+            smartctl_device_available_spare < smartctl_device_available_spare_threshold
+            or nvme_available_spare_ratio < nvme_available_spare_threshold_ratio
           labels:
             severity: critical
           annotations:
             summary: "NVMe {{ $labels.device }} on {{ $labels.instance }} is below its spare threshold"
         - alert: DiskWearHigh
-          expr: smartctl_device_percentage_used >= 90
+          expr: smartctl_device_percentage_used >= 90 or nvme_percentage_used_ratio * 100 >= 90
           for: 1h
           labels:
             severity: warning
           annotations:
             summary: "{{ $labels.device }} on {{ $labels.instance }} has used {{ $value }}% of its rated endurance"
         - alert: DiskMediaErrors
-          expr: delta(smartctl_device_media_errors[1h]) > 0
+          expr: delta(smartctl_device_media_errors[1h]) > 0 or increase(nvme_media_errors_total[1h]) > 0
           labels:
             severity: warning
           annotations:
@@ -281,6 +285,16 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.device }} on {{ $labels.instance }}: {{ $labels.attribute_name }} rose in the last day"
+        # The timer rewrites nvme.prom every 15 minutes. A failed run also
+        # fires NodeSystemdServiceFailed; this catches a stopped timer.
+        - alert: NVMeMetricsStale
+          expr: time() - node_textfile_mtime_seconds{file=~".*nvme\\.prom"} > 3600
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "NVMe health on {{ $labels.instance }} has not been updated for {{ $value | humanizeDuration }}"
+        # TrueNAS disks. NVMe temperatures are covered by HostTemperatureHigh.
         - alert: DiskTemperatureHigh
           expr: smartctl_device_temperature{temperature_type="current"} > 65
           for: 15m
