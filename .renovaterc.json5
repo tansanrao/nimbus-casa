@@ -63,6 +63,22 @@
       prBodyNotes: ["After merging, run ALTER EXTENSION pg_search UPDATE in every database that uses it."],
     },
     {
+      description: "Review GitLab updates one release at a time and check for security patches daily",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["gitlab/gitlab-ee"],
+      // Tags are <major>.<minor>.<patch>-ee.<build>, e.g. 19.5.8-ee.0, the apt package version.
+      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ee\\.(?<build>\\d+)$",
+      separateMinorPatch: true,
+      separateMultipleMinor: true,
+      separateMultipleMajor: true,
+      automerge: false,
+      schedule: ["at any time"],
+      prPriority: 10,
+      prBodyNotes: [
+        "Check https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/ for required upgrade stops before merging a minor or major update. After merging, run `ansible-playbook --diff site.yml --limit gitlab` in `ansible/`; nothing deploys GitLab automatically.",
+      ],
+    },
+    {
       description: "Pin official Seerr releases and require review of updates",
       matchPackageNames: ["ghcr.io/seerr-team/seerr"],
       pinDigests: true,
