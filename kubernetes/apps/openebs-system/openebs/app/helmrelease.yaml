@@ -52,7 +52,7 @@ spec:
             registry: registry.k8s.io
             repository: sig-storage/csi-resizer
             pullPolicy: IfNotPresent
-            tag: v2.3.0@sha256:48fb3deb93cd848e3c8998b6368f4322c93bb5ce4a90d1307b6dda0dbefb9a0e
+            tag: v2.3.1@sha256:d5b040c2f6ffb25127169feeb845aaf1fa3279e510d71fbebe386b5becc625cc
         snapshotter:
           image:
             registry: registry.k8s.io
