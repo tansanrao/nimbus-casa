@@ -21,6 +21,12 @@
       "tags": [],
       "asDropdown": false,
       "url": "/dashboards?query=Node%20Exporter%20Full"
+    },
+    {
+      "title": "Storage health",
+      "type": "link",
+      "url": "/d/storage-health/storage-health",
+      "icon": "dashboard"
     }
   ],
   "templating": {

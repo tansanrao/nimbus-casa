@@ -14,6 +14,9 @@ configMapGenerator:
   - name: grafana-dashboard-node-health
     files:
       - ./resources/node-health.json
+  - name: grafana-dashboard-storage-health
+    files:
+      - ./resources/storage-health.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

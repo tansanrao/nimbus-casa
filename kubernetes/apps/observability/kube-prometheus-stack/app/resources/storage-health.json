@@ -1,0 +1,2297 @@
+{
+  "uid": "storage-health",
+  "title": "Storage health",
+  "tags": [
+    "homelab",
+    "storage"
+  ],
+  "description": "Every physical disk and storage pool in one place.",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "Node health",
+      "type": "link",
+      "url": "/d/node-health/node-health",
+      "icon": "dashboard"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Disks",
+      "description": "Physical disks on TrueNAS and Proxmox.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(max by (disk, model) (label_join((label_replace(smartctl_device, \"model\", \"$1\", \"model_name\", \"(.*)\") or nvme_device_info) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Failing",
+      "description": "Disks that failed SMART or report an NVMe critical warning.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count((max by (disk) (label_join((smartctl_device_smart_status or (nvme_critical_warning == bool 0)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) == 0 or (max by (disk) (label_join((smartctl_device_critical_warning or nvme_critical_warning) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) > 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Disks with bad sectors",
+      "description": "Disks with media errors, or reallocated, pending or uncorrectable sectors.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count((max by (disk) (label_join((smartctl_device_media_errors or nvme_media_errors_total) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) > 0 or (max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Reallocated_Sector_Ct\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) > 0 or (max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Current_Pending_Sector\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) > 0 or (max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Offline_Uncorrectable|Reported_Uncorrect\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) > 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "CRC errors",
+      "description": "Link errors between disk and controller, summed over all disks. They point at cables or backplanes, and matter when they rise.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"UDMA_CRC_Error_Count|CRC_Error_Count\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Hottest disk",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(max by (disk) (label_join((smartctl_device_temperature{temperature_type=\"current\"} or nvme_temperature_celsius) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 65
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 6,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Most worn SSD",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(max by (disk) (label_join((nvme_percentage_used_ratio or smartctl_device_percentage_used / 100 or (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator|Percent_Lifetime_Remain\", attribute_value_type=\"value\"}) / 100) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 7,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "ZFS pools not online",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(node_zfs_zpool_state{state=\"online\"} == 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 8,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Fullest storage",
+      "description": "Highest usage among the pools in Capacity.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(1 - max by (pool) (label_replace(max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"} - pve_disk_usage_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_free_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\")) / max by (pool) (label_replace(sum by (zpool) (label_replace(max by (device) (node_filesystem_size_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"} - node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"}), \"zpool\", \"$1\", \"device\", \"([^/]+).*\")) + max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_size_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\")))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      }
+    },
+    {
+      "type": "row",
+      "title": "Disks",
+      "collapsed": false,
+      "panels": [],
+      "id": 10,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "type": "table",
+      "title": "All disks",
+      "description": "TrueNAS drives from smartctl_exporter and Proxmox NVMe drives from the textfile collector (refreshed every 15 minutes). Endurance comes from NVMe percentage used or the SATA SSD wear attribute. Written 24h and Busy come from node_exporter. A dash means the disk does not report that value.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk, model) (label_join((label_replace(smartctl_device, \"model\", \"$1\", \"model_name\", \"(.*)\") or nvme_device_info) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk, serial) (label_join((label_replace(smartctl_device, \"serial\", \"$1\", \"serial_number\", \"(.*)\") or nvme_device_info) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join(((smartctl_device_rotation_rate > bool 0) or smartctl_device * 0 or nvme_device_info * 2) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_capacity_bytes or nvme_physical_size_bytes) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_smart_status or (nvme_critical_warning == bool 0)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_critical_warning or nvme_critical_warning) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "F",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_temperature{temperature_type=\"current\"} or nvme_temperature_celsius) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "G",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_power_on_seconds or nvme_power_on_hours_total * 3600) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "H",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((nvme_percentage_used_ratio or smartctl_device_percentage_used / 100 or (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator|Percent_Lifetime_Remain\", attribute_value_type=\"value\"}) / 100) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "I",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((nvme_available_spare_ratio or smartctl_device_available_spare / 100) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "J",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_media_errors or nvme_media_errors_total) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "K",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Reallocated_Sector_Ct\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "L",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Current_Pending_Sector\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "M",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Offline_Uncorrectable|Reported_Uncorrect\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "N",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"UDMA_CRC_Error_Count|CRC_Error_Count\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "O",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((nvme_unsafe_shutdowns_total) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "P",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((increase(node_disk_written_bytes_total[1d]) and on (instance, device) (smartctl_device or nvme_device_info)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "Q",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((rate(node_disk_io_time_seconds_total[5m]) and on (instance, device) (smartctl_device or nvme_device_info)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "R",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "disk",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(?!Time).*$"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "model": "Model",
+              "serial": "Serial",
+              "Value #A": "_model",
+              "Value #B": "_serial",
+              "Value #C": "Type",
+              "Value #D": "Capacity",
+              "Value #E": "Health",
+              "Value #F": "Critical warning",
+              "Value #G": "Temperature",
+              "Value #H": "Power-on",
+              "Value #I": "Endurance used",
+              "Value #J": "Spare",
+              "Value #K": "Media errors",
+              "Value #L": "Reallocated",
+              "Value #M": "Pending",
+              "Value #N": "Uncorrectable",
+              "Value #O": "CRC errors",
+              "Value #P": "Unsafe shutdowns",
+              "Value #Q": "Written 24h",
+              "Value #R": "Busy"
+            },
+            "indexByName": {
+              "disk": 0,
+              "Model": 1,
+              "Serial": 2,
+              "_model": 3,
+              "_serial": 4,
+              "Type": 5,
+              "Capacity": 6,
+              "Health": 7,
+              "Critical warning": 8,
+              "Temperature": 9,
+              "Power-on": 10,
+              "Endurance used": 11,
+              "Spare": 12,
+              "Media errors": 13,
+              "Reallocated": 14,
+              "Pending": 15,
+              "Uncorrectable": 16,
+              "CRC errors": 17,
+              "Unsafe shutdowns": 18,
+              "Written 24h": 19,
+              "Busy": 20
+            },
+            "excludeByName": {
+              "Value #A": true,
+              "Value #B": true
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "custom": {
+            "align": "auto",
+            "wrapHeaderText": true,
+            "width": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "disk"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Serial"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 135
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Type"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "SSD"
+                      },
+                      "1": {
+                        "text": "HDD"
+                      },
+                      "2": {
+                        "text": "NVMe"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Capacity"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Health"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "OK",
+                        "color": "green"
+                      },
+                      "0": {
+                        "text": "FAILING",
+                        "color": "red"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Critical warning"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temperature"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 50
+                    },
+                    {
+                      "color": "red",
+                      "value": 65
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Power-on"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.width",
+                "value": 95
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Endurance used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.7
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Spare"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.2
+                    },
+                    {
+                      "color": "green",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Media errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reallocated"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pending"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Uncorrectable"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CRC errors"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Written 24h"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Busy"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.8
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "disk"
+          }
+        ]
+      },
+      "id": 11,
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      }
+    },
+    {
+      "type": "row",
+      "title": "Capacity",
+      "collapsed": false,
+      "panels": [],
+      "id": 12,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "Storage used",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "TrueNAS ZFS pools (estimated, see Storage pools), Proxmox storages and k8s0's OpenEBS thin pool, which holds every app volume.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "1 - max by (pool) (label_replace(max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"} - pve_disk_usage_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_free_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\")) / max by (pool) (label_replace(sum by (zpool) (label_replace(max by (device) (node_filesystem_size_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"} - node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"}), \"zpool\", \"$1\", \"device\", \"([^/]+).*\")) + max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_size_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\"))",
+          "refId": "A",
+          "legendFormat": "{{pool}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 13,
+      "gridPos": {
+        "h": 11,
+        "w": 10,
+        "x": 0,
+        "y": 27
+      }
+    },
+    {
+      "type": "table",
+      "title": "Storage pools",
+      "description": "The forecast extends the last 3 days' trend by a week. ZFS pool usage is an estimate from mounted datasets: snapshots and zvols are missing and clones count twice; TrueNAS's own pool alerts use the exact numbers. State is the ZFS pool state; boot-pool has no mount under /mnt, so it shows only its state.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (pool, state) (label_replace(node_zfs_zpool_state == 1, \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\"))",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (pool) (label_replace(sum by (zpool) (label_replace(max by (device) (node_filesystem_size_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"} - node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"}), \"zpool\", \"$1\", \"device\", \"([^/]+).*\")) + max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_size_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\"))",
+          "refId": "B",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "1 - max by (pool) (label_replace(max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"} - pve_disk_usage_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_free_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\")) / max by (pool) (label_replace(sum by (zpool) (label_replace(max by (device) (node_filesystem_size_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"} - node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/.+\"}), \"zpool\", \"$1\", \"device\", \"([^/]+).*\")) + max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_size_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\"))",
+          "refId": "C",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (pool) (label_replace(max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"} - pve_disk_usage_bytes{id=~\"storage/.+\"}), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(max by (thin_pool) (kube_customresource_lvm_thinpool_free_bytes), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\"))",
+          "refId": "D",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (pool) (label_replace(clamp_min(predict_linear((max by (zpool) (label_replace(node_filesystem_avail_bytes{instance=\"sandcrawler\", fstype=\"zfs\", mountpoint=~\"/mnt/[^/.][^/]*\"}, \"zpool\", \"$1\", \"device\", \"(.*)\")))[3d:30m], 7 * 86400), 0), \"pool\", \"sandcrawler/$1\", \"zpool\", \"(.*)\") or label_replace(clamp_min(predict_linear((max by (id) (pve_disk_size_bytes{id=~\"storage/.+\"} - pve_disk_usage_bytes{id=~\"storage/.+\"}))[3d:30m], 7 * 86400), 0), \"pool\", \"pve/$1\", \"id\", \"storage/[^/]+/(.*)\") or label_replace(clamp_min(predict_linear((max by (thin_pool) (kube_customresource_lvm_thinpool_free_bytes))[3d:30m], 7 * 86400), 0), \"pool\", \"k8s0/$1\", \"thin_pool\", \"(.*)\"))",
+          "refId": "E",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "pool",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(?!Time).*$"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "state": "State",
+              "Value #A": "_state",
+              "Value #B": "Size",
+              "Value #C": "Used",
+              "Value #D": "Free",
+              "Value #E": "Free in 7 days (forecast)"
+            },
+            "indexByName": {
+              "pool": 0,
+              "State": 1,
+              "_state": 2,
+              "Size": 3,
+              "Used": 4,
+              "Free": 5,
+              "Free in 7 days (forecast)": 6
+            },
+            "excludeByName": {
+              "Value #A": true
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "custom": {
+            "align": "auto",
+            "wrapHeaderText": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "State"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "online": {
+                        "color": "green"
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "^(?!online).+",
+                      "result": {
+                        "color": "red"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pool"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Size"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.8
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.9
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "special",
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "\u2013",
+                        "color": "transparent"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Free in 7 days (forecast)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Used",
+            "desc": true
+          }
+        ]
+      },
+      "id": 14,
+      "gridPos": {
+        "h": 11,
+        "w": 14,
+        "x": 10,
+        "y": 27
+      }
+    },
+    {
+      "type": "row",
+      "title": "Trends",
+      "collapsed": false,
+      "panels": [],
+      "id": 15,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Temperature",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((smartctl_device_temperature{temperature_type=\"current\"} or nvme_temperature_celsius) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "A",
+          "legendFormat": "{{disk}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "min": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "drawStyle": "line"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 16,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Endurance used",
+      "description": "Rises slowly over months; a sudden jump means heavy writes.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((nvme_percentage_used_ratio or smartctl_device_percentage_used / 100 or (100 - smartctl_device_attribute{attribute_name=~\"Wear_Leveling_Count|Media_Wearout_Indicator|Percent_Lifetime_Remain\", attribute_value_type=\"value\"}) / 100) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "A",
+          "legendFormat": "{{disk}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "drawStyle": "line"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 17,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Busy",
+      "description": "Share of time each disk had IO in flight.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((rate(node_disk_io_time_seconds_total[$__rate_interval]) and on (instance, device) (smartctl_device or nvme_device_info)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "A",
+          "legendFormat": "{{disk}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "drawStyle": "line"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 18,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 49
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Write throughput",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (disk) (label_join((rate(node_disk_written_bytes_total[$__rate_interval]) and on (instance, device) (smartctl_device or nvme_device_info)) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\"))",
+          "refId": "A",
+          "legendFormat": "{{disk}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "min": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "drawStyle": "line"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 19,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 49
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "New errors",
+      "description": "Increase of each error counter over the previous hour. Empty is good.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "increase((max by (disk) (label_join((smartctl_device_media_errors or nvme_media_errors_total) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))[1h:5m]) > 0",
+          "refId": "A",
+          "legendFormat": "{{disk}} media errors"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "increase((max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Reallocated_Sector_Ct\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))[1h:5m]) > 0",
+          "refId": "B",
+          "legendFormat": "{{disk}} reallocated"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "increase((max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Current_Pending_Sector\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))[1h:5m]) > 0",
+          "refId": "C",
+          "legendFormat": "{{disk}} pending"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "increase((max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"Offline_Uncorrectable|Reported_Uncorrect\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))[1h:5m]) > 0",
+          "refId": "D",
+          "legendFormat": "{{disk}} uncorrectable"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "increase((max by (disk) (label_join((smartctl_device_attribute{attribute_name=~\"UDMA_CRC_Error_Count|CRC_Error_Count\", attribute_value_type=\"raw\"}) unless on (instance, device) smartctl_device{scsi_vendor=\"QEMU\"}, \"disk\", \"/\", \"instance\", \"device\")))[1h:5m]) > 0",
+          "refId": "E",
+          "legendFormat": "{{disk}} CRC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "showPoints": "never",
+            "drawStyle": "bars"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 20,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      }
+    }
+  ]
+}
