@@ -84,3 +84,22 @@ MAC `02:CA:5A:40:00:25`. The disk is imported from a Talos Image Factory image w
 `runner.tf` also manages the Proxmox firewall. runner0's VM firewall drops inbound traffic except the Talos and Kubernetes APIs from `runner_admin_sources`, and outbound traffic to every private, CGNAT, link-local and IPv6 destination except `10.10.40.24:443` and gateway DNS. `ipfilter` stops it from sending from any other address. The datacenter firewall has to be on for any VM firewall to apply; it stays on with ACCEPT policies, and the node firewall stays off, so no other guest or the host is filtered.
 
 To bootstrap a rebuilt runner0: `cd talos-runner && talhelper genconfig`, then `talosctl apply-config --insecure -n 10.10.40.25 -e 10.10.40.25 -f clusterconfig/gitlab-runner-runner0.yaml`, `talosctl bootstrap`, `talosctl kubeconfig talos-runner/kubeconfig`, and `task runner:deploy`. A rebuilt runner needs a new runner token from GitLab in `talos-runner/gitlab-runner/runner-token.sops.yaml`.
+
+## sshtest0 (test VM)
+
+`test-vm.tf` defines a disposable Ubuntu 26.04 VM for testing cloud-init changes, such as the GitHub SSH keys: `sshtest0`, `10.10.40.29`, MAC `02:CA:5A:40:00:29`, 1 vCPU, 2 GiB RAM, 10 GiB disk. It uses connector0's cloud-init templates and image, does not start when Proxmox boots, and exists only while `test_vm_enabled` is true. Target its resources so the plan leaves the other VMs alone:
+
+```sh
+cd opentofu/proxmox
+T='-target=proxmox_virtual_environment_vm.test_vm -target=proxmox_virtual_environment_file.test_vm_user_data -target=proxmox_virtual_environment_file.test_vm_network_data'
+
+# Create
+tofu plan  -var test_vm_enabled=true $T
+tofu apply -var test_vm_enabled=true $T
+
+# Check what cloud-init seeded: ubuntu gets the authorized_users keys, root none.
+ssh ubuntu@10.10.40.29 'cloud-init status --wait; cat ~/.ssh/authorized_keys; sudo cat /root/.ssh/authorized_keys'
+
+# Remove the VM and its two snippets; the shared image stays.
+tofu apply -var test_vm_enabled=false $T
+```
