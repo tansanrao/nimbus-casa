@@ -97,7 +97,7 @@ Databases run in Kubernetes, managed by operators:
 
 All clusters run PostgreSQL 18 with one instance. The Barman Cloud plugin archives WAL continuously and takes a base backup daily at 07:00 UTC to `s3://crunchy-pgo/cnpg/<cluster>/` on Garage, kept for 14 days. Off-site copies come from replicating Garage as a whole, which is not set up yet. `scripts/check-postgres.py --live` checks cluster health, WAL archiving and backup age.
 
-Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karakeep uses SQLite.
+Dragonfly in `database` and `immich` provides the Redis-compatible cache.
 
 ## Configuration layers
 

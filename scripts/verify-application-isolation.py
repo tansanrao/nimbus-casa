@@ -9,7 +9,7 @@ import json
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
-APPS = ('authentik', 'karakeep', 'mealie', 'miniflux')
+APPS = ('authentik', 'mealie', 'miniflux')
 NAME = 'application-isolation-check'
 
 def kube(*args, **kwargs):
@@ -40,11 +40,10 @@ api = svc('default', 'kubernetes')
 immich = svc('immich', 'immich-server')
 sonarr = svc('media', 'sonarr')
 app_ips = {a: svc(a, 'authentik-server' if a == 'authentik' else a) for a in APPS}
-ports = {'authentik': 80, 'karakeep': 3000, 'mealie': 9000, 'miniflux': 80}
+ports = {'authentik': 80, 'mealie': 9000, 'miniflux': 80}
 extras = {
     'authentik': [(svc('database', 'dragonfly'), 6379), (svc('default', 'smtp-relay'), 25)],
     'mealie': [(svc('default', 'smtp-relay'), 25)],
-    'karakeep': [(svc('karakeep-browser', 'karakeep-browser'), 9222), (svc('karakeep', 'meilisearch-karakeep'), 7700)],
     'miniflux': [],
 }
 code = '''import json,socket,urllib.request
@@ -82,7 +81,7 @@ def probe(app):
     targets = [(auth_db,5432,app == 'authentik'), (shared_db,5432,app in ('mealie','miniflux'))] + [(h,p,True) for h,p in extras[app]]
     targets += [(api,443,False), ('10.10.40.40',6443,False), ('10.10.40.10',2049,False), (immich,2283,False), (sonarr,8989,False)]
     targets += [(app_ips[a],ports[a],False) for a in APPS if a != app]
-    labels = {'app.kubernetes.io/name':app,'app.kubernetes.io/controller':'karakeep' if app == 'karakeep' else 'main'}
+    labels = {'app.kubernetes.io/name':app,'app.kubernetes.io/controller':'main'}
     if app == 'authentik':
         labels['app.kubernetes.io/component'] = 'isolation-check'
     podspec = {'restartPolicy':'Never','automountServiceAccountToken':False,'securityContext':{'runAsUser':1001,'runAsGroup':1001,'runAsNonRoot':True,'seccompProfile':{'type':'RuntimeDefault'}},'containers':[{'name':'check','image':image,'command':['python3','-c',code.replace('TARGETS',repr(targets))],'readinessProbe':{'exec':{'command':['python3','-c','raise SystemExit(1)']},'periodSeconds':1},'securityContext':{'allowPrivilegeEscalation':False,'capabilities':{'drop':['ALL']}},'resources':{'limits':{'memory':'128Mi'}}}]}

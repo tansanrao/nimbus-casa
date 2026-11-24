@@ -34,11 +34,6 @@ endpoints:
     url: https://photos.${SECRET_DOMAIN}
     interval: 1m
     conditions: *app_http_conditions
-  - name: karakeep/karakeep
-    group: public-services
-    url: https://karakeep.${SECRET_DOMAIN}
-    interval: 1m
-    conditions: *app_http_conditions
   - name: links/links
     group: public-services
     url: https://links.${SECRET_DOMAIN}/api/hello

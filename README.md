@@ -51,7 +51,6 @@ Run `scripts/check-postgres.py --live` and the `scripts/verify-*.py` scripts aga
 ## Docs
 
 - [Workload isolation](docs/workload-isolation.md)
-- [Karakeep browser isolation](docs/karakeep-isolation.md)
 - [OpenEBS LVM and VolSync](kubernetes/apps/openebs-system/openebs/README.md)
 - [Intel GPU](kubernetes/apps/kube-system/intel-gpu-plugin/README.md)
 - [Proxmox and OpenTofu](opentofu/proxmox/README.md)

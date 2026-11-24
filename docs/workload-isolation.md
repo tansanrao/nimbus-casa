@@ -12,7 +12,6 @@ Applications are split into namespaces with default-deny Cilium policies on ingr
 | `media-database` | CloudNativePG `media` | Arr apps, Jellystat, operator, Garage |
 | `media-services` | Jellyfin, Seerr, Kavita, Jellystat | Public metadata services; Arr, Jellyfin and database peers; media library mounted read-only in Jellyfin and Kavita |
 | `authentik` | authentik, LDAP outpost, CloudNativePG `auth` | Restricted Pod Security |
-| `karakeep`, `karakeep-browser` | Karakeep, Meilisearch, headless Chrome | See [karakeep-isolation.md](karakeep-isolation.md) |
 | `mealie`, `miniflux` | One app each | Restricted Pod Security; database in `database/postgres` |
 | `links` | Links frontend, API, capture and email workers, migration Job, headless Chromium capture | Gateway to frontend to API; API and workers to `database/paradedb`; API and capture worker to capture; capture to public IPv4 on 80 and 443 only; API and email worker to the SMTP relay |
 | `papers` | Papers frontend, backend, worker, cite, pdftext, migration Job | Gateway to frontend to backend; backend, worker and migration Job to `database/paradedb`; backend to cite; worker to pdftext and to public IPv4 on 80 and 443 only; cite and pdftext reach nothing |
@@ -24,7 +23,7 @@ Immich ML has no application or database secret and cannot reach the database or
 
 Pods reach NFS through volumes the node CSI driver mounts, so no pod needs network access to the NAS.
 
-Apps that sign in through authentik (in `immich`, `media-services`, `karakeep`, `mealie`, `miniflux`, `links` and `papers`) reach it through Envoy external's backend port 10443, with the authentication hostname as TLS SNI, not through a LAN-wide exception. authentik reaches Links and Papers the same way, with SNI `links.${SECRET_DOMAIN}` and `papers.${SECRET_DOMAIN}`, for back-channel logout.
+Apps that sign in through authentik (in `immich`, `media-services`, `mealie`, `miniflux`, `links` and `papers`) reach it through Envoy external's backend port 10443, with the authentication hostname as TLS SNI, not through a LAN-wide exception. authentik reaches Links and Papers the same way, with SNI `links.${SECRET_DOMAIN}` and `papers.${SECRET_DOMAIN}`, for back-channel logout.
 
 ## Media VPN
 
@@ -42,7 +41,7 @@ A Renovate regex manager updates the VPN sidecar image pinned in the admission p
 
 ## Moved app state
 
-- Mealie, Karakeep and Meilisearch kept their original PVs (see the [OpenEBS runbook](../kubernetes/apps/openebs-system/openebs/README.md)). VolumeSnapshots from before the move still exist: `default/mealie-namespace-cutover`, `default/karakeep-namespace-cutover` and `database/meilisearch-karakeep-namespace-cutover`.
+- Mealie kept its original PV (see the [OpenEBS runbook](../kubernetes/apps/openebs-system/openebs/README.md)). A VolumeSnapshot from before the move still exists: `default/mealie-namespace-cutover`.
 - The authentik outpost configuration, stored in PostgreSQL, targets the `authentik` namespace. It turns off the LDAP deployment's service-account token and requests `10.10.40.72` through `lbipam.cilium.io/ips`. Keep these settings when restoring authentik. Only the worker keeps outpost-management permissions.
 
 ## Legacy holds
@@ -64,11 +63,8 @@ Live, read-only:
 ```sh
 python3 scripts/verify-workload-isolation.py
 python3 scripts/verify-application-isolation.py
-python3 scripts/verify-karakeep-isolation.py
 python3 scripts/verify-secret-isolation.py
 ```
-
-Run `verify-application-isolation.py` and `verify-karakeep-isolation.py` one after the other, because their probes share policy selectors.
 
 `verify-workload-isolation.py --exercise-underlay --exercise-outages` forces traffic through the original pod interface, blocks the relays and stops the gateway. It interrupts media downloads.
 

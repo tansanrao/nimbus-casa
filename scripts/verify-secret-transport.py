@@ -2,7 +2,7 @@
 """Live admission/network/TLS tests. Creates temporary RBAC and a diagnostic pod.
 
 Mounts only the public Connect CA; never reads credential values. Requires kubectl
-and running Karakeep/Mealie deployments. Removes test resources in finally blocks.
+and running Seerr/Mealie deployments. Removes test resources in finally blocks.
 """
 import subprocess,json
 
@@ -22,7 +22,8 @@ try:
 finally:
  k('delete','rolebinding,role',name,'-n',ns,'--ignore-not-found')
 # The diagnostic pod mounts only the public CA certificate and has no API token.
-image=json.loads(k('get','deploy','karakeep','-n','karakeep','-o','json').stdout)['spec']['template']['spec']['containers'][0]['image']
+# Seerr's image provides node.
+image=json.loads(k('get','deploy','seerr','-n','media-services','-o','json').stdout)['spec']['template']['spec']['containers'][0]['image']
 code=r'''const https=require('https'),fs=require('fs');
 const host='onepassword.external-secrets.svc.cluster.local';
 const ca=fs.readFileSync('/ca/ca.crt');

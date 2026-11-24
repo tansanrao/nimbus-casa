@@ -11,14 +11,14 @@ Talos exposes the node's second NVMe as a raw volume at `/dev/disk/by-partlabel/
 
 | Data | Backed up by |
 | --- | --- |
-| App PVCs: `karakeep/karakeep`, `karakeep/meilisearch-karakeep`, `mealie/mealie`, `media-services/{jellyfin,kavita,seerr}`, `media/{kapowarr,qbittorrent,radarr,recyclarr,sabnzbd,sonarr,sonarr-anime}` | VolSync restic, hourly from a snapshot. Keeps 24 hourly and 7 daily. |
+| App PVCs: `mealie/mealie`, `media-services/{jellyfin,kavita,seerr}`, `media/{kapowarr,qbittorrent,radarr,recyclarr,sabnzbd,sonarr,sonarr-anime}` | VolSync restic, hourly from a snapshot. Keeps 24 hourly and 7 daily. |
 | CloudNativePG volumes (`<cluster>-1`, label `cnpg.io/cluster`) | Barman Cloud to Garage. See [ARCHITECTURE.md](../../../../ARCHITECTURE.md#kubernetes). |
 | NFS PVCs (`nfs-immich`, `nfs-mediastore`) | The NAS |
 | `observability/*` (Prometheus, Alertmanager, Grafana) | Nothing |
 
 `media/jellyfin` and `media/kavita` are the pre-isolation copies, kept with the suspended legacy Kustomizations. Their VolSync sources stopped on 2026-10-31.
 
-Mealie, Karakeep and Meilisearch kept their original PVs when they moved namespaces. Their Kustomizations pin `volumeName`; remove that patch only to restore onto a new PV. They have no restore-once ReplicationDestination, so nothing overwrites them on startup.
+Mealie kept its original PV when it moved namespaces. Its Kustomization pins `volumeName`; remove that patch only to restore onto a new PV. It has no restore-once ReplicationDestination, so nothing overwrites it on startup.
 
 `scripts/audit-volsync-openebs.sh` lists protected, excluded and unprotected PVCs, sync status, thin pool free space and Released PVs. Prometheus alerts when the VolSync metrics endpoint disappears, a volume is out of sync, or a source has never completed. Nothing alerts on thin pool usage; check `LVMNode` capacity and extend the pool before it fills.
 
