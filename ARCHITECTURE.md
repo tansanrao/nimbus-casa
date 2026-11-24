@@ -106,7 +106,7 @@ Dragonfly in `database` and `immich` provides the Redis-compatible cache. Karake
 - Ansible (`ansible/`) configures the VPS, `connector0`, `nexus-kb` and `gitlab0`.
 - talhelper (`talos-runner/`) configures `runner0`; its helmfile deploys gitlab-runner.
 
-Every host and the cluster run in UTC, and schedules are written in UTC. Daily jobs that matter to users, such as backups, upgrades and reboots, run between 07:00 and 09:00 UTC, which is 02:00 to 04:00 EST or 03:00 to 05:00 EDT, quiet hours on the US East Coast all year. Backups start at 07:00, Ubuntu hosts install upgrades from 07:00 and reboot at 08:30 when an upgrade needs it, and Recyclarr syncs at 08:00. Kubernetes CronJobs use the cluster's UTC clock even when the pod sets `TZ`.
+Every host and the cluster run in UTC, and schedules are written in UTC. Daily jobs that matter to users, such as backups, upgrades and reboots, run between 07:00 and 09:00 UTC, which is 02:00 to 04:00 EST or 03:00 to 05:00 EDT, quiet hours on the US East Coast all year. Backups start at 07:00, Ubuntu hosts install upgrades from 07:00 and reboot at 08:30 when an upgrade needs it, and Recyclarr syncs at 08:00. TrueNAS scrubs its pools from Sunday 07:00 when the last scrub is over 35 days old; that schedule lives in TrueNAS, not here. Kubernetes CronJobs use the cluster's UTC clock even when the pod sets `TZ`.
 
 Secrets are SOPS-encrypted with age: `*.sops.yaml` in `kubernetes/` and `talos/`, `group_vars/*.sops.yml` in `ansible/`. Kubernetes apps also read secrets from 1Password through External Secrets. Keep secrets out of OpenTofu state.
 
