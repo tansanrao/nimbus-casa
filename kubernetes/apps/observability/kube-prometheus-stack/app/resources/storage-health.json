@@ -16,7 +16,7 @@
   },
   "links": [
     {
-      "title": "Node health",
+      "title": "Homelab health overview",
       "type": "link",
       "url": "/d/node-health/node-health",
       "icon": "dashboard"

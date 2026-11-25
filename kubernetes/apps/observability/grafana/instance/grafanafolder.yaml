@@ -1,0 +1,25 @@
+---
+# Grafana's folders. Homelab dashboards and Node Exporter stay in General
+# (folder: General on the GrafanaDashboard); without a folder,
+# grafana-operator files a dashboard under its namespace's name.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: kubernetes
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana.internal/instance: grafana
+  uid: kubernetes
+  title: Kubernetes
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: observability-stack
+spec:
+  instanceSelector:
+    matchLabels:
+      grafana.internal/instance: grafana
+  uid: observability-stack
+  title: Observability Stack

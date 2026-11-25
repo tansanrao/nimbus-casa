@@ -38,3 +38,8 @@ spec:
             matchLabels:
               dashboards: null
               grafana.internal/instance: grafana
+          folderRef: observability-stack
+          # Titled "VictoriaLogs - single-node" upstream.
+          patch:
+            scripts:
+              - '.title = "VictoriaLogs"'

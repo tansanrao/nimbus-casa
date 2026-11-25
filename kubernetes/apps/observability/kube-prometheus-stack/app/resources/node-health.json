@@ -1,11 +1,11 @@
 {
   "uid": "node-health",
-  "title": "Node health",
+  "title": "Homelab health overview",
   "tags": [
     "homelab",
     "nodes"
   ],
-  "description": "High-level health of every host: k8s0, Proxmox, TrueNAS, connector0, gw0, nexus-kb and gitlab0. Node Exporter Full has every metric.",
+  "description": "High-level health of every host: k8s0, Proxmox, TrueNAS, connector0, gw0, nexus-kb and gitlab0. Node Exporter has every metric.",
   "editable": true,
   "graphTooltip": 1,
   "refresh": "1m",
@@ -16,7 +16,7 @@
   },
   "links": [
     {
-      "title": "Node Exporter Full",
+      "title": "Node Exporter",
       "type": "dashboards",
       "tags": [],
       "asDropdown": false,

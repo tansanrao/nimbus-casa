@@ -5,6 +5,7 @@ metadata:
   name: kubernetes-api-server
 spec:
   allowCrossNamespaceImport: true
+  folderRef: kubernetes
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -19,6 +20,7 @@ metadata:
   name: kubernetes-nodes
 spec:
   allowCrossNamespaceImport: true
+  folderRef: kubernetes
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -33,6 +35,7 @@ metadata:
   name: kubernetes-pods
 spec:
   allowCrossNamespaceImport: true
+  folderRef: kubernetes
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -47,6 +50,7 @@ metadata:
   name: kubernetes-namespaces
 spec:
   allowCrossNamespaceImport: true
+  folderRef: kubernetes
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -61,6 +65,11 @@ metadata:
   name: node-exporter-full
 spec:
   allowCrossNamespaceImport: true
+  folder: General
+  # Titled "Node Exporter Full" upstream.
+  patch:
+    scripts:
+      - '.title = "Node Exporter"'
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -75,6 +84,7 @@ metadata:
   name: prometheus
 spec:
   allowCrossNamespaceImport: true
+  folderRef: observability-stack
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -90,6 +100,7 @@ metadata:
   name: node-health
 spec:
   allowCrossNamespaceImport: true
+  folder: General
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -103,6 +114,7 @@ metadata:
   name: storage-health
 spec:
   allowCrossNamespaceImport: true
+  folder: General
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
@@ -116,6 +128,7 @@ metadata:
   name: cnpg-health
 spec:
   allowCrossNamespaceImport: true
+  folder: General
   instanceSelector:
     matchLabels:
       grafana.internal/instance: grafana
