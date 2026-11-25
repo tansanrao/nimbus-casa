@@ -1,4 +1,10 @@
 ---
+# ON HOLD: no cluster uses this component. With five lightly loaded databases
+# it costs more than it tells us; add it when a database gets slow and you need
+# to find out why. Its recording rules, the CNPGQueryLatencyHigh alert and the
+# "Query performance" dashboard row were removed with it; restore them from
+# commit 42cdd681 (prometheusrule.yaml, resources/cnpg-health.json).
+#
 # Query timing for one CloudNativePG cluster, next to components/cnpg. Adding
 # it restarts PostgreSQL once, because pg_stat_statements and auto_explain
 # must be preloaded; add it to one cluster at a time.
