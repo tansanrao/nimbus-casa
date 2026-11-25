@@ -11,6 +11,12 @@ spec:
   values:
     cleanPrometheusOperatorObjectNames: true
 
+    defaultRules:
+      disabled:
+        # Replaced in homelab-rules (node.rules) so sandcrawler can leave
+        # out its ZFS ARC.
+        NodeMemoryHighUtilization: true
+
     alertmanager:
       config:
         route:

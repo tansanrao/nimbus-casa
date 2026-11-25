@@ -42,8 +42,28 @@ spec:
 
     - name: node.rules
       rules:
-        # Memory and filesystem pressure are covered by the chart's
-        # NodeMemoryHighUtilization and NodeFilesystem* rules.
+        # Filesystem pressure is covered by the chart's NodeFilesystem* rules.
+        # The chart's NodeMemoryHighUtilization is disabled and replaced by
+        # this one. TrueNAS's ZFS ARC grows into free memory and is not
+        # counted in MemAvailable, so sandcrawler sits near 90% by design; for
+        # it, the rule measures memory used outside the ARC, at 70%.
+        - alert: NodeMemoryHighUtilization
+          expr: |
+            100 - (
+              node_memory_MemAvailable_bytes{job="node-exporter", instance!="sandcrawler"}
+              / node_memory_MemTotal_bytes{job="node-exporter", instance!="sandcrawler"} * 100
+            ) > 90
+            or
+            100 * (
+              node_memory_MemTotal_bytes{instance="sandcrawler"}
+              - node_memory_MemAvailable_bytes{instance="sandcrawler"}
+              - node_zfs_arc_size{instance="sandcrawler"}
+            ) / node_memory_MemTotal_bytes{instance="sandcrawler"} > 70
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "{{ $labels.instance }} has used {{ $value | printf \"%.0f\" }}% of its memory{{ if eq $labels.instance \"sandcrawler\" }} outside the ZFS ARC{{ end }} for 15 minutes"
         - alert: NodeOOMKill
           expr: increase(node_vmstat_oom_kill[10m]) > 0
           labels:
@@ -161,9 +181,9 @@ spec:
             summary: "{{ $labels.envoy_cluster_name }} returns {{ $value | humanizePercentage }} 5xx responses"
 
     # Hosts outside Kubernetes, from scrapeconfig.yaml. Their node_exporter
-    # shares k8s0's job, so the chart's Node* rules cover memory, filesystems,
-    # NIC errors and failed systemd units on them too. Only k8s0's own
-    # targets have a namespace label.
+    # shares k8s0's job, so the chart's Node* rules and node.rules above cover
+    # memory, filesystems, NIC errors and failed systemd units on them too.
+    # Only k8s0's own targets have a namespace label.
     - name: hosts.rules
       rules:
         # gw0 is scraped through connector0, so connector0 going down takes
