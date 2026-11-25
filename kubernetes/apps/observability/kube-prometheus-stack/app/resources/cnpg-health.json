@@ -16,6 +16,12 @@
   },
   "links": [
     {
+      "title": "Homelab health overview",
+      "type": "link",
+      "url": "/d/node-health/node-health",
+      "icon": "dashboard"
+    },
+    {
       "title": "Storage health",
       "type": "link",
       "url": "/d/storage-health/storage-health",

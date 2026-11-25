@@ -20,6 +20,12 @@
       "type": "link",
       "url": "/d/node-health/node-health",
       "icon": "dashboard"
+    },
+    {
+      "title": "PostgreSQL (CloudNativePG)",
+      "type": "link",
+      "url": "/d/cnpg-health/cnpg-health",
+      "icon": "dashboard"
     }
   ],
   "templating": {
