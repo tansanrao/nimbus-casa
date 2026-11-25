@@ -9,7 +9,7 @@ metadata:
   name: paradedb
 spec:
   instances: 1
-  imageName: docker.io/paradedb/paradedb:18-v0.26.6@sha256:4df3bcf9f19b32821446967f7874d1a40bee8b9550184cc0d70e93f51ee8af36
+  imageName: docker.io/paradedb/paradedb:18-v0.27.1@sha256:5b4acb9de782433c2c990d2285dcc66db7bf85a1f3b2bc2025ac4660408193e3
   # The ParadeDB image is based on the Docker Official postgres image.
   postgresUID: 999
   postgresGID: 999
