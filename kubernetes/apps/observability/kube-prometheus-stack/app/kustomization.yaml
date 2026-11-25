@@ -17,6 +17,9 @@ configMapGenerator:
   - name: grafana-dashboard-storage-health
     files:
       - ./resources/storage-health.json
+  - name: grafana-dashboard-cnpg-health
+    files:
+      - ./resources/cnpg-health.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

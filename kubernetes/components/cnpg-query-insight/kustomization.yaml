@@ -1,0 +1,21 @@
+---
+# Query timing for one CloudNativePG cluster, next to components/cnpg. Adding
+# it restarts PostgreSQL once, because pg_stat_statements and auto_explain
+# must be preloaded; add it to one cluster at a time.
+#
+# - pg_stat_statements: CloudNativePG adds it to shared_preload_libraries
+#   (merged with the cluster's own entries) and creates the extension in
+#   every database.
+# - Statements over 500 ms are logged with their text and parameters, and
+#   plans of those over 2 s through auto_explain. Both reach VictoriaLogs.
+# - query-metrics.yaml exports per-database totals and the top 20 statements
+#   by total time, labeled datname and queryid only.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ./query-metrics.yaml
+patches:
+  - path: ./cluster.yaml
+    target:
+      group: postgresql.cnpg.io
+      kind: Cluster

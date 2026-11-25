@@ -1,0 +1,77 @@
+---
+# Custom queries for CloudNativePG's exporter (cnpg_<query>_<column>). They
+# run as cnpg_metrics_exporter, which can read every database's statements
+# through pg_monitor, and are skipped until the extension exists.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "${CNPG_CLUSTER}-query-metrics"
+  labels:
+    cnpg.io/reload: ""
+data:
+  queries: |
+    pg_stat_statements_db:
+      target_databases: ["postgres"]
+      predicate_query: |
+        SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname = 'pg_stat_statements')
+      query: |
+        SELECT d.datname,
+               sum(s.calls) AS calls,
+               sum(s.total_exec_time) / 1000 AS exec_seconds,
+               sum(s.rows) AS rows,
+               sum(s.shared_blk_read_time + s.shared_blk_write_time) / 1000 AS io_seconds
+        FROM public.pg_stat_statements s
+        JOIN pg_catalog.pg_database d ON d.oid = s.dbid
+        GROUP BY d.datname
+      metrics:
+        - datname:
+            usage: LABEL
+            description: Database name
+        - calls:
+            usage: COUNTER
+            description: Statements executed
+        - exec_seconds:
+            usage: COUNTER
+            description: Time spent executing statements, in seconds
+        - rows:
+            usage: COUNTER
+            description: Rows returned or affected
+        - io_seconds:
+            usage: COUNTER
+            description: Time statements spent reading and writing blocks, in seconds (track_io_timing)
+
+    # The top 20 by total time since the statistics were reset. A statement
+    # leaving the top 20 stops reporting; its queryid matches the view and
+    # the query_id in the slow-statement log.
+    pg_stat_statements_top:
+      target_databases: ["postgres"]
+      predicate_query: |
+        SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname = 'pg_stat_statements')
+      query: |
+        SELECT d.datname,
+               s.queryid::text AS queryid,
+               sum(s.calls) AS calls,
+               sum(s.total_exec_time) / 1000 AS exec_seconds,
+               sum(s.rows) AS rows
+        FROM public.pg_stat_statements s
+        JOIN pg_catalog.pg_database d ON d.oid = s.dbid
+        WHERE s.queryid IS NOT NULL
+        GROUP BY d.datname, s.queryid
+        ORDER BY sum(s.total_exec_time) DESC
+        LIMIT 20
+      metrics:
+        - datname:
+            usage: LABEL
+            description: Database name
+        - queryid:
+            usage: LABEL
+            description: pg_stat_statements query ID
+        - calls:
+            usage: COUNTER
+            description: Executions
+        - exec_seconds:
+            usage: COUNTER
+            description: Time spent executing, in seconds
+        - rows:
+            usage: COUNTER
+            description: Rows returned or affected

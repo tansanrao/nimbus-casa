@@ -85,6 +85,64 @@ spec:
             severity: warning
           annotations:
             summary: "{{ $labels.namespace }}/{{ $labels.pod }} uses {{ $value | humanizePercentage }} of max_connections"
+        # Holds locks and stops vacuum from cleaning up until it ends.
+        - alert: CNPGIdleInTransaction
+          expr: max by (namespace, pod, datname, usename, application_name) (cnpg_backends_max_tx_duration_seconds{state=~"idle in transaction.*"}) > 1800
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "A {{ $labels.usename }} session has left a transaction open on {{ $labels.namespace }}/{{ $labels.pod }} database {{ $labels.datname }} for {{ $value | humanizeDuration }}"
+        # Anti-wraparound vacuum starts at 200M; past 1B it is not keeping up.
+        # PostgreSQL stops accepting writes near 2B.
+        - alert: CNPGTransactionIDAgeHigh
+          expr: max by (namespace, pod, datname) (cnpg_pg_database_xid_age) > 1e9
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "Database {{ $labels.datname }} on {{ $labels.namespace }}/{{ $labels.pod }} has a transaction ID age of {{ $value | humanize }}; vacuum is falling behind"
+        # Often a custom query in components/cnpg-query-insight that stopped
+        # working. Brief errors during restarts are normal.
+        - alert: CNPGMetricsCollectionFailing
+          expr: max by (namespace, pod) (cnpg_collector_last_collection_error) == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "CloudNativePG's exporter on {{ $labels.namespace }}/{{ $labels.pod }} fails to collect metrics; check the pod log for the failing query"
+
+    # From components/cnpg-query-insight. CloudNativePG's query metrics have
+    # no cluster label, so it comes from the pod name.
+    - name: cnpg-queries.rules
+      rules:
+        - record: cnpg:query_calls:rate5m
+          expr: |
+            label_replace(
+              sum by (namespace, pod, datname) (rate(cnpg_pg_stat_statements_db_calls[5m])),
+              "cluster", "$1", "pod", "(.+)-[0-9]+"
+            )
+        - record: cnpg:query_mean_seconds:rate5m
+          expr: |
+            label_replace(
+              sum by (namespace, pod, datname) (rate(cnpg_pg_stat_statements_db_exec_seconds[5m]))
+              / (sum by (namespace, pod, datname) (rate(cnpg_pg_stat_statements_db_calls[5m])) > 0),
+              "cluster", "$1", "pod", "(.+)-[0-9]+"
+            )
+        # Mean statement time at 3x its 7-day median. Ignores databases under
+        # 0.1 statements/s or 20 ms mean, and waits for a day of history.
+        - alert: CNPGQueryLatencyHigh
+          expr: |
+            cnpg:query_mean_seconds:rate5m
+              > 3 * quantile_over_time(0.5, cnpg:query_mean_seconds:rate5m[7d])
+            and cnpg:query_mean_seconds:rate5m > 0.02
+            and cnpg:query_calls:rate5m > 0.1
+            and count_over_time(cnpg:query_mean_seconds:rate5m[7d]) > 2880
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Queries on {{ $labels.cluster }} database {{ $labels.datname }} average {{ $value | humanizeDuration }}, over 3x their 7-day median"
 
     - name: flux.rules
       rules:

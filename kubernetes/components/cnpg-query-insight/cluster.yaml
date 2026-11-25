@@ -1,0 +1,18 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: _
+spec:
+  postgresql:
+    parameters:
+      pg_stat_statements.max: "5000"
+      pg_stat_statements.track: top
+      track_io_timing: "on"
+      log_min_duration_statement: 500ms
+      # Plans only; log_analyze would time every plan node of every query.
+      auto_explain.log_min_duration: 2s
+  monitoring:
+    customQueriesConfigMap:
+      - name: "${CNPG_CLUSTER}-query-metrics"
+        key: queries
