@@ -142,6 +142,13 @@ spec:
 
     prometheus-node-exporter:
       fullnameOverride: node-exporter
+      # instance is the node name (k8s0), like the hostnames of the hosts
+      # outside Kubernetes, instead of the pod address and port.
+      prometheus:
+        monitor:
+          relabelings:
+            - sourceLabels: [__meta_kubernetes_pod_node_name]
+              targetLabel: instance
 
     kube-state-metrics:
       fullnameOverride: kube-state-metrics

@@ -299,19 +299,6 @@
                 "value": 110
               },
               {
-                "id": "mappings",
-                "value": [
-                  {
-                    "type": "value",
-                    "options": {
-                      "10.10.40.40:9100": {
-                        "text": "k8s0"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
                 "id": "links",
                 "value": [
                   {

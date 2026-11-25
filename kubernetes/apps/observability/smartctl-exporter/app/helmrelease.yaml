@@ -1,0 +1,38 @@
+---
+# SMART health of k8s0's NVMe. The drive is passed through to the VM, so
+# Proxmox cannot see it; it is read from inside k8s0 instead. The disk alerts
+# in homelab-rules and the Node and Storage health dashboards match
+# smartctl_* already.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: smartctl-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: smartctl-exporter
+  interval: 1h
+  values:
+    fullnameOverride: smartctl-exporter
+    # The chart's RBAC only binds a PodSecurityPolicy role, which no longer
+    # exists in Kubernetes.
+    rbac:
+      create: false
+    config:
+      # Only the passed-through NVMe, named as node_exporter names it
+      # (nvme0n1, not the controller nvme0). The QEMU disks report no SMART.
+      devices:
+        - /dev/nvme0n1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+    serviceMonitor:
+      enabled: true
+      # The node name, the same instance as k8s0's node_exporter, so the
+      # dashboards' per-host filters and instance/device joins match.
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: instance

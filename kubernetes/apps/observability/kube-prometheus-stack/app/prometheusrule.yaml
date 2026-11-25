@@ -273,8 +273,9 @@ spec:
           annotations:
             summary: Garage on TrueNAS is unavailable; Postgres backups and WAL archiving fail
 
-    # TrueNAS reports through smartctl_exporter (smartctl_*), Proxmox's NVMe
-    # drives through the textfile collector (nvme_*). Rules match either.
+    # TrueNAS and k8s0's passed-through NVMe report through smartctl_exporter
+    # (smartctl_*), Proxmox's NVMe drives through the textfile collector
+    # (nvme_*). Rules match either.
     - name: disks.rules
       rules:
         - alert: DiskSMARTFailed
