@@ -27,7 +27,13 @@ firewall_tcp_allow_rules:
   - { port: 10022, source: "{{ gitlab_connector_ipv4 }}" }
   - { port: 10080, source: "{{ gitlab_connector_ipv4 }}" }
   - { port: 10443, source: "{{ gitlab_connector_ipv4 }}" }
+  - { port: 9100, source: "{{ monitoring_prometheus_source }}" }
 firewall_udp_allow_rules: []
+
+monitoring_agent_listen_address: "{{ gitlab_ipv4 }}"
+monitoring_agent_extra_systemd_units:
+  - gitlab-runsvdir
+  - haproxy
 
 haproxy_role: forwards
 haproxy_health_bind: 127.0.0.1:8404

@@ -5,7 +5,7 @@
     "homelab",
     "nodes"
   ],
-  "description": "High-level health of every host: k8s0, Proxmox, TrueNAS, connector0, gw0 and nexus-kb. Node Exporter Full has every metric.",
+  "description": "High-level health of every host: k8s0, Proxmox, TrueNAS, connector0, gw0, nexus-kb and gitlab0. Node Exporter Full has every metric.",
   "editable": true,
   "graphTooltip": 1,
   "refresh": "1m",
@@ -91,7 +91,7 @@
     {
       "type": "table",
       "title": "Hosts",
-      "description": "One row per host. Click a host to select it below. Failed units only exist on systemd hosts, temperatures only where the kernel exposes sensors, and nexus-kb shows only Up until its node_exporter is installed.",
+      "description": "One row per host. Click a host to select it below. Failed units only exist on systemd hosts, and temperatures only where the kernel exposes sensors.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"

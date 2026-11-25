@@ -96,6 +96,7 @@ spec:
             - 10.10.1.20/32 # Proxmox, MGMT address
             - 10.10.40.21/32 # connector0, also relaying gw0
             - 10.10.40.23/32 # nexus-kb
+            - 10.10.40.24/32 # gitlab0
 ---
 # Every other write and admin path.
 apiVersion: gateway.networking.k8s.io/v1

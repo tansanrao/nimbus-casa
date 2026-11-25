@@ -7,7 +7,7 @@ Configures the hosts outside Kubernetes. All of them run UTC.
 | `vps` | `gw0.kiad.tansanrao.net` (user `root`) | ssh_access, common, firewall, wireguard, acme_certificate, haproxy, gatus, monitoring_agent |
 | `connector` | `connector0`, `10.10.40.21` (user `ubuntu`) | ssh_access, common, firewall, wireguard, haproxy, monitoring_agent |
 | `nexus_kb` | `nexus-kb`, `10.10.40.23` (user `ubuntu`) | ssh_access, common, docker, nexus, monitoring_agent |
-| `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | ssh_access, common, firewall, haproxy, gitlab |
+| `gitlab` | `gitlab0`, `10.10.40.24` port 2022 (user `ubuntu`) | ssh_access, common, firewall, haproxy, gitlab, monitoring_agent |
 | `proxmox` | `pve`, `10.10.1.20` (user `root`) | ssh_access, monitoring_agent, proxmox_monitoring |
 
 The VPS also runs `floating_ip`, which keeps GitLab's Floating IP on `eth0`.
@@ -24,7 +24,7 @@ Other accounts, such as root on the Ubuntu VMs, are left alone.
 
 ## Monitoring
 
-`monitoring_agent` installs Debian's `prometheus-node-exporter` and `systemd-journal-remote` on every host but gitlab0:
+`monitoring_agent` installs Debian's `prometheus-node-exporter` and `systemd-journal-remote` on every host:
 
 - node_exporter listens on `monitoring_agent_listen_address`, with the systemd collector for the units in `monitoring_agent_systemd_units` and `monitoring_agent_extra_systemd_units`. Prometheus in k8s0 scrapes it from `monitoring_prometheus_source` (`group_vars/all.yml`).
 - `systemd-journal-upload` sends the journal to `monitoring_agent_journal_upload_url`. Its first start begins at the newest entry instead of uploading the whole journal. VictoriaLogs accepts uploads only from the addresses allowlisted in `kubernetes/apps/observability/victoria-logs/app/httproute.yaml`; add a new host there too.

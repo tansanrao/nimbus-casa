@@ -28,6 +28,9 @@ spec:
     - targets: ["10.10.40.23:9100"]
       labels:
         instance: nexus-kb
+    - targets: ["10.10.40.24:9100"]
+      labels:
+        instance: gitlab0
 ---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: ScrapeConfig

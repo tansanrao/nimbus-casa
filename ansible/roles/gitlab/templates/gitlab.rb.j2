@@ -28,8 +28,10 @@ puma['worker_processes'] = {{ gitlab_puma_workers }}
 sidekiq['concurrency'] = {{ gitlab_sidekiq_concurrency }}
 
 # Keep the exporters; the bundled Prometheus and Alertmanager are not used.
+# monitoring_agent's node_exporter replaces the bundled one.
 prometheus['enable'] = false
 alertmanager['enable'] = false
+node_exporter['enable'] = false
 gitlab_rails['monitoring_whitelist'] = {{ gitlab_monitoring_allowlist | to_json }}
 
 gitlab_rails['rack_attack_git_basic_auth'] = {

@@ -155,7 +155,9 @@
     - role: common
     - role: firewall
     - role: haproxy
+    # After gitlab, which stops Omnibus's own node_exporter on port 9100.
     - role: gitlab
+    - role: monitoring_agent
 
 # SSH keys and monitoring only; Proxmox manages everything else on
 # its host. The first run needs your SSH key in root's authorized_keys there.
