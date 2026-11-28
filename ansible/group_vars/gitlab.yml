@@ -52,7 +52,7 @@ gitlab_hostname: code.twicecooked.software
 gitlab_registry_hostname: registry.twicecooked.software
 # Docker Hub tags match the apt package versions.
 # renovate: datasource=docker depName=gitlab/gitlab-ee
-gitlab_version: 19.5.9-ee.0
+gitlab_version: 19.6.2-ee.0
 
 # HTTP-01 through 5.161.18.14:80. Needs both hostnames to resolve publicly to
 # the Floating IP.
